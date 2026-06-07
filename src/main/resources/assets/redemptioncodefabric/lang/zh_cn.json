@@ -11,5 +11,22 @@
   "redemptioncodefabric.message.no_item_in_hand": "你主手上没有物品！",
   "redemptioncodefabric.message.unknown_item_id": "未知的物品ID: %s",
   "redemptioncodefabric.message.unsupported_reward_format": "不支持的奖励格式。有效格式: item@<id>{nbt}, [hand], exp@<amount>[P|L], permissions@<level>",
-  "redemptioncodefabric.message.player_only_command": "该指令只能由玩家执行。"
+  "redemptioncodefabric.message.player_only_command": "该指令只能由玩家执行。",
+  "redemptioncodefabric.message.code_deleted_success": "兑换码 '%s' 已成功删除。",
+  "redemptioncodefabric.message.code_delete_fail": "兑换码 '%s' 不存在，无法删除。",
+  "redemptioncodefabric.message.code_not_found": "兑换码不存在。",
+  "redemptioncodefabric.message.code_exists_unused": "兑换码 '%s' 已存在但尚未使用。",
+  "redemptioncodefabric.message.code_exists_used": "兑换码 '%s' 已存在且已被使用。",
+  "redemptioncodefabric.message.overwrite_button": "[覆盖]",
+  "redemptioncodefabric.message.info_header": "--- 兑换码 %s 详情 ---",
+  "redemptioncodefabric.message.info_type": "类型: %s",
+  "redemptioncodefabric.message.info_reward": "奖励: %s",
+  "redemptioncodefabric.message.info_player": "指定玩家: %s",
+  "redemptioncodefabric.message.info_uses_left": "剩余次数: %s",
+  "redemptioncodefabric.message.info_start_time": "开始时间: %s",
+  "redemptioncodefabric.message.info_end_time": "结束时间: %s",
+  "redemptioncodefabric.message.info_interval": "间隔: %s 秒",
+  "redemptioncodefabric.message.info_used_by_header": "已使用玩家 (%s):",
+  "redemptioncodefabric.message.info_used_by_entry": " - %s",
+  "redemptioncodefabric.message.info_footer": "---------------------------"
 }

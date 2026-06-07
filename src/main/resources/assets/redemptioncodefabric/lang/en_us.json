@@ -11,5 +11,22 @@
   "redemptioncodefabric.message.no_item_in_hand": "You have no item in your main hand!",
   "redemptioncodefabric.message.unknown_item_id": "Unknown item ID: %s",
   "redemptioncodefabric.message.unsupported_reward_format": "Unsupported reward format. Valid formats: item@<id>{nbt}, [hand], exp@<amount>[P|L], permissions@<level>",
-  "redemptioncodefabric.message.player_only_command": "This command can only be executed by a player."
+  "redemptioncodefabric.message.player_only_command": "This command can only be executed by a player.",
+  "redemptioncodefabric.message.code_deleted_success": "Code '%s' has been successfully deleted.",
+  "redemptioncodefabric.message.code_delete_fail": "Code '%s' not found and could not be deleted.",
+  "redemptioncodefabric.message.code_not_found": "Redemption code not found.",
+  "redemptioncodefabric.message.code_exists_unused": "Code '%s' already exists but has not been used. ",
+  "redemptioncodefabric.message.code_exists_used": "Code '%s' already exists and has been used. ",
+  "redemptioncodefabric.message.overwrite_button": "[Overwrite]",
+  "redemptioncodefabric.message.info_header": "--- Details for Code %s ---",
+  "redemptioncodefabric.message.info_type": "Type: %s",
+  "redemptioncodefabric.message.info_reward": "Reward: %s",
+  "redemptioncodefabric.message.info_player": "Designated Player: %s",
+  "redemptioncodefabric.message.info_uses_left": "Uses Left: %s",
+  "redemptioncodefabric.message.info_start_time": "Start Time: %s",
+  "redemptioncodefabric.message.info_end_time": "End Time: %s",
+  "redemptioncodefabric.message.info_interval": "Interval: %s seconds",
+  "redemptioncodefabric.message.info_used_by_header": "Used By (%s):",
+  "redemptioncodefabric.message.info_used_by_entry": " - %s",
+  "redemptioncodefabric.message.info_footer": "---------------------------"
 }

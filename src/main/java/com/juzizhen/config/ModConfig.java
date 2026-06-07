@@ -40,6 +40,9 @@ public class ModConfig {
         if (CONFIG.adminPassword == null || CONFIG.adminPassword.isEmpty()) {
             CONFIG.adminPassword = Utils.generateRandomString(16);
         }
+        if (CONFIG.dataStoragePattern < 0 || CONFIG.dataStoragePattern > 2) {
+            CONFIG.dataStoragePattern = 0;
+        }
 
         save();
     }

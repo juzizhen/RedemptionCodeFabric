@@ -5,15 +5,23 @@ import com.juzizhen.rcode.command.RCodeCommand;
 import com.juzizhen.rcode.manager.CodeManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class RedemptionCodeFabric implements ModInitializer {
 	public static final String MOD_ID = "redemptioncodefabric";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static CodeManager codeManager;
+	private static final Set<UUID> playersWithMod = new HashSet<>();
 
 	@Override
 	public void onInitialize() {
@@ -22,6 +30,19 @@ public class RedemptionCodeFabric implements ModInitializer {
 		RCodeCommand.register();
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> codeManager = new CodeManager(server));
+
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			Identifier channelId = new Identifier(MOD_ID, "inst_mod");
+			if (ServerPlayNetworking.canSend(handler, channelId)) {
+				playersWithMod.add(handler.player.getUuid());
+			}
+		});
+
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> playersWithMod.remove(handler.player.getUuid()));
+	}
+
+	public static boolean hasMod(UUID playerUuid) {
+		return playersWithMod.contains(playerUuid);
 	}
 
 	public static String getModVersion() {
