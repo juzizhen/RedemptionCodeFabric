@@ -3,15 +3,15 @@
 	"id": "redemptioncodefabric",
 	"version": "${version}",
 	"name": "RedemptionCodeFabric",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "This is a redemption code mod that only requires server installation.",
 	"authors": [
-		"Me!"
+		"juzizhen"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/juzizhen/RedemptionCodeFabric",
+		"sources": "https://github.com/juzizhen/RedemptionCodeFabric"
 	},
-	"license": "CC0-1.0",
+	"license": "GPL-3.0",
 	"icon": "assets/redemptioncodefabric/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -23,7 +23,7 @@
 		"redemptioncodefabric.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.19.3",
+		"fabricloader": ">=0.18.4",
 		"minecraft": "~1.20.1",
 		"java": ">=17",
 		"fabric-api": "*"
