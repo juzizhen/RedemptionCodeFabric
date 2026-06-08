@@ -8,16 +8,12 @@ import com.juzizhen.rcode.model.CodeData;
 import com.juzizhen.rcode.model.OperationLogEntry;
 import net.fabricmc.loader.api.FabricLoader;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class FileRepository implements IDataRepository {
 
@@ -59,22 +55,31 @@ public class FileRepository implements IDataRepository {
     }
 
     @Override
+    public void saveCode(CodeData codeData) {
+        updateCodes(codes -> codes.put(codeData.getCode(), codeData));
+    }
+
+    @Override
+    public void removeCode(String code) {
+        updateCodes(codes -> codes.remove(code));
+    }
+
+    /**
+     * A helper method to atomically update the codes file.
+     * It reads the current codes, applies a modification, and writes them back.
+     * @param updater A consumer that modifies the map of codes.
+     */
+    private synchronized void updateCodes(Consumer<Map<String, CodeData>> updater) {
+        Map<String, CodeData> codes = loadAllCodes();
+        updater.accept(codes);
+        saveAllCodes(codes);
+    }
+
+    @Override
     public void appendOperationLog(OperationLogEntry logEntry) {
-        List<OperationLogEntry> logs = new ArrayList<>();
-        if (LOG_FILE.exists()) {
-            try (FileReader reader = new FileReader(LOG_FILE)) {
-                Type type = new TypeToken<List<OperationLogEntry>>() {}.getType();
-                List<OperationLogEntry> existingLogs = GSON.fromJson(reader, type);
-                if (existingLogs != null) {
-                    logs.addAll(existingLogs);
-                }
-            } catch (IOException e) {
-                RedemptionCodeFabric.LOGGER.error("Failed to read operation log", e);
-            }
-        }
-        logs.add(logEntry);
-        try (FileWriter writer = new FileWriter(LOG_FILE)) {
-            GSON.toJson(logs, writer);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE, true))) {
+            writer.write(GSON.toJson(logEntry));
+            writer.newLine();
         } catch (IOException e) {
             RedemptionCodeFabric.LOGGER.error("Failed to write operation log", e);
         }

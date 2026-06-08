@@ -21,10 +21,26 @@ public interface IDataRepository {
 
     /**
      * Saves all redemption codes to the data source.
+     * This is intended for full persistence, e.g., on server shutdown.
      *
      * @param codes The map of codes to save.
      */
     void saveAllCodes(Map<String, CodeData> codes);
+
+    /**
+     * Saves or updates a single redemption code.
+     *
+     * @param codeData The code data to save.
+     */
+    void saveCode(CodeData codeData);
+
+    /**
+     * Deletes a single redemption code from the data source.
+     *
+     * @param code The code to delete.
+     */
+    void removeCode(String code);
+
 
     /**
      * Appends a new operation log entry to the log file.

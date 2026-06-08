@@ -1,7 +1,6 @@
 package com.juzizhen.rcode.command;
 
 import com.juzizhen.RedemptionCodeFabric;
-import com.juzizhen.config.ModConfig;
 import com.juzizhen.rcode.model.CodeData;
 import com.juzizhen.rcode.model.CodeType;
 import com.juzizhen.util.MessageUtils;
@@ -288,7 +287,7 @@ public class RCodeCommand {
     }
 
     private static int executeReload(CommandContext<ServerCommandSource> context) {
-        ModConfig.load();
+        RedemptionCodeFabric.reloadConfig();
         MessageUtils.sendFeedback(context.getSource(), "redemptioncodefabric.message.config_reloaded", true);
         return 1;
     }

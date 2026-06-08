@@ -1,11 +1,12 @@
 package com.juzizhen.rcode.manager;
 
 import com.juzizhen.RedemptionCodeFabric;
+import com.juzizhen.config.Config;
 import com.juzizhen.rcode.model.CodeData;
 import com.juzizhen.rcode.model.CodeType;
 import com.juzizhen.rcode.model.OperationLogEntry;
-import com.juzizhen.rcode.repository.FileRepository;
 import com.juzizhen.rcode.repository.IDataRepository;
+import com.juzizhen.rcode.repository.RepositoryFactory;
 import com.juzizhen.util.MessageUtils;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.item.ItemStack;
@@ -28,8 +29,8 @@ public class CodeManager {
     private final IDataRepository repository;
     private final Map<String, CodeData> codes;
 
-    public CodeManager() {
-        this.repository = new FileRepository();
+    public CodeManager(Config config) {
+        this.repository = RepositoryFactory.create(config);
         this.codes = repository.loadAllCodes();
     }
 
@@ -39,7 +40,7 @@ public class CodeManager {
 
     public void addCode(CodeData codeData, String executorName) {
         codes.put(codeData.getCode(), codeData);
-        repository.saveAllCodes(codes);
+        repository.saveCode(codeData); // Use incremental save
 
         Map<String, String> details = new LinkedHashMap<>();
         details.put("code", codeData.getCode());
@@ -57,7 +58,7 @@ public class CodeManager {
     public boolean deleteCode(String code, String executorName) {
         if (codes.containsKey(code)) {
             CodeData deletedCode = codes.remove(code);
-            repository.saveAllCodes(codes);
+            repository.removeCode(code); // Use incremental delete
             Map<String, String> details = new HashMap<>();
             details.put("code", code);
             details.put("type", deletedCode.getType().name());
@@ -310,6 +311,6 @@ public class CodeManager {
 
     private void recordUsage(CodeData codeData, String playerUUID, long currentTime) {
         codeData.addUsedBy(playerUUID, currentTime);
-        repository.saveAllCodes(codes);
+        repository.saveCode(codeData); // Use incremental save for usage recording
     }
 }
