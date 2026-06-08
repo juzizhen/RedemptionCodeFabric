@@ -2,9 +2,9 @@ package com.juzizhen.rcode.command;
 
 import com.juzizhen.RedemptionCodeFabric;
 import com.juzizhen.config.ModConfig;
-import com.juzizhen.rcode.manager.CodeManager;
 import com.juzizhen.rcode.model.CodeData;
 import com.juzizhen.rcode.model.CodeType;
+import com.juzizhen.util.MessageUtils;
 import com.juzizhen.util.Utils;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -24,7 +24,6 @@ import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -71,14 +70,13 @@ public class RCodeCommand {
         }
 
         CodeData existingCode = RedemptionCodeFabric.codeManager.getCode(code);
-        UUID playerUuid = context.getSource().getPlayer() != null ? context.getSource().getPlayer().getUuid() : null;
 
         if (existingCode != null && !cover) {
             MutableText message;
             if (existingCode.getUsedBy().isEmpty()) {
-                message = (MutableText) CodeManager.createTextForPlayer(playerUuid, "redemptioncodefabric.message.code_exists_unused", code);
+                message = (MutableText) MessageUtils.createText(context.getSource(), "redemptioncodefabric.message.code_exists_unused", code);
             } else {
-                message = (MutableText) CodeManager.createTextForPlayer(playerUuid, "redemptioncodefabric.message.code_exists_used", code);
+                message = (MutableText) MessageUtils.createText(context.getSource(), "redemptioncodefabric.message.code_exists_used", code);
                 List<Text> userTexts = new ArrayList<>();
                 for (String uuid : existingCode.getUsedBy()) {
                     userTexts.add(Text.literal(uuid).setStyle(Text.empty().getStyle().withColor(Formatting.AQUA).withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid))));
@@ -87,7 +85,7 @@ public class RCodeCommand {
             }
 
             String newCommand = "/" + context.getInput().replaceFirst(" cover$", "") + " cover";
-            message.append(Text.literal(" ").append(CodeManager.createTextForPlayer(playerUuid, "redemptioncodefabric.message.overwrite_button")
+            message.append(Text.literal(" ").append(MessageUtils.createText(context.getSource(), "redemptioncodefabric.message.overwrite_button")
                     .copy().setStyle(Text.empty().getStyle()
                             .withColor(Formatting.RED)
                             .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, newCommand))
@@ -105,7 +103,7 @@ public class RCodeCommand {
         RedemptionCodeFabric.codeManager.addCode(codeData);
 
         MutableText codeText = Text.literal(code).setStyle(Text.empty().getStyle().withColor(Formatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, code)).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("点击复制"))));
-        context.getSource().sendFeedback(() -> CodeManager.createTextForPlayer(playerUuid, "redemptioncodefabric.message.generate_success", type.name(), codeText.getString(), parsedReward), false);
+        MessageUtils.sendFeedback(context.getSource(), "redemptioncodefabric.message.generate_success", false,type.name(), codeText.getString(), parsedReward);
         return 1;
     }
 
@@ -114,7 +112,7 @@ public class RCodeCommand {
             ServerPlayerEntity player = source.getPlayerOrThrow();
             ItemStack handStack = player.getMainHandStack();
             if (handStack.isEmpty()) {
-                source.sendError(CodeManager.createTextForPlayer(player.getUuid(), "redemptioncodefabric.message.no_item_in_hand"));
+                MessageUtils.sendError(source, "redemptioncodefabric.message.no_item_in_hand");
                 return null;
             }
             Identifier id = Registries.ITEM.getId(handStack.getItem());
@@ -128,35 +126,30 @@ public class RCodeCommand {
     }
 
     private static int executeRedeem(CommandContext<ServerCommandSource> context) {
-        try {
-            Text result = RedemptionCodeFabric.codeManager.redeemCode(StringArgumentType.getString(context, "code"), context.getSource().getPlayerOrThrow());
-            context.getSource().sendFeedback(() -> result, false);
-        } catch (CommandSyntaxException e) {
-            context.getSource().sendError(CodeManager.createTextForPlayer(null, "redemptioncodefabric.message.player_only_command"));
-        }
+        Text result = RedemptionCodeFabric.codeManager.redeemCode(context.getSource(), StringArgumentType.getString(context, "code"));
+        context.getSource().sendFeedback(() -> result, false);
         return 1;
     }
 
     private static int executeReload(CommandContext<ServerCommandSource> context) {
         ModConfig.load();
-        context.getSource().sendFeedback(() -> Text.literal("配置已重新加载。"), true);
+        MessageUtils.sendFeedback(context.getSource(), "redemptioncodefabric.message.config_reloaded", true);
         return 1;
     }
 
     private static int executeDelete(CommandContext<ServerCommandSource> context) {
         String code = StringArgumentType.getString(context, "code");
         boolean success = RedemptionCodeFabric.codeManager.deleteCode(code);
-        UUID playerUuid = context.getSource().getPlayer() != null ? context.getSource().getPlayer().getUuid() : null;
         if (success) {
-            context.getSource().sendFeedback(() -> CodeManager.createTextForPlayer(playerUuid, "redemptioncodefabric.message.code_deleted_success", code), true);
+            MessageUtils.sendFeedback(context.getSource(), "redemptioncodefabric.message.code_deleted_success", true, code);
         } else {
-            context.getSource().sendError(CodeManager.createTextForPlayer(playerUuid, "redemptioncodefabric.message.code_delete_fail", code));
+            MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.code_delete_fail", code);
         }
         return 1;
     }
 
     private static int executeInfo(CommandContext<ServerCommandSource> context) {
-        Text info = RedemptionCodeFabric.codeManager.getCodeInfo(StringArgumentType.getString(context, "code"));
+        Text info = RedemptionCodeFabric.codeManager.getCodeInfo(context.getSource(), StringArgumentType.getString(context, "code"));
         context.getSource().sendFeedback(() -> info, false);
         return 1;
     }

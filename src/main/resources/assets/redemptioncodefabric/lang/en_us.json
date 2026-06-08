@@ -28,5 +28,6 @@
   "redemptioncodefabric.message.info_interval": "Interval: %s seconds",
   "redemptioncodefabric.message.info_used_by_header": "Used By (%s):",
   "redemptioncodefabric.message.info_used_by_entry": " - %s",
-  "redemptioncodefabric.message.info_footer": "---------------------------"
+  "redemptioncodefabric.message.info_footer": "---------------------------",
+  "redemptioncodefabric.message.config_reloaded": "Config reloaded!"
 }

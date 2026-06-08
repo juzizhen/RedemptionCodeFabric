@@ -17,6 +17,9 @@
 	"entrypoints": {
 		"main": [
 			"com.juzizhen.RedemptionCodeFabric"
+		],
+		"client": [
+			"com.juzizhen.RedemptionCodeFabricClient"
 		]
 	},
 	"mixins": [

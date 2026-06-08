@@ -21,6 +21,8 @@ public class RedemptionCodeFabric implements ModInitializer {
 	public static final String MOD_ID = "redemptioncodefabric";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static CodeManager codeManager;
+
+	public static final Identifier MOD_PRESENCE_CHANNEL = new Identifier(MOD_ID, "presence");
 	private static final Set<UUID> playersWithMod = new HashSet<>();
 
 	@Override
@@ -29,12 +31,14 @@ public class RedemptionCodeFabric implements ModInitializer {
 		ModConfig.onInitialize();
 		RCodeCommand.register();
 
-		ServerLifecycleEvents.SERVER_STARTING.register(server -> codeManager = new CodeManager(server));
+		ServerLifecycleEvents.SERVER_STARTING.register(server -> codeManager = new CodeManager());
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			Identifier channelId = new Identifier(MOD_ID, "inst_mod");
-			if (ServerPlayNetworking.canSend(handler, channelId)) {
+			if (ServerPlayNetworking.canSend(handler, MOD_PRESENCE_CHANNEL)) {
 				playersWithMod.add(handler.player.getUuid());
+				LOGGER.info("Player {} joined with RedemptionCodeFabric mod.", handler.player.getName().getString());
+			} else {
+				LOGGER.info("Player {} joined without RedemptionCodeFabric mod.", handler.player.getName().getString());
 			}
 		});
 

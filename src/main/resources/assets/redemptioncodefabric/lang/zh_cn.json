@@ -28,5 +28,6 @@
   "redemptioncodefabric.message.info_interval": "间隔: %s 秒",
   "redemptioncodefabric.message.info_used_by_header": "已使用玩家 (%s):",
   "redemptioncodefabric.message.info_used_by_entry": " - %s",
-  "redemptioncodefabric.message.info_footer": "---------------------------"
+  "redemptioncodefabric.message.info_footer": "---------------------------",
+  "redemptioncodefabric.message.config_reloaded": "配置已重新加载！"
 }
