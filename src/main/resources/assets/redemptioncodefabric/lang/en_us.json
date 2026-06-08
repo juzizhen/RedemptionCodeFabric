@@ -29,5 +29,12 @@
   "redemptioncodefabric.message.info_used_by_header": "Used By (%s):",
   "redemptioncodefabric.message.info_used_by_entry": " - %s",
   "redemptioncodefabric.message.info_footer": "---------------------------",
-  "redemptioncodefabric.message.config_reloaded": "Config reloaded!"
+  "redemptioncodefabric.message.config_reloaded": "Config reloaded!",
+  "redemptioncodefabric.message.info_player_group": "Designated for a group of %s players.",
+  "redemptioncodefabric.message.limit_cannot_be_zero": "Limit cannot be zero.",
+  "redemptioncodefabric.message.invalid_date_format": "Invalid date format. Please use yyyy-MM-dd_HH-mm-ss, or 0-0-0_0-0-0 for the current time.",
+  "redemptioncodefabric.message.copy_to_clipboard": "Click to copy",
+  "redemptioncodefabric.message.generate_success_simple": "Generated %s code: ",
+  "redemptioncodefabric.message.code_out_of_time": "This code is not active at this time.",
+  "redemptioncodefabric.message.code_not_yet_active": "This code is not yet active."
 }

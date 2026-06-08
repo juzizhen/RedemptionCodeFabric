@@ -29,5 +29,12 @@
   "redemptioncodefabric.message.info_used_by_header": "已使用玩家 (%s):",
   "redemptioncodefabric.message.info_used_by_entry": " - %s",
   "redemptioncodefabric.message.info_footer": "---------------------------",
-  "redemptioncodefabric.message.config_reloaded": "配置已重新加载！"
+  "redemptioncodefabric.message.config_reloaded": "配置已重新加载！",
+  "redemptioncodefabric.message.info_player_group": "指定给一个 %s 人的玩家组。",
+  "redemptioncodefabric.message.limit_cannot_be_zero": "限制数量不能为零。",
+  "redemptioncodefabric.message.invalid_date_format": "无效的日期格式。请使用 yyyy-MM-dd_HH-mm-ss，或使用 0-0-0_0-0-0 代表当前时间。",
+  "redemptioncodefabric.message.copy_to_clipboard": "点击复制",
+  "redemptioncodefabric.message.generate_success_simple": "生成了 %s 兑换码: ",
+  "redemptioncodefabric.message.code_out_of_time": "此兑换码当前不在可用时间内。",
+  "redemptioncodefabric.message.code_not_yet_active": "此兑换码尚未生效。"
 }
