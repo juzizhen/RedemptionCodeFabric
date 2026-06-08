@@ -1,9 +1,8 @@
 package com.juzizhen.rcode.repository;
 
 import com.juzizhen.rcode.model.CodeData;
-import com.juzizhen.rcode.model.UsageData;
+import com.juzizhen.rcode.model.OperationLogEntry;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,16 +27,9 @@ public interface IDataRepository {
     void saveAllCodes(Map<String, CodeData> codes);
 
     /**
-     * Loads the entire usage history from the data source.
+     * Appends a new operation log entry to the log file.
      *
-     * @return A list of all usage data entries.
+     * @param logEntry The log entry to append.
      */
-    List<UsageData> loadAllUsageData();
-
-    /**
-     * Saves the entire usage history to the data source.
-     *
-     * @param usageHistory The list of usage data to save.
-     */
-    void saveAllUsageData(List<UsageData> usageHistory);
+    void appendOperationLog(OperationLogEntry logEntry);
 }

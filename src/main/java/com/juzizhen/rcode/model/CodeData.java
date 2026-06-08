@@ -1,18 +1,20 @@
 package com.juzizhen.rcode.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CodeData {
     private final String code;
     private final CodeType type;
     private final String reward;
     private final String player; // For PERSONAL codes
-    private int count; // For GLOBAL_LIMIT codes
+    private final int count; // For GLOBAL_LIMIT codes
     private final long startTime; // For TIMED and CYCLE codes
     private final long endTime; // For TIMED codes
     private final long interval; // For CYCLE codes
-    private List<String> usedBy; // To track who has used the code
+    private Map<String, List<Long>> usedBy; // To track who has used the code and when
 
     public CodeData(String code, CodeType type, String reward, String player, int count, long startTime, long endTime, long interval) {
         this.code = code;
@@ -23,7 +25,7 @@ public class CodeData {
         this.startTime = startTime;
         this.endTime = endTime;
         this.interval = interval;
-        this.usedBy = new ArrayList<>();
+        this.usedBy = new HashMap<>(); // Initialize as HashMap
     }
 
     // Getters and setters
@@ -47,10 +49,6 @@ public class CodeData {
         return count;
     }
 
-    public void setCount(int count) {
-        this.count = count;
-    }
-
     public long getStartTime() {
         return startTime;
     }
@@ -63,14 +61,18 @@ public class CodeData {
         return interval;
     }
 
-    public List<String> getUsedBy() {
+    public Map<String, List<Long>> getUsedBy() {
+        // Ensure it's never null, especially after deserialization
+        if (usedBy == null) {
+            usedBy = new HashMap<>();
+        }
         return usedBy;
     }
 
-    public void addUsedBy(String playerUUID) {
+    public void addUsedBy(String playerUUID, long timestamp) {
         if (this.usedBy == null) {
-            this.usedBy = new ArrayList<>();
+            this.usedBy = new HashMap<>();
         }
-        this.usedBy.add(playerUUID);
+        this.usedBy.computeIfAbsent(playerUUID, k -> new ArrayList<>()).add(timestamp);
     }
 }

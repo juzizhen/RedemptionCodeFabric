@@ -31,7 +31,10 @@ import net.minecraft.util.UserCache;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -56,7 +59,7 @@ public class RCodeCommand {
             var rewardArg = argument("reward", StringArgumentType.greedyString());
 
             if (type == CodeType.PERSONAL) {
-                var playerArg = argument("player", EntityArgumentType.player());
+                var playerArg = argument("player", EntityArgumentType.players());
                 var withCode = literal("code")
                         .then(argument("code", StringArgumentType.string())
                                 .then(playerArg.then(rewardArg.executes(RCodeCommand::executeGenerate))));
@@ -124,7 +127,7 @@ public class RCodeCommand {
             } else {
                 message = (MutableText) MessageUtils.createText(context.getSource(), "redemptioncodefabric.message.code_exists_used", code);
                 List<Text> userTexts = new ArrayList<>();
-                for (String uuid : existingCode.getUsedBy()) {
+                for (String uuid : existingCode.getUsedBy().keySet()) {
                     userTexts.add(Text.literal(uuid).setStyle(Text.empty().getStyle().withColor(Formatting.AQUA).withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid))));
                 }
                 message.append(Text.literal(" ").append(Texts.join(userTexts, Text.literal(", "))));
@@ -154,8 +157,8 @@ public class RCodeCommand {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 
         if (type == CodeType.PERSONAL) {
-            ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-            owner = player.getUuidAsString();
+            Collection<ServerPlayerEntity> players = EntityArgumentType.getPlayers(context, "player");
+            owner = players.stream().map(p -> p.getUuid().toString()).collect(Collectors.joining(","));
         } else if (type == CodeType.GLOBAL_LIMIT) {
             int limit = IntegerArgumentType.getInteger(context, "limit");
             if (limit == 0) {
@@ -191,9 +194,8 @@ public class RCodeCommand {
 
                 Comparator<ScoreboardPlayerScore> comparator = Comparator.comparingInt(ScoreboardPlayerScore::getScore);
                 if (limit > 0) {
-                    comparator = comparator.reversed(); // Highest score first
+                    comparator = comparator.reversed();
                 }
-                // For negative limit, natural order is lowest score first
 
                 List<String> playerNames = scores.stream()
                         .sorted(comparator)
@@ -249,7 +251,7 @@ public class RCodeCommand {
         }
 
         CodeData codeData = new CodeData(code, type, parsedReward, owner, count, startTime, endTime, interval);
-        RedemptionCodeFabric.codeManager.addCode(codeData);
+        RedemptionCodeFabric.codeManager.addCode(codeData, context.getSource().getName());
 
         MutableText feedback = (MutableText) MessageUtils.createText(context.getSource(), "redemptioncodefabric.message.generate_success_simple", type.name());
         MutableText codeText = Text.literal(code).setStyle(Text.empty().getStyle().withColor(Formatting.GREEN)
@@ -293,7 +295,7 @@ public class RCodeCommand {
 
     private static int executeDelete(CommandContext<ServerCommandSource> context) {
         String code = StringArgumentType.getString(context, "code");
-        boolean success = RedemptionCodeFabric.codeManager.deleteCode(code);
+        boolean success = RedemptionCodeFabric.codeManager.deleteCode(code, context.getSource().getName());
         if (success) {
             MessageUtils.sendFeedback(context.getSource(), "redemptioncodefabric.message.code_deleted_success", true, code);
         } else {

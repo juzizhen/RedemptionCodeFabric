@@ -4,9 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.juzizhen.RedemptionCodeFabric;
-import com.juzizhen.config.ModConfig;
 import com.juzizhen.rcode.model.CodeData;
-import com.juzizhen.rcode.model.UsageData;
+import com.juzizhen.rcode.model.OperationLogEntry;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.File;
@@ -26,7 +25,7 @@ public class FileRepository implements IDataRepository {
     private static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir();
     private static final File CODE_DIR = CONFIG_DIR.resolve(RedemptionCodeFabric.MOD_ID).toFile();
     private static final File CODE_FILE = new File(CODE_DIR, "redemptioncodefabric-code.json");
-    private static final File USAGE_FILE = new File(CODE_DIR, "usage-history.json");
+    private static final File LOG_FILE = new File(CODE_DIR, "operationLog.json");
 
     public FileRepository() {
         if (!CODE_DIR.exists()) {
@@ -60,27 +59,24 @@ public class FileRepository implements IDataRepository {
     }
 
     @Override
-    public List<UsageData> loadAllUsageData() {
-        if (ModConfig.CONFIG.logRedemptionHistory && USAGE_FILE.exists()) {
-            try (FileReader reader = new FileReader(USAGE_FILE)) {
-                Type type = new TypeToken<List<UsageData>>() {}.getType();
-                List<UsageData> usageHistory = GSON.fromJson(reader, type);
-                return usageHistory != null ? usageHistory : new ArrayList<>();
+    public void appendOperationLog(OperationLogEntry logEntry) {
+        List<OperationLogEntry> logs = new ArrayList<>();
+        if (LOG_FILE.exists()) {
+            try (FileReader reader = new FileReader(LOG_FILE)) {
+                Type type = new TypeToken<List<OperationLogEntry>>() {}.getType();
+                List<OperationLogEntry> existingLogs = GSON.fromJson(reader, type);
+                if (existingLogs != null) {
+                    logs.addAll(existingLogs);
+                }
             } catch (IOException e) {
-                RedemptionCodeFabric.LOGGER.error("Failed to load usage history", e);
+                RedemptionCodeFabric.LOGGER.error("Failed to read operation log", e);
             }
         }
-        return new ArrayList<>();
-    }
-
-    @Override
-    public void saveAllUsageData(List<UsageData> usageHistory) {
-        if (ModConfig.CONFIG.logRedemptionHistory) {
-            try (FileWriter writer = new FileWriter(USAGE_FILE)) {
-                GSON.toJson(usageHistory, writer);
-            } catch (IOException e) {
-                RedemptionCodeFabric.LOGGER.error("Failed to save usage history", e);
-            }
+        logs.add(logEntry);
+        try (FileWriter writer = new FileWriter(LOG_FILE)) {
+            GSON.toJson(logs, writer);
+        } catch (IOException e) {
+            RedemptionCodeFabric.LOGGER.error("Failed to write operation log", e);
         }
     }
 }
