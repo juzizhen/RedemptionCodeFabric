@@ -301,12 +301,11 @@ public class CodeManager {
             String expPart = rewardString.substring(4);
             try {
                 int finalAmount;
-                int Amount = Integer.parseInt(expPart.substring(0, expPart.length() - 1));
                 if (expPart.toUpperCase().endsWith("L")) {
-                    finalAmount = Amount;
+                    finalAmount = Integer.parseInt(expPart.substring(0, expPart.length() - 1));
                     player.addExperienceLevels(finalAmount);
                 } else if (expPart.toUpperCase().endsWith("P")) {
-                    finalAmount = Amount;
+                    finalAmount = Integer.parseInt(expPart.substring(0, expPart.length() - 1));
                     player.addExperience(finalAmount);
                 } else {
                     finalAmount = Integer.parseInt(expPart);

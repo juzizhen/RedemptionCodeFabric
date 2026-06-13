@@ -145,8 +145,10 @@ public final class AsyncIoManager {
         WebServer.getInstance().start(port);
         activeWebPort = port;
 
-        String url = Config.getString("web.url", "http://localhost") + ":" + port;
-        LOGGER.info("Web management panel available at: {}", url);
+        String baseUrl = Config.getString("web.url", "http://localhost") + ":" + port;
+        String adminPath = Config.getString("web.adminPath", "/admin.html");
+        LOGGER.info("Web management panel available at: {}", baseUrl);
+        LOGGER.info("Admin panel path: {}{}", baseUrl, adminPath);
     }
 
     /**
@@ -163,16 +165,16 @@ public final class AsyncIoManager {
         if (!Config.getBoolean("web.sendUrlToOP", true)) return;
         if (!server.getPlayerManager().isOperator(player.getGameProfile())) return;
 
-        String url = Config.getString("web.url", "http://localhost") + ":" + activeWebPort;
+        String baseUrl = Config.getString("web.url", "http://localhost") + ":" + activeWebPort + "/";
 
         Text prefix = MessageUtils.createText(player.getCommandSource(),
                         "redemptioncodefabric.message.webpage_prefix")
                 .copy().styled(style -> style.withColor(Formatting.GOLD));
 
-        Text link = Text.literal(url)
+        Text link = Text.literal(baseUrl)
                 .styled(style -> style
                         .withColor(Formatting.AQUA)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url))
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, baseUrl))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                                 MessageUtils.createText(player.getCommandSource(),
                                         "redemptioncodefabric.message.webpage_link_hover")))

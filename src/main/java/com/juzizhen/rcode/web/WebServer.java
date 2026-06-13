@@ -93,7 +93,12 @@ public class WebServer {
         // 静态资源（HTML 页面）
         server.createContext("/", new StaticResourceHandler("/assets/redemptioncodefabric/web/index.html"));
         server.createContext("/index.html", new StaticResourceHandler("/assets/redemptioncodefabric/web/index.html"));
-        server.createContext("/admin.html", new StaticResourceHandler("/assets/redemptioncodefabric/web/admin.html"));
+        
+        String adminPath = Config.getString("web.adminPath", "/admin.html");
+        if (!adminPath.startsWith("/")) {
+            adminPath = "/" + adminPath;
+        }
+        server.createContext(adminPath, new StaticResourceHandler("/assets/redemptioncodefabric/web/admin.html"));
 
         // 语言文件
         server.createContext("/lang/", new LangFileHandler());
@@ -254,7 +259,8 @@ public class WebServer {
                 String token = UUID.randomUUID().toString();
                 activeTokens.add(token);
                 LOGGER.info("Web login success for user: {}", user);
-                sendJsonResponse(exchange, 200, Map.of("success", true, "token", token));
+                String adminPath = Config.getString("web.adminPath", "/admin.html");
+                sendJsonResponse(exchange, 200, Map.of("success", true, "token", token, "adminPath", adminPath));
             } else {
                 sendJsonResponse(exchange, 401, Map.of("success", false, "message", "用户名或密码错误"));
             }
@@ -655,6 +661,8 @@ public class WebServer {
             cfg.put("web.url", Config.getString("web.url", "http://localhost"));
             cfg.put("web.port", Config.getInt("web.port", 8080));
             cfg.put("web.user", Config.getString("web.user", "admin"));
+            cfg.put("web.password", mask(Config.getString("web.password", "")));
+            cfg.put("web.adminPath", Config.getString("web.adminPath", ""));
             cfg.put("web.sendUrlToOP", Config.getBoolean("web.sendUrlToOP", true));
             cfg.put("log.redemption.history", Config.getBoolean("log.redemption.history", true));
             cfg.put("log.max.entries", Config.getInt("log.max.entries", 20000));
@@ -663,10 +671,20 @@ public class WebServer {
             cfg.put("sql.user", Config.getString("sql.user", "admin"));
             cfg.put("sql.password", mask(Config.getString("sql.password", "")));
             cfg.put("sql.database", Config.getString("sql.database", "redemptioncode"));
+            cfg.put("sql.url", Config.getString("sql.url", ""));
             cfg.put("redis.host", Config.getString("redis.host", "localhost"));
             cfg.put("redis.port", Config.getInt("redis.port", 6379));
             cfg.put("redis.password", mask(Config.getString("redis.password", "")));
             cfg.put("redis.database", Config.getInt("redis.database", 0));
+            cfg.put("pool.maxPoolSize", Config.getInt("pool.maxPoolSize", 10));
+            cfg.put("pool.minIdle", Config.getInt("pool.minIdle", 2));
+            cfg.put("pool.connectionTimeout", Config.getInt("pool.connectionTimeout", 30000));
+            cfg.put("pool.idleTimeout", Config.getInt("pool.idleTimeout", 600000));
+            cfg.put("pool.maxLifetime", Config.getInt("pool.maxLifetime", 1800000));
+            cfg.put("pool.leakDetectionThreshold", Config.getInt("pool.leakDetectionThreshold", 60000));
+            cfg.put("pool.keepaliveTime", Config.getInt("pool.keepaliveTime", 300000));
+            cfg.put("pool.validationTimeout", Config.getInt("pool.validationTimeout", 5000));
+            cfg.put("pool.connectionInitSql", Config.getString("pool.connectionInitSql", ""));
             sendJsonResponse(exchange, 200, Map.of("success", true, "data", cfg));
         }
     }

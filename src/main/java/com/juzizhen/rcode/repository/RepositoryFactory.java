@@ -5,6 +5,7 @@ import com.juzizhen.config.Config;
 import com.juzizhen.rcode.redis.RedisManager;
 import com.juzizhen.rcode.redis.RedisRepository;
 import com.juzizhen.rcode.sql.SqlManager;
+import com.juzizhen.rcode.sql.SqlRepository;
 
 public class RepositoryFactory {
 

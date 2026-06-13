@@ -35,7 +35,7 @@ public class RedisRepository implements IDataRepository {
     }
 
     private boolean isRedisUnavailable() {
-        return RedisManager.getInstance().isConnected();
+        return !RedisManager.getInstance().isConnected();
     }
 
     private String serializeUsedBy(Map<String, List<Long>> usedBy) {

@@ -1,4 +1,4 @@
-package com.juzizhen.rcode.repository;
+package com.juzizhen.rcode.sql;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -7,7 +7,7 @@ import com.juzizhen.async.AsyncIoManager;
 import com.juzizhen.rcode.model.CodeData;
 import com.juzizhen.rcode.model.CodeType;
 import com.juzizhen.rcode.model.OperationLogEntry;
-import com.juzizhen.rcode.sql.SqlManager;
+import com.juzizhen.rcode.repository.IDataRepository;
 
 import java.lang.reflect.Type;
 import java.sql.Connection;

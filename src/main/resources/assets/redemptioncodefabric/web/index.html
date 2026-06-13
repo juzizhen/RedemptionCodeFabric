@@ -312,7 +312,7 @@
                 setCookie('token', data.token, 7);
                 showTips(t('login.alert_success'), 'info');
                 setTimeout(() => {
-                    window.location.href = '/admin.html';
+                    window.location.href = data.adminPath || '/admin.html';
                 }, 600);
             } else {
                 showTips(data.message || t('login.alert_wrong'), 'error');

@@ -76,6 +76,7 @@ public class Config {
             prop(w, "web.port");
             prop(w, "web.user");
             prop(w, "web.password");
+            prop(w, "web.adminPath");
             prop(w, "web.sendUrlToOP");
 
             // ── SQL ──
@@ -162,6 +163,9 @@ public class Config {
             updated |= maybeSetDefault("web.password", Utils.generateRandomString(16));
         }
         updated |= maybeSetDefault("web.sendUrlToOP", "true");
+        if (!properties.containsKey("web.adminPath") || properties.getProperty("web.adminPath").isEmpty()) {
+            updated |= maybeSetDefault("web.adminPath", "/" + Utils.generateRandomString(12));
+        }
 
         updated |= maybeSetDefault("sql.host", "localhost");
         updated |= maybeSetDefault("sql.port", "3306");
