@@ -43,7 +43,7 @@ public class RedemptionCodeFabric implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
 			serverInstance = server;
 
-			// ★ 先初始化 I/O 资源（SQL/Redis 连接），再创建 CodeManager 加载数据
+			// 先初始化 I/O 资源（SQL/Redis 连接），再创建 CodeManager 加载数据
 			AsyncIoManager.init(config, server);
 
 			codeManager = new CodeManager(config);
@@ -55,7 +55,7 @@ public class RedemptionCodeFabric implements ModInitializer {
 			serverInstance = null;
 		});
 
-		// ★ Mod 检测 + 向 OP 发送 Web 管理面板 URL
+		// Mod 检测 + 向 OP 发送 Web 管理面板 URL
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			if (ServerPlayNetworking.canSend(handler, MOD_PRESENCE_CHANNEL)) {
 				playersWithMod.add(handler.player.getUuid());

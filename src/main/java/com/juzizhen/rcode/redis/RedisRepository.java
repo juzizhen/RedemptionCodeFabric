@@ -34,9 +34,7 @@ public class RedisRepository implements IDataRepository {
         this.fileFallback = new FileRepository();
     }
 
-    // ───────────────────────── helpers ─────────────────────────
-
-    private boolean isRedisAvailable() {
+    private boolean isRedisUnavailable() {
         return RedisManager.getInstance().isConnected();
     }
 
@@ -55,10 +53,8 @@ public class RedisRepository implements IDataRepository {
                 Map<String, List<Long>> normalized = new HashMap<>();
                 for (Map.Entry<String, List<Long>> entry : result.entrySet()) {
                     List<Long> timestamps = new ArrayList<>();
-                    for (Object val : entry.getValue()) {
-                        if (val instanceof Number) {
-                            timestamps.add(((Number) val).longValue());
-                        }
+                    for (Number val : entry.getValue()) {
+                        timestamps.add(val.longValue());
                     }
                     normalized.put(entry.getKey(), timestamps);
                 }
@@ -76,10 +72,10 @@ public class RedisRepository implements IDataRepository {
                 CodeType.valueOf(hash.getOrDefault("type", "ONCE")),
                 hash.getOrDefault("reward", ""),
                 hash.get("player"),
-                parseInt(hash.get("count"), -1),
-                parseLong(hash.get("start_time"), 0),
-                parseLong(hash.get("end_time"), 0),
-                parseLong(hash.get("interval"), 0)
+                hash.get("count") == null || hash.get("count").isEmpty() ? -1 : Integer.parseInt(hash.get("count")),
+                hash.get("start_time") == null || hash.get("start_time").isEmpty() ? 0L : Long.parseLong(hash.get("start_time")),
+                hash.get("end_time") == null || hash.get("end_time").isEmpty() ? 0L : Long.parseLong(hash.get("end_time")),
+                hash.get("interval") == null || hash.get("interval").isEmpty() ? 0L : Long.parseLong(hash.get("interval"))
         );
 
         Map<String, List<Long>> usedBy = deserializeUsedBy(hash.get("used_by"));
@@ -105,19 +101,9 @@ public class RedisRepository implements IDataRepository {
         return hash;
     }
 
-    private int parseInt(String s, int def) {
-        if (s == null || s.isEmpty()) return def;
-        try { return Integer.parseInt(s); } catch (NumberFormatException e) { return def; }
-    }
-
-    private long parseLong(String s, long def) {
-        if (s == null || s.isEmpty()) return def;
-        try { return Long.parseLong(s); } catch (NumberFormatException e) { return def; }
-    }
-
     @Override
     public Map<String, CodeData> loadAllCodes() {
-        if (!isRedisAvailable()) {
+        if (isRedisUnavailable()) {
             LOGGER.warn("Redis not available during loadAllCodes, falling back to file.");
             return fileFallback.loadAllCodes();
         }
@@ -146,7 +132,7 @@ public class RedisRepository implements IDataRepository {
 
     @Override
     public void saveAllCodes(Map<String, CodeData> codes) {
-        if (!isRedisAvailable()) {
+        if (isRedisUnavailable()) {
             fileFallback.saveAllCodes(codes);
             return;
         }
@@ -168,7 +154,7 @@ public class RedisRepository implements IDataRepository {
 
     @Override
     public void saveCode(CodeData codeData) {
-        if (!isRedisAvailable()) {
+        if (isRedisUnavailable()) {
             fileFallback.saveCode(codeData);
             return;
         }
@@ -185,7 +171,7 @@ public class RedisRepository implements IDataRepository {
 
     @Override
     public void removeCode(String code) {
-        if (!isRedisAvailable()) {
+        if (isRedisUnavailable()) {
             fileFallback.removeCode(code);
             return;
         }
@@ -202,7 +188,7 @@ public class RedisRepository implements IDataRepository {
 
     @Override
     public void appendOperationLog(OperationLogEntry logEntry) {
-        if (!isRedisAvailable()) {
+        if (isRedisUnavailable()) {
             fileFallback.appendOperationLog(logEntry);
             return;
         }
@@ -218,7 +204,7 @@ public class RedisRepository implements IDataRepository {
 
     @Override
     public List<OperationLogEntry> getOperationLog(int offset, int limit) {
-        if (!isRedisAvailable()) {
+        if (isRedisUnavailable()) {
             return fileFallback.getOperationLog(offset, limit);
         }
 

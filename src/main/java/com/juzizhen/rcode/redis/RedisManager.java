@@ -109,19 +109,6 @@ public class RedisManager {
     }
 
     /**
-     * Reloads the Redis connection with new configuration.
-     * Tears down the existing pool and re-initializes.
-     *
-     * @param config the new configuration
-     * @return true if the new connection was established successfully
-     */
-    public boolean reload(Config config) {
-        LOGGER.info("Reloading Redis Manager...");
-        shutdown();
-        return init(config);
-    }
-
-    /**
      * Shuts down the connection pool and releases all resources.
      */
     public void shutdown() {

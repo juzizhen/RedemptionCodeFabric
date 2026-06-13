@@ -8,7 +8,7 @@ import com.juzizhen.rcode.sql.SqlManager;
 
 public class RepositoryFactory {
 
-    public static IDataRepository create(Config config) {
+    public static IDataRepository create() {
         String repositoryType = Config.getString("datastore.type", "file");
         RedemptionCodeFabric.LOGGER.info("Using data store type: {}", repositoryType);
 

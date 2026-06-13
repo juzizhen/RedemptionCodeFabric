@@ -72,7 +72,7 @@ public class WebServer {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
 
-            // ★ 关键：将所有请求处理委派到异步 I/O 线程池
+            // 将所有请求处理委派到异步 I/O 线程池
             server.setExecutor(AsyncIoManager.getIoExecutor());
 
             // 注册路由
@@ -94,6 +94,9 @@ public class WebServer {
         server.createContext("/", new StaticResourceHandler("/assets/redemptioncodefabric/web/index.html"));
         server.createContext("/index.html", new StaticResourceHandler("/assets/redemptioncodefabric/web/index.html"));
         server.createContext("/admin.html", new StaticResourceHandler("/assets/redemptioncodefabric/web/admin.html"));
+
+        // 语言文件
+        server.createContext("/lang/", new LangFileHandler());
 
         // API 路由
         server.createContext("/api/login", new LoginHandler());
@@ -118,40 +121,6 @@ public class WebServer {
             server = null;
             LOGGER.info("Web server stopped.");
         }
-    }
-
-    /**
-     * 重载 Web 服务器（用于配置变更）。
-     *
-     * @param port 新端口
-     */
-    public void reload(int port) {
-        LOGGER.info("Reloading web server on port {}...", port);
-        stop();
-
-        // 等待端口释放
-        for (int i = 0; i < 20; i++) {
-            if (Utils.isPortAvailable(port)) break;
-            try { Thread.sleep(250); } catch (InterruptedException ignored) {}
-        }
-
-        if (!Utils.isPortAvailable(port)) {
-            LOGGER.warn("Port {} still occupied, searching for fallback...", port);
-            int fallback = Utils.findAvailablePort(4000, 25564);
-            if (fallback != -1) {
-                port = fallback;
-                LOGGER.info("Using fallback port {}", port);
-            } else {
-                LOGGER.error("No available port found, web server not started.");
-                return;
-            }
-        }
-
-        start(port);
-    }
-
-    public boolean isRunning() {
-        return server != null;
     }
 
     private MinecraftServer getServer() {
@@ -182,13 +151,13 @@ public class WebServer {
         return null;
     }
 
-    private boolean requireAuth(HttpExchange exchange) throws IOException {
+    private boolean isUnauthorized(HttpExchange exchange) throws IOException {
         String token = resolveToken(exchange);
         if (token == null || !activeTokens.contains(token)) {
             sendJsonResponse(exchange, 401, Map.of("success", false, "message", "Unauthorized"));
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     private void sendJsonResponse(HttpExchange exchange, int statusCode, Object data) throws IOException {
@@ -241,8 +210,6 @@ public class WebServer {
         }
     }
 
-    // ==================== Handlers ====================
-
     private class StaticResourceHandler implements HttpHandler {
         private final String resourcePath;
 
@@ -253,6 +220,19 @@ public class WebServer {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             serveResource(exchange, resourcePath, "text/html");
+        }
+    }
+
+    private class LangFileHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            String path = exchange.getRequestURI().getPath();
+            String fileName = path.substring("/lang/".length());
+            if (!fileName.matches("[a-z]{2}_[a-z]{2}\\.json")) {
+                sendJsonResponse(exchange, 404, Map.of("error", "Not Found"));
+                return;
+            }
+            serveResource(exchange, "/assets/redemptioncodefabric/web/lang/" + fileName, "application/json");
         }
     }
 
@@ -284,7 +264,7 @@ public class WebServer {
     private class VerifyHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if (!requireAuth(exchange)) return;
+            if (isUnauthorized(exchange)) return;
             sendJsonResponse(exchange, 200, Map.of("success", true, "valid", true));
         }
     }
@@ -292,7 +272,7 @@ public class WebServer {
     private class LogoutHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if (!requireAuth(exchange)) return;
+            if (isUnauthorized(exchange)) return;
             String token = resolveToken(exchange);
             if (token != null) activeTokens.remove(token);
             sendJsonResponse(exchange, 200, Map.of("success", true));
@@ -302,7 +282,7 @@ public class WebServer {
     private class StatusHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if (!requireAuth(exchange)) return;
+            if (isUnauthorized(exchange)) return;
 
             CodeManager cm = RedemptionCodeFabric.codeManager;
             MinecraftServer server = getServer();
@@ -326,7 +306,7 @@ public class WebServer {
     private class PlayersHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if (!requireAuth(exchange)) return;
+            if (isUnauthorized(exchange)) return;
 
             MinecraftServer server = getServer();
             List<Map<String, Object>> players = new ArrayList<>();
@@ -348,7 +328,7 @@ public class WebServer {
     private class ScoreboardsHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if (!requireAuth(exchange)) return;
+            if (isUnauthorized(exchange)) return;
 
             MinecraftServer server = getServer();
             List<Map<String, String>> objectives = new ArrayList<>();
@@ -368,7 +348,7 @@ public class WebServer {
     private class CodesHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if (!requireAuth(exchange)) return;
+            if (isUnauthorized(exchange)) return;
 
             String method = exchange.getRequestMethod();
             if ("GET".equals(method)) {
@@ -605,7 +585,7 @@ public class WebServer {
     private class LogsHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if (!requireAuth(exchange)) return;
+            if (isUnauthorized(exchange)) return;
 
             CodeManager cm = RedemptionCodeFabric.codeManager;
             if (cm == null) {
@@ -647,7 +627,7 @@ public class WebServer {
     private class ReloadHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if (!requireAuth(exchange)) return;
+            if (isUnauthorized(exchange)) return;
 
             if (!"POST".equals(exchange.getRequestMethod())) {
                 sendJsonResponse(exchange, 405, Map.of("success", false, "message", "Method not allowed"));
@@ -667,7 +647,7 @@ public class WebServer {
     private class ConfigHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if (!requireAuth(exchange)) return;
+            if (isUnauthorized(exchange)) return;
 
             Map<String, Object> cfg = new LinkedHashMap<>();
             cfg.put("datastore.type", Config.getString("datastore.type", "file"));

@@ -31,7 +31,7 @@ public class CodeManager {
     private final Map<String, CodeData> codes;
 
     public CodeManager(Config config) {
-        this.repository = RepositoryFactory.create(config);
+        this.repository = RepositoryFactory.create();
         this.codes = repository.loadAllCodes();
     }
 
@@ -69,8 +69,8 @@ public class CodeManager {
         repository.appendOperationLog(new OperationLogEntry(System.currentTimeMillis(), "GENERATE", executorName, details));
     }
 
-    public boolean deleteCode(String code, String executorName) {
-        return deleteCode(code, executorName, null);
+    public void deleteCode(String code, String executorName) {
+        deleteCode(code, executorName, null);
     }
 
     public boolean deleteCode(String code, String executorName, String executorUuid) {
@@ -246,7 +246,6 @@ public class CodeManager {
                 }
                 break;
             case PERMANENT:
-                // No validation needed
                 break;
         }
 
@@ -302,11 +301,12 @@ public class CodeManager {
             String expPart = rewardString.substring(4);
             try {
                 int finalAmount;
+                int Amount = Integer.parseInt(expPart.substring(0, expPart.length() - 1));
                 if (expPart.toUpperCase().endsWith("L")) {
-                    finalAmount = Integer.parseInt(expPart.substring(0, expPart.length() - 1));
+                    finalAmount = Amount;
                     player.addExperienceLevels(finalAmount);
                 } else if (expPart.toUpperCase().endsWith("P")) {
-                    finalAmount = Integer.parseInt(expPart.substring(0, expPart.length() - 1));
+                    finalAmount = Amount;
                     player.addExperience(finalAmount);
                 } else {
                     finalAmount = Integer.parseInt(expPart);
@@ -338,8 +338,8 @@ public class CodeManager {
                     return onlinePlayer.getName().getString();
                 }
             }
-        } catch (IllegalArgumentException e) {
-            // Not a valid UUID, return as-is
+        } catch (IllegalArgumentException ignored) {
+
         }
         return uuid;
     }

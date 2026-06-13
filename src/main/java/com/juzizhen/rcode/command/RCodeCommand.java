@@ -232,7 +232,7 @@ public class RCodeCommand {
             count = allowedPlayerUuids.size();
         } else if (type == CodeType.TIMED) {
             String startTimeStr = StringArgumentType.getString(context, "start_time");
-            if (startTimeStr.equals("0-0-0_0-0-0")) {
+            if (startTimeStr.equals("0-0-0_0-0-0") || startTimeStr.equals("0") || startTimeStr.equals("0-0-0-0-0-0")) {
                 startTime = System.currentTimeMillis();
             } else {
                 try {
@@ -250,7 +250,7 @@ public class RCodeCommand {
             }
         } else if (type == CodeType.CYCLE) {
             String startTimeStr = StringArgumentType.getString(context, "start_time");
-            if (startTimeStr.equals("0-0-0_0-0-0")) {
+            if (startTimeStr.equals("0-0-0_0-0-0") || startTimeStr.equals("0") || startTimeStr.equals("0-0-0-0-0-0")) {
                 startTime = System.currentTimeMillis();
             } else {
                 try {

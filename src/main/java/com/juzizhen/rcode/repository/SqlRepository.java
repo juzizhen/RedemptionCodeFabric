@@ -44,13 +44,13 @@ public class SqlRepository implements IDataRepository {
                 try {
                     conn = sqlManager.getConnectionPool().getConnection();
                     String sql = """
-                        SELECT code, type, reward, player, count, start_time, end_time, code_interval, used_by 
+                        SELECT code, type, reward, player, count, start_time, end_time, code_interval, used_by
                         FROM redemption_codes
                         """;
-                    
+
                     try (PreparedStatement stmt = conn.prepareStatement(sql);
                          ResultSet rs = stmt.executeQuery()) {
-                        
+
                         while (rs.next()) {
                             CodeData codeData = mapRowToCodeData(rs);
                             codes.put(codeData.getCode(), codeData);
@@ -86,18 +86,18 @@ public class SqlRepository implements IDataRepository {
                 try {
                     conn = sqlManager.getConnectionPool().getConnection();
                     String usedByJson = GSON.toJson(codeData.getUsedBy());
-                    
+
                     String sql = """
-                        INSERT INTO redemption_codes 
-                        (code, type, reward, player, count, start_time, end_time, code_interval, used_by) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
-                        ON DUPLICATE KEY UPDATE 
-                        type = VALUES(type), reward = VALUES(reward), player = VALUES(player), 
-                        count = VALUES(count), start_time = VALUES(start_time), 
-                        end_time = VALUES(end_time), code_interval = VALUES(code_interval), 
+                        INSERT INTO redemption_codes
+                        (code, type, reward, player, count, start_time, end_time, code_interval, used_by)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON DUPLICATE KEY UPDATE
+                        type = VALUES(type), reward = VALUES(reward), player = VALUES(player),
+                        count = VALUES(count), start_time = VALUES(start_time),
+                        end_time = VALUES(end_time), code_interval = VALUES(code_interval),
                         used_by = VALUES(used_by)
                         """;
-                    
+
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setString(1, codeData.getCode());
                         stmt.setString(2, codeData.getType().name());
@@ -124,50 +124,12 @@ public class SqlRepository implements IDataRepository {
     }
 
     /**
-     * 使用行级锁原子性地兑换代码，防止重复兑换。
-     */
-    public CodeData redeemCodeWithLock(String code) {
-        try {
-            return CompletableFuture.supplyAsync(() -> {
-                Connection conn = null;
-                try {
-                    conn = sqlManager.getConnectionPool().getConnection();
-                    String sql = """
-                        SELECT code, type, reward, player, count, start_time, end_time, code_interval, used_by 
-                        FROM redemption_codes 
-                        WHERE code = ? FOR UPDATE
-                        """;
-                    
-                    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                        stmt.setString(1, code);
-                        try (ResultSet rs = stmt.executeQuery()) {
-                            if (rs.next()) {
-                                return mapRowToCodeData(rs);
-                            }
-                        }
-                    }
-                } catch (SQLException e) {
-                    RedemptionCodeFabric.LOGGER.error("Failed to lock code for redemption: {}", code, e);
-                } finally {
-                    if (conn != null) {
-                        sqlManager.getConnectionPool().releaseConnection(conn);
-                    }
-                }
-                return null;
-            }, AsyncIoManager.getIoExecutor()).join();
-        } catch (Exception e) {
-            RedemptionCodeFabric.LOGGER.error("Failed to redeem code with lock", e);
-            return null;
-        }
-    }
-
-    /**
      * 将数据库行映射为 CodeData 对象。
      */
     private CodeData mapRowToCodeData(ResultSet rs) throws SQLException {
         String usedByJson = rs.getString("used_by");
         Map<String, List<Long>> usedBy = parseUsedByJson(usedByJson);
-        
+
         CodeData codeData = new CodeData(
                 rs.getString("code"),
                 CodeType.valueOf(rs.getString("type")),
@@ -178,12 +140,12 @@ public class SqlRepository implements IDataRepository {
                 rs.getLong("end_time"),
                 rs.getLong("code_interval")
         );
-        
+
         // 添加使用记录
-        usedBy.forEach((uuid, timestamps) -> 
+        usedBy.forEach((uuid, timestamps) ->
             timestamps.forEach(ts -> codeData.addUsedBy(uuid, ts))
         );
-        
+
         return codeData;
     }
 
@@ -211,7 +173,7 @@ public class SqlRepository implements IDataRepository {
                 try {
                     conn = sqlManager.getConnectionPool().getConnection();
                     String sql = "DELETE FROM redemption_codes WHERE code = ?";
-                    
+
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setString(1, code);
                         stmt.executeUpdate();
@@ -238,10 +200,10 @@ public class SqlRepository implements IDataRepository {
                     conn = sqlManager.getConnectionPool().getConnection();
                     String detailsJson = GSON.toJson(logEntry.getDetails());
                     String sql = """
-                        INSERT INTO operation_logs (timestamp, operation_type, executor, details) 
+                        INSERT INTO operation_logs (timestamp, operation_type, executor, details)
                         VALUES (?, ?, ?, ?)
                         """;
-                    
+
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setLong(1, logEntry.getTimestamp());
                         stmt.setString(2, logEntry.getOperationType());
@@ -271,21 +233,21 @@ public class SqlRepository implements IDataRepository {
                 try {
                     conn = sqlManager.getConnectionPool().getConnection();
                     String sql = """
-                        SELECT timestamp, operation_type, executor, details 
-                        FROM operation_logs 
-                        ORDER BY timestamp DESC 
+                        SELECT timestamp, operation_type, executor, details
+                        FROM operation_logs
+                        ORDER BY timestamp DESC
                         LIMIT ? OFFSET ?
                         """;
-                    
+
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setInt(1, limit);
                         stmt.setInt(2, offset);
-                        
+
                         try (ResultSet rs = stmt.executeQuery()) {
                             while (rs.next()) {
                                 String detailsJson = rs.getString("details");
                                 Map<String, String> details = parseDetailsJson(detailsJson);
-                                
+
                                 OperationLogEntry entry = new OperationLogEntry(
                                         rs.getLong("timestamp"),
                                         rs.getString("operation_type"),

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 轻量级 SQL 管理器，基于原生 JDBC 和 {@link SimpleConnectionPool}。
@@ -168,15 +167,6 @@ public class SqlManager {
     }
 
     /**
-     * 重新加载 SQL 连接。
-     */
-    public boolean reload(Config config) {
-        LOGGER.info("Reloading SQL Manager...");
-        shutdown();
-        return init(config);
-    }
-
-    /**
      * 关闭 SQL 连接池。
      */
     public void shutdown() {
@@ -209,76 +199,5 @@ public class SqlManager {
         return connectionPool;
     }
 
-    /**
-     * 异步执行 SQL 操作（无返回值）。
-     *
-     * @param operation SQL 操作逻辑
-     * @return CompletableFuture 用于链式调用
-     */
-    public CompletableFuture<Void> executeAsync(SqlOperation operation) {
-        if (!connected || connectionPool == null) {
-            return CompletableFuture.failedFuture(
-                    new IllegalStateException("SQL connection not available"));
-        }
-
-        return CompletableFuture.runAsync(() -> {
-            Connection conn = null;
-            try {
-                conn = connectionPool.getConnection();
-                operation.execute(conn);
-            } catch (SQLException e) {
-                LOGGER.error("SQL execution failed", e);
-                throw new RuntimeException(e);
-            } finally {
-                if (conn != null) {
-                    connectionPool.releaseConnection(conn);
-                }
-            }
-        }, AsyncIoManager.getIoExecutor());
-    }
-
-    /**
-     * 异步执行 SQL 查询（有返回值）。
-     *
-     * @param operation SQL 查询逻辑
-     * @param <T>       返回类型
-     * @return 包含查询结果的 CompletableFuture
-     */
-    public <T> CompletableFuture<T> queryAsync(SqlQuery<T> operation) {
-        if (!connected || connectionPool == null) {
-            return CompletableFuture.failedFuture(
-                    new IllegalStateException("SQL connection not available"));
-        }
-
-        return CompletableFuture.supplyAsync(() -> {
-            Connection conn = null;
-            try {
-                conn = connectionPool.getConnection();
-                return operation.query(conn);
-            } catch (SQLException e) {
-                LOGGER.error("SQL query failed", e);
-                throw new RuntimeException(e);
-            } finally {
-                if (conn != null) {
-                    connectionPool.releaseConnection(conn);
-                }
-            }
-        }, AsyncIoManager.getIoExecutor());
-    }
-
-    /**
-     * SQL 操作函数式接口（无返回值）。
-     */
-    @FunctionalInterface
-    public interface SqlOperation {
-        void execute(Connection conn) throws SQLException;
-    }
-
-    /**
-     * SQL 查询函数式接口（有返回值）。
-     */
-    @FunctionalInterface
-    public interface SqlQuery<T> {
-        T query(Connection conn) throws SQLException;
-    }
 }
+

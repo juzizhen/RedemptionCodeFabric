@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>后台管理 - RedemptionCodeFabric</title>
+    <title data-i18n="admin.title">后台管理 - RedemptionCodeFabric</title>
     <style>
         :root {
             --bg-body: #f0f2f5;
@@ -415,38 +415,74 @@
         .clickable { cursor: pointer; color: var(--primary); }
         .clickable:hover { text-decoration: underline; }
         .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+
+        .lang-switch {
+            display: flex;
+            gap: 0;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-right: 10px;
+        }
+
+        .lang-switch button {
+            padding: 4px 10px;
+            font-size: 11px;
+            border: none;
+            background: #f9fafb;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-weight: 500;
+        }
+
+        .lang-switch button.active {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .lang-switch button:hover:not(.active) {
+            background: var(--hover-bg);
+            color: var(--primary);
+        }
+
+        body.i18n-loading .sidebar, body.i18n-loading .content-area { visibility: hidden; }
     </style>
 </head>
-<body>
+<body class="i18n-loading">
 
 <div class="sidebar">
-    <div class="sidebar-header">管理面板</div>
+    <div class="sidebar-header" data-i18n="admin.panel">管理面板</div>
     <div class="sidebar-menu">
-        <div class="menu-category">概览</div>
+        <div class="menu-category" data-i18n="sidebar.overview">概览</div>
         <ul>
-            <li><a class="active" data-page="dashboard">仪表盘</a></li>
+            <li><a class="active" data-page="dashboard" data-i18n="sidebar.dashboard">仪表盘</a></li>
         </ul>
-        <div class="menu-category">兑换码管理</div>
+        <div class="menu-category" data-i18n="sidebar.code_mgmt">兑换码管理</div>
         <ul>
-            <li><a data-page="codes">兑换码列表</a></li>
-            <li><a data-page="create-code">创建兑换码</a></li>
+            <li><a data-page="codes" data-i18n="sidebar.code_list">兑换码列表</a></li>
+            <li><a data-page="create-code" data-i18n="sidebar.create_code">创建兑换码</a></li>
         </ul>
-        <div class="menu-category">系统</div>
+        <div class="menu-category" data-i18n="sidebar.system">系统</div>
         <ul>
-            <li><a data-page="logs">操作日志</a></li>
-            <li><a data-page="players">在线玩家</a></li>
-            <li><a data-page="settings">配置信息</a></li>
-            <li><a data-page="reload">重载配置</a></li>
+            <li><a data-page="logs" data-i18n="sidebar.logs">操作日志</a></li>
+            <li><a data-page="players" data-i18n="sidebar.players">在线玩家</a></li>
+            <li><a data-page="settings" data-i18n="sidebar.settings">配置信息</a></li>
+            <li><a data-page="reload" data-i18n="sidebar.reload">重载配置</a></li>
         </ul>
     </div>
 </div>
 
 <div class="main-content">
     <div class="top-navbar">
-        <div class="page-title" id="pageTitle">仪表盘</div>
+        <div class="page-title" id="pageTitle" data-i18n="sidebar.dashboard">仪表盘</div>
         <div class="user-info">
-            <span>管理员</span>
-            <button class="btn-logout" onclick="logout()">退出登录</button>
+            <div class="lang-switch">
+                <button id="langBtn_zh" onclick="switchLang('zh')">中文</button>
+                <button id="langBtn_en" onclick="switchLang('en')">EN</button>
+            </div>
+            <span data-i18n="admin.admin">管理员</span>
+            <button class="btn-logout" onclick="logout()" data-i18n="admin.logout">退出登录</button>
         </div>
     </div>
     <div class="content-area" id="contentArea"></div>
@@ -455,7 +491,7 @@
 <div class="modal-overlay" id="detailModal">
     <div class="modal">
         <button class="modal-close" onclick="closeModal()">&times;</button>
-        <div class="modal-title" id="modalTitle">详情</div>
+        <div class="modal-title" id="modalTitle" data-i18n="common.detail">详情</div>
         <div id="modalBody"></div>
     </div>
 </div>
@@ -466,40 +502,40 @@
 
 <template id="tpl-create-code">
     <div class="card">
-        <div class="card-title">创建兑换码</div>
+        <div class="card-title" data-i18n="sidebar.create_code">创建兑换码</div>
         <div class="card-body">
             <div class="form-row">
                 <div class="form-group">
-                    <label>兑换码 (留空自动生成)</label>
-                    <input type="text" id="cc_code" placeholder="可选，自定义兑换码">
+                    <label for="cc_code" data-i18n="code.label_code">兑换码 (留空自动生成)</label>
+                    <input type="text" id="cc_code" data-i18n-placeholder="code.placeholder_code" placeholder="可选，自定义兑换码">
                 </div>
                 <div class="form-group">
-                    <label>类型 *</label>
+                    <label for="cc_type" data-i18n="code.label_type">类型 *</label>
                     <select id="cc_type">
-                        <option value="ONCE">ONCE (一次性)</option>
-                        <option value="PERMANENT">PERMANENT (永久)</option>
-                        <option value="PERSONAL">PERSONAL (个人专属)</option>
-                        <option value="GLOBAL_UNLIMITED">GLOBAL_UNLIMITED (全局无限)</option>
-                        <option value="GLOBAL_LIMIT">GLOBAL_LIMIT (全局有限)</option>
-                        <option value="TIMED">TIMED (限时)</option>
-                        <option value="CYCLE">CYCLE (周期循环)</option>
+                        <option value="ONCE" data-i18n="code.type_once">ONCE (一次性)</option>
+                        <option value="PERMANENT" data-i18n="code.type_permanent">PERMANENT (永久)</option>
+                        <option value="PERSONAL" data-i18n="code.type_personal">PERSONAL (个人专属)</option>
+                        <option value="GLOBAL_UNLIMITED" data-i18n="code.type_global_unlimited">GLOBAL_UNLIMITED (全局无限)</option>
+                        <option value="GLOBAL_LIMIT" data-i18n="code.type_global_limit">GLOBAL_LIMIT (全局有限)</option>
+                        <option value="TIMED" data-i18n="code.type_timed">TIMED (限时)</option>
+                        <option value="CYCLE" data-i18n="code.type_cycle">CYCLE (周期循环)</option>
                     </select>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>奖励 *</label>
-                    <input type="text" id="cc_reward" placeholder="item@minecraft:diamond, exp@100P, exp@5L">
-                    <div class="text-sm text-muted mt-8">格式: item@资源ID{NBT}, exp@点数P, exp@等级L。例: item@minecraft:diamond, exp@100P, exp@5L</div>
+                    <label for="cc_reward" data-i18n="code.label_reward">奖励 *</label>
+                    <input type="text" id="cc_reward" data-i18n-placeholder="code.placeholder_reward" placeholder="item@minecraft:diamond, exp@100P, exp@5L">
+                    <div class="text-sm text-muted mt-8" data-i18n="code.reward_hint">格式: item@资源ID{NBT}, exp@点数P, exp@等级L。例: item@minecraft:diamond, exp@100P, exp@5L</div>
                 </div>
             </div>
 
             <div id="cc_personal_section" style="display:none">
                 <div class="form-row">
                     <div class="form-group">
-                        <label>绑定玩家 UUID * (逗号分隔)</label>
-                        <input type="text" id="cc_player" placeholder="a80ab41d-df4d-3f98-991d-99fd5f96d418, ...">
-                        <div class="text-sm text-muted mt-8">标准 UUID 格式: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx，多个用逗号分隔</div>
+                        <label for="cc_player" data-i18n="code.label_player_uuid">绑定玩家 UUID * (逗号分隔)</label>
+                        <input type="text" id="cc_player" data-i18n-placeholder="code.placeholder_player_uuid" placeholder="a80ab41d-df4d-3f98-991d-99fd5f96d418, ...">
+                        <div class="text-sm text-muted mt-8" data-i18n="code.uuid_hint">标准 UUID 格式: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx，多个用逗号分隔</div>
                     </div>
                 </div>
             </div>
@@ -507,35 +543,35 @@
             <div id="cc_global_limit_section" style="display:none">
                 <div class="form-row">
                     <div class="form-group" style="flex:0 0 160px">
-                        <label>选择模式 *</label>
+                        <label for="cc_gl_mode" data-i18n="code.label_select_mode">选择模式 *</label>
                         <select id="cc_gl_mode" onchange="updateGlMode()">
-                            <option value="tag">按 Tag</option>
-                            <option value="scoreboard">按计分板</option>
-                            <option value="manual">手动输入</option>
+                            <option value="tag" data-i18n="code.mode_tag">按 Tag</option>
+                            <option value="scoreboard" data-i18n="code.mode_scoreboard">按计分板</option>
+                            <option value="manual" data-i18n="code.mode_manual">手动输入</option>
                         </select>
                     </div>
                     <div class="form-group" id="cc_gl_tag_group">
-                        <label>Tag 名称 *</label>
-                        <input type="text" id="cc_gl_tag" placeholder="如 vip, winner">
+                        <label for="cc_gl_tag" data-i18n="code.label_tag">Tag 名称 *</label>
+                        <input type="text" id="cc_gl_tag" data-i18n-placeholder="code.placeholder_tag" placeholder="如 vip, winner">
                     </div>
                     <div class="form-group" id="cc_gl_scoreboard_group" style="display:none">
-                        <label>计分板目标 *</label>
-                        <select id="cc_gl_scoreboard"><option value="">加载中...</option></select>
+                        <label for="cc_gl_scoreboard" data-i18n="code.label_scoreboard">计分板目标 *</label>
+                        <select id="cc_gl_scoreboard"><option value="" data-i18n="code.scoreboard_loading">加载中...</option></select>
                     </div>
                     <div class="form-group" id="cc_gl_player_group" style="display:none">
-                        <label>玩家 UUID * (逗号分隔)</label>
-                        <input type="text" id="cc_gl_player" placeholder="UUID1, UUID2, ...">
+                        <label for="cc_gl_player" data-i18n="code.label_manual_uuid">玩家 UUID * (逗号分隔)</label>
+                        <input type="text" id="cc_gl_player" data-i18n-placeholder="code.placeholder_player_uuid" placeholder="UUID1, UUID2, ...">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>选取数量 (limit) *</label>
-                        <input type="number" id="cc_gl_limit" placeholder="正数=取前N个, 负数=取后N个" value="10">
-                        <div class="text-sm text-muted mt-8">Tag 模式: 按在线玩家顺序取。计分板模式: 正数=分数最高 N 人, 负数=分数最低 N 人。</div>
+                        <label for="cc_gl_limit" data-i18n="code.label_limit">选取数量 (limit) *</label>
+                        <input type="number" id="cc_gl_limit" data-i18n-placeholder="code.placeholder_limit" placeholder="正数=取前N个, 负数=取后N个" value="10">
+                        <div class="text-sm text-muted mt-8" data-i18n="code.limit_hint">Tag 模式: 按在线玩家顺序取。计分板模式: 正数=分数最高 N 人, 负数=分数最低 N 人。</div>
                     </div>
                     <div class="form-group">
-                        <label>最大兑换次数 (留空=选中人数)</label>
-                        <input type="number" id="cc_gl_count" placeholder="默认等于选中人数" value="">
+                        <label for="cc_gl_count" data-i18n="code.label_max_redeem">最大兑换次数 (留空=选中人数)</label>
+                        <input type="number" id="cc_gl_count" data-i18n-placeholder="code.placeholder_max_redeem" placeholder="默认等于选中人数" value="">
                     </div>
                 </div>
             </div>
@@ -543,16 +579,16 @@
             <div id="cc_timed_section" style="display:none">
                 <div class="form-row">
                     <div class="form-group">
-                        <label>开始时间 (毫秒时间戳) *</label>
-                        <input type="number" id="cc_start" placeholder="0 表示立即生效" value="0" oninput="updateTsPreview('cc_start','cc_start_preview')">
+                        <label for="cc_start" data-i18n="code.label_start_time">开始时间 (毫秒时间戳) *</label>
+                        <input type="number" id="cc_start" data-i18n-placeholder="code.placeholder_start_time" placeholder="0 表示立即生效" value="0" oninput="updateTsPreview('cc_start','cc_start_preview')">
                         <div class="text-sm text-muted mt-8" id="cc_start_preview"></div>
-                        <div class="text-sm text-muted">示例: 1700000000000 = 2023-11-14 22:13:20。填 0 表示立即开始。</div>
+                        <div class="text-sm text-muted" data-i18n="code.time_hint_start">示例: 1700000000000 = 2023-11-14 22:13:20。填 0 表示立即开始。</div>
                     </div>
                     <div class="form-group">
-                        <label>结束时间 (毫秒时间戳) *</label>
-                        <input type="number" id="cc_end" placeholder="0 表示永不过期" value="0" oninput="updateTsPreview('cc_end','cc_end_preview')">
+                        <label for="cc_end" data-i18n="code.label_end_time">结束时间 (毫秒时间戳) *</label>
+                        <input type="number" id="cc_end" data-i18n-placeholder="code.placeholder_end_time" placeholder="0 表示永不过期" value="0" oninput="updateTsPreview('cc_end','cc_end_preview')">
                         <div class="text-sm text-muted mt-8" id="cc_end_preview"></div>
-                        <div class="text-sm text-muted">示例: 1700100000000 = 2023-11-15 02:00:00。填 0 表示永不过期。</div>
+                        <div class="text-sm text-muted" data-i18n="code.time_hint_end">示例: 1700100000000 = 2023-11-15 02:00:00。填 0 表示永不过期。</div>
                     </div>
                 </div>
             </div>
@@ -560,27 +596,96 @@
             <div id="cc_cycle_section" style="display:none">
                 <div class="form-row">
                     <div class="form-group">
-                        <label>开始时间 (毫秒时间戳) *</label>
-                        <input type="number" id="cc_cy_start" placeholder="0 表示立即" value="0" oninput="updateTsPreview('cc_cy_start','cc_cy_start_preview')">
+                        <label for="cc_cy_start" data-i18n="code.label_cy_start">开始时间 (毫秒时间戳) *</label>
+                        <input type="number" id="cc_cy_start" data-i18n-placeholder="code.placeholder_cy_start" placeholder="0 表示立即" value="0" oninput="updateTsPreview('cc_cy_start','cc_cy_start_preview')">
                         <div class="text-sm text-muted mt-8" id="cc_cy_start_preview"></div>
-                        <div class="text-sm text-muted">填 0 表示从当前时间开始计算周期。</div>
+                        <div class="text-sm text-muted" data-i18n="code.cy_start_hint">填 0 表示从当前时间开始计算周期。</div>
                     </div>
                     <div class="form-group">
-                        <label>周期 (秒) *</label>
-                        <input type="number" id="cc_cy_interval" placeholder="如 86400 = 1天" value="">
-                        <div class="text-sm text-muted mt-8">常用: 3600=1小时, 86400=1天, 604800=1周。必须大于 0。</div>
+                        <label for="cc_cy_interval" data-i18n="code.label_interval">周期 (秒) *</label>
+                        <input type="number" id="cc_cy_interval" data-i18n-placeholder="code.placeholder_interval" placeholder="如 86400 = 1天" value="">
+                        <div class="text-sm text-muted mt-8" data-i18n="code.interval_hint">常用: 3600=1小时, 86400=1天, 604800=1周。必须大于 0。</div>
                     </div>
                 </div>
             </div>
 
             <div class="mt-16">
-                <button class="btn btn-primary" id="cc_submit" onclick="submitCreateCode()">创建兑换码</button>
+                <button class="btn btn-primary" id="cc_submit" onclick="submitCreateCode()" data-i18n="code.btn_submit">创建兑换码</button>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+/* ======================== i18n ======================== */
+const langData = {};
+let currentLang = 'zh';
+
+function langFileName(lang) {
+    return lang === 'en' ? 'en_us.json' : lang + '_cn.json';
+}
+
+function loadLang(lang) {
+    return fetch('/lang/' + langFileName(lang))
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => { langData[lang] = data; })
+        .catch(() => {
+            if (lang !== 'en') {
+                return fetch('/lang/en_us.json').then(r => r.json()).then(data => { langData[lang] = data; });
+            }
+        });
+}
+
+function t(key) {
+    return (langData[currentLang] && langData[currentLang][key]) || (langData['en'] && langData['en'][key]) || key;
+}
+
+function applyI18n(root) {
+    (root || document).querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const val = t(key);
+        if (val !== key) {
+            if (el.tagName === 'TITLE') { document.title = val; }
+            else { el.textContent = val; }
+        }
+    });
+    (root || document).querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        const val = t(key);
+        if (val !== key) el.placeholder = val;
+    });
+}
+
+function updateLanguage(lang) {
+    currentLang = lang;
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en-US';
+    applyI18n();
+
+    document.getElementById('langBtn_zh').classList.toggle('active', lang === 'zh');
+    document.getElementById('langBtn_en').classList.toggle('active', lang === 'en');
+    document.body.classList.remove('i18n-loading');
+
+    const activePage = document.querySelector('.sidebar-menu li a.active');
+    if (activePage) {
+        const page = activePage.dataset.page;
+        pageTitle.textContent = t('sidebar.' + page.replace('-', '_')) || page;
+        navigateTo(page);
+    }
+}
+
+function switchLang(lang) {
+    localStorage.setItem('user_lang', lang);
+    updateLanguage(lang);
+}
+
+(function initI18n() {
+    const saved = localStorage.getItem('user_lang');
+    const browserLang = (navigator.language || '').toLowerCase();
+    const lang = saved || (browserLang.startsWith('zh') ? 'zh' : 'en');
+    Promise.all([loadLang('zh'), loadLang('en')]).then(() => { updateLanguage(lang); });
+})();
+
+/* ======================== Auth & Utils ======================== */
 function getToken() {
     const m = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
     return m ? m[1] : null;
@@ -600,7 +705,7 @@ function apiRequest(url, options) {
     }
     return fetch(url, options).then(res => {
         if (res.status === 401) {
-            showTips('登录已过期，请重新登录', 'error');
+            showTips(t('error.unauthorized'), 'error');
             setTimeout(() => { window.location.href = '/index.html'; }, 1200);
             return Promise.reject(new Error('Unauthorized'));
         }
@@ -620,7 +725,7 @@ function showTips(msg, type) {
 }
 
 function copyText(text) {
-    navigator.clipboard.writeText(text).then(() => showTips('已复制: ' + text, 'success'));
+    navigator.clipboard.writeText(text).then(() => showTips(t('common.copy') + text, 'success'));
 }
 
 function escHtml(s) {
@@ -652,19 +757,10 @@ function logout() {
         .finally(() => { clearToken(); window.location.href = '/index.html'; });
 }
 
+/* ======================== Navigation ======================== */
 const contentArea = document.getElementById('contentArea');
 const pageTitle = document.getElementById('pageTitle');
 const menuLinks = document.querySelectorAll('.sidebar-menu li a');
-
-const pageTitles = {
-    'dashboard': '仪表盘',
-    'codes': '兑换码列表',
-    'create-code': '创建兑换码',
-    'logs': '操作日志',
-    'players': '在线玩家',
-    'settings': '配置信息',
-    'reload': '重载配置'
-};
 
 menuLinks.forEach(link => {
     link.addEventListener('click', function(e) {
@@ -672,7 +768,8 @@ menuLinks.forEach(link => {
         const page = this.dataset.page;
         menuLinks.forEach(l => l.classList.remove('active'));
         this.classList.add('active');
-        pageTitle.textContent = pageTitles[page] || page;
+        const key = 'sidebar.' + page.replace('-', '_');
+        pageTitle.textContent = t(key) || page;
         navigateTo(page);
     });
 });
@@ -693,32 +790,34 @@ function switchPage(page) {
     menuLinks.forEach(l => l.classList.remove('active'));
     const target = document.querySelector(`.sidebar-menu li a[data-page="${page}"]`);
     if (target) target.classList.add('active');
-    pageTitle.textContent = pageTitles[page] || page;
+    const key = 'sidebar.' + page.replace('-', '_');
+    pageTitle.textContent = t(key) || page;
     navigateTo(page);
 }
 
+/* ======================== Dashboard ======================== */
 function renderDashboard() {
-    contentArea.innerHTML = '<div class="stat-grid" id="statGrid"><div class="empty-state">加载中...</div></div>' +
-        '<div class="card"><div class="card-title">最近操作</div><div class="card-body" id="recentLogs">加载中...</div></div>';
+    contentArea.innerHTML = '<div class="stat-grid" id="statGrid"><div class="empty-state">' + t('code.loading') + '</div></div>' +
+        '<div class="card"><div class="card-title">' + t('dashboard.recent_activity') + '</div><div class="card-body" id="recentLogs">' + t('code.loading') + '</div></div>';
 
     apiRequest('/api/status').then(data => {
         if (!data.success) return;
         const d = data.data;
         document.getElementById('statGrid').innerHTML =
-            statCard('在线玩家', d.onlinePlayers, 'green') +
-            statCard('兑换码总数', d.totalCodes, 'blue') +
-            statCard('存储类型', d.datastoreType, '') +
-            statCard('Mod 版本', d.modVersion, '');
+            statCard(t('dashboard.online_players'), d.onlinePlayers, 'green') +
+            statCard(t('dashboard.total_codes'), d.totalCodes, 'blue') +
+            statCard(t('dashboard.storage_type'), d.datastoreType, '') +
+            statCard(t('dashboard.mod_version'), d.modVersion, '');
     }).catch(() => {});
 
     apiRequest('/api/logs?offset=0&limit=10').then(data => {
         if (!data.success) return;
         const logs = data.data;
         if (logs.length === 0) {
-            document.getElementById('recentLogs').innerHTML = '<div class="empty-state">暂无操作记录</div>';
+            document.getElementById('recentLogs').innerHTML = '<div class="empty-state">' + t('logs.empty') + '</div>';
             return;
         }
-        let html = '<table><thead><tr><th>时间</th><th>类型</th><th>执行者</th><th>详情</th></tr></thead><tbody>';
+        let html = '<table><thead><tr><th>' + t('table.time') + '</th><th>' + t('table.type') + '</th><th>' + t('table.executor') + '</th><th>' + t('table.details') + '</th></tr></thead><tbody>';
         for (const log of logs) {
             html += `<tr>
                 <td class="text-sm">${escHtml(log.time)}</td>
@@ -773,22 +872,23 @@ function formatDetails(details) {
     return Object.entries(details).map(([k,v]) => `${escHtml(k)}=${escHtml(v)}`).join(', ');
 }
 
+/* ======================== Codes ======================== */
 function renderCodes() {
     contentArea.innerHTML = '<div class="card"><div class="flex-between mb-8">' +
-        '<div class="card-title" style="margin-bottom:0;border:none;padding:0">所有兑换码</div>' +
+        '<div class="card-title" style="margin-bottom:0;border:none;padding:0">' + t('code.all_codes') + '</div>' +
         '<div style="display:flex;gap:8px">' +
-        '<button class="btn btn-outline btn-sm" onclick="renderCodes()">↻ 刷新</button>' +
-        '<button class="btn btn-primary btn-sm" onclick="switchPage(\'create-code\')">+ 创建</button></div></div>' +
-        '<div id="codesTable">加载中...</div></div>';
+        '<button class="btn btn-outline btn-sm" onclick="renderCodes()">↻ ' + t('common.refresh') + '</button>' +
+        '<button class="btn btn-primary btn-sm" onclick="switchPage(\'create-code\')">+ ' + t('common.create') + '</button></div></div>' +
+        '<div id="codesTable">' + t('code.loading') + '</div></div>';
 
     apiRequest('/api/codes').then(data => {
         if (!data.success) return;
         const codes = data.data;
         if (codes.length === 0) {
-            document.getElementById('codesTable').innerHTML = '<div class="empty-state">暂无兑换码，点击右上角创建</div>';
+            document.getElementById('codesTable').innerHTML = '<div class="empty-state">' + t('code.empty') + '</div>';
             return;
         }
-        let html = '<table><thead><tr><th>兑换码</th><th>类型</th><th>奖励</th><th>使用次数</th><th>操作</th></tr></thead><tbody>';
+        let html = '<table><thead><tr><th>' + t('table.code') + '</th><th>' + t('table.type') + '</th><th>' + t('table.reward') + '</th><th>' + t('table.uses') + '</th><th>' + t('table.actions') + '</th></tr></thead><tbody>';
         for (const c of codes) {
             const reward = c.reward.length > 30 ? c.reward.substring(0, 30) + '...' : c.reward;
             html += `<tr>
@@ -797,8 +897,8 @@ function renderCodes() {
                 <td class="text-sm" title="${escHtml(c.reward)}">${escHtml(reward)}</td>
                 <td>${c.totalUses}${c.count > 0 ? ' / ' + c.count : ''}</td>
                 <td>
-                    <button class="btn btn-outline btn-sm" onclick="showCodeDetail('${escHtml(c.code)}')">详情</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteCode('${escHtml(c.code)}')">删除</button>
+                    <button class="btn btn-outline btn-sm" onclick="showCodeDetail('${escHtml(c.code)}')">${t('common.detail')}</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteCode('${escHtml(c.code)}')">${t('common.delete')}</button>
                 </td>
             </tr>`;
         }
@@ -809,22 +909,22 @@ function renderCodes() {
 
 function showCodeDetail(code) {
     apiRequest('/api/codes/' + encodeURIComponent(code)).then(data => {
-        if (!data.success) { showTips(data.message || '获取失败', 'error'); return; }
+        if (!data.success) { showTips(data.message || t('error.get_failed'), 'error'); return; }
         const d = data.data;
         let html = '<div class="card-body">';
-        html += `<p><strong>兑换码:</strong> <span class="mono clickable" onclick="copyText('${escHtml(d.code)}')">${escHtml(d.code)}</span></p>`;
-        html += `<p><strong>类型:</strong> <span class="badge ${typeBadge[d.type] || 'badge-gray'}">${escHtml(d.type)}</span></p>`;
-        html += `<p><strong>奖励:</strong> <span class="mono">${escHtml(d.reward)}</span></p>`;
-        if (d.player) html += `<p><strong>绑定玩家:</strong> <span class="mono text-sm">${escHtml(d.player)}</span></p>`;
-        if (d.count > 0) html += `<p><strong>最大使用次数:</strong> ${d.count}</p>`;
-        if (d.startTimeStr) html += `<p><strong>开始时间:</strong> ${escHtml(d.startTimeStr)}</p>`;
-        if (d.endTimeStr) html += `<p><strong>结束时间:</strong> ${escHtml(d.endTimeStr)}</p>`;
-        if (d.interval) html += `<p><strong>周期:</strong> ${Math.round(d.interval/1000)} 秒</p>`;
+        html += `<p><strong>${t('code.detail_code')}</strong> <span class="mono clickable" onclick="copyText('${escHtml(d.code)}')">${escHtml(d.code)}</span></p>`;
+        html += `<p><strong>${t('code.detail_type')}</strong> <span class="badge ${typeBadge[d.type] || 'badge-gray'}">${escHtml(d.type)}</span></p>`;
+        html += `<p><strong>${t('code.detail_reward')}</strong> <span class="mono">${escHtml(d.reward)}</span></p>`;
+        if (d.player) html += `<p><strong>${t('code.detail_player')}</strong> <span class="mono text-sm">${escHtml(d.player)}</span></p>`;
+        if (d.count > 0) html += `<p><strong>${t('code.detail_max_uses')}</strong> ${d.count}</p>`;
+        if (d.startTimeStr) html += `<p><strong>${t('code.detail_start')}</strong> ${escHtml(d.startTimeStr)}</p>`;
+        if (d.endTimeStr) html += `<p><strong>${t('code.detail_end')}</strong> ${escHtml(d.endTimeStr)}</p>`;
+        if (d.interval) html += `<p><strong>${t('code.detail_interval')}</strong> ${Math.round(d.interval/1000)}${t('code.detail_interval_unit')}</p>`;
 
         if (d.usedBy && d.usedBy.length > 0) {
             html += '<hr style="margin:12px 0;border:none;border-top:1px solid var(--border)">';
-            html += '<p><strong>使用记录:</strong></p>';
-            html += '<table><thead><tr><th>UUID</th><th>次数</th><th>最近使用</th></tr></thead><tbody>';
+            html += '<p><strong>' + t('code.detail_used_by') + '</strong></p>';
+            html += '<table><thead><tr><th>' + t('code.detail_used_by_header_uuid') + '</th><th>' + t('code.detail_used_by_header_times') + '</th><th>' + t('code.detail_used_by_header_last') + '</th></tr></thead><tbody>';
             for (const u of d.usedBy) {
                 const lastTs = u.timestamps.length > 0 ? u.timestamps[u.timestamps.length - 1] : '-';
                 html += `<tr>
@@ -835,11 +935,11 @@ function showCodeDetail(code) {
             }
             html += '</tbody></table>';
         } else {
-            html += '<p class="text-muted mt-8">暂无使用记录</p>';
+            html += '<p class="text-muted mt-8">' + t('code.detail_no_records') + '</p>';
         }
         html += '</div>';
 
-        document.getElementById('modalTitle').textContent = '兑换码详情 - ' + d.code;
+        document.getElementById('modalTitle').textContent = t('code.detail_title') + d.code;
         document.getElementById('modalBody').innerHTML = html;
         document.getElementById('detailModal').classList.add('show');
     }).catch(() => {});
@@ -850,33 +950,36 @@ function closeModal() {
 }
 
 function deleteCode(code) {
-    if (!confirm('确定要删除兑换码 "' + code + '" 吗？此操作不可撤销。')) return;
+    if (!confirm(t('code.confirm_delete') + code + t('code.confirm_delete_suffix'))) return;
     apiRequest('/api/codes/' + encodeURIComponent(code), { method: 'DELETE' }).then(data => {
         if (data.success) {
-            showTips('已删除: ' + code, 'success');
+            showTips(t('code.deleted') + code, 'success');
             renderCodes();
         } else {
-            showTips(data.message || '删除失败', 'error');
+            showTips(data.message || t('error.delete_failed'), 'error');
         }
     }).catch(() => {});
 }
 
+/* ======================== Create Code ======================== */
 function renderCreateCode() {
-    var tpl = document.getElementById('tpl-create-code');
+    const tpl = document.getElementById('tpl-create-code');
     contentArea.innerHTML = '';
-    contentArea.appendChild(tpl.content.cloneNode(true));
+    const clone = tpl.content.cloneNode(true);
+    contentArea.appendChild(clone);
+    applyI18n(contentArea);
 
     document.getElementById('cc_type').addEventListener('change', updateCreateForm);
     updateCreateForm();
 
     apiRequest('/api/scoreboards').then(function(data) {
         if (!data.success) return;
-        var sel = document.getElementById('cc_gl_scoreboard');
+        const sel = document.getElementById('cc_gl_scoreboard');
         if (!sel) return;
-        sel.innerHTML = '<option value="">-- 选择计分板 --</option>';
-        for (var i = 0; i < data.data.length; i++) {
-            var obj = data.data[i];
-            var opt = document.createElement('option');
+        sel.innerHTML = '<option value="">' + t('code.select_scoreboard') + '</option>';
+        for (let i = 0; i < data.data.length; i++) {
+            const obj = data.data[i];
+            const opt = document.createElement('option');
             opt.value = obj.name;
             opt.textContent = obj.displayName + ' (' + obj.name + ')';
             sel.appendChild(opt);
@@ -907,13 +1010,13 @@ function updateTsPreview(inputId, previewId) {
     if (!el) return;
     if (!val || val <= 0) { el.textContent = ''; return; }
     if (String(val).length < 12) {
-        el.textContent = '看起来像秒级时间戳，毫秒级应为 13 位数';
+        el.textContent = t('ts_hint.seconds');
         el.style.color = 'var(--warning)';
         return;
     }
     const d = new Date(val);
-    if (isNaN(d.getTime())) { el.textContent = '无效时间戳'; el.style.color = 'var(--danger)'; return; }
-    el.textContent = d.toLocaleString('zh-CN');
+    if (isNaN(d.getTime())) { el.textContent = t('ts_hint.invalid'); el.style.color = 'var(--danger)'; return; }
+    el.textContent = d.toLocaleString(currentLang === 'zh' ? 'zh-CN' : 'en-US');
     el.style.color = 'var(--text-muted)';
 }
 
@@ -928,46 +1031,46 @@ function submitCreateCode() {
     const reward = document.getElementById('cc_reward').value.trim();
     const code = document.getElementById('cc_code').value.trim();
 
-    if (!reward) { showTips('奖励不能为空', 'error'); return; }
+    if (!reward) { showTips(t('error.reward_empty'), 'error'); return; }
     if (!/^(item@|exp@|permissions@).+/i.test(reward)) {
-        showTips('奖励格式不正确，应以 item@、exp@ 或 permissions@ 开头。示例: item@minecraft:diamond', 'error'); return;
+        showTips(t('error.reward_format'), 'error'); return;
     }
 
     const body = { type, reward, code };
 
     if (type === 'PERSONAL') {
         const player = document.getElementById('cc_player').value.trim();
-        if (!player) { showTips('PERSONAL 类型必须填写绑定玩家 UUID', 'error'); return; }
-        if (!validateUuids(player)) { showTips('UUID 格式错误，请检查。标准格式: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 'error'); return; }
+        if (!player) { showTips(t('error.personal_no_uuid'), 'error'); return; }
+        if (!validateUuids(player)) { showTips(t('error.uuid_format'), 'error'); return; }
         body.player = player;
     }
 
     if (type === 'GLOBAL_LIMIT') {
         const mode = document.getElementById('cc_gl_mode').value;
         const limit = parseInt(document.getElementById('cc_gl_limit').value);
-        if (!limit || limit === 0) { showTips('limit 不能为 0 或空', 'error'); return; }
+        if (!limit || limit === 0) { showTips(t('error.limit_zero'), 'error'); return; }
         body.selectMode = mode;
         body.limit = limit;
 
         if (mode === 'tag') {
             const tag = document.getElementById('cc_gl_tag').value.trim();
-            if (!tag) { showTips('Tag 名称不能为空', 'error'); return; }
+            if (!tag) { showTips(t('error.tag_empty'), 'error'); return; }
             body.tag = tag;
         } else if (mode === 'scoreboard') {
             const sb = document.getElementById('cc_gl_scoreboard').value;
-            if (!sb) { showTips('请选择一个计分板目标', 'error'); return; }
+            if (!sb) { showTips(t('error.scoreboard_empty'), 'error'); return; }
             body.scoreboard = sb;
         } else {
             const player = document.getElementById('cc_gl_player').value.trim();
-            if (!player) { showTips('手动模式必须填写玩家 UUID', 'error'); return; }
-            if (!validateUuids(player)) { showTips('UUID 格式错误，请检查', 'error'); return; }
+            if (!player) { showTips(t('error.manual_no_uuid'), 'error'); return; }
+            if (!validateUuids(player)) { showTips(t('error.uuid_format'), 'error'); return; }
             body.player = player;
         }
 
         const countVal = document.getElementById('cc_gl_count').value.trim();
         if (countVal !== '') {
             const count = parseInt(countVal);
-            if (isNaN(count) || count === 0) { showTips('最大兑换次数不能为 0', 'error'); return; }
+            if (isNaN(count) || count === 0) { showTips(t('error.count_zero'), 'error'); return; }
             body.count = count;
         }
     }
@@ -976,13 +1079,13 @@ function submitCreateCode() {
         const startTime = parseInt(document.getElementById('cc_start').value) || 0;
         const endTime = parseInt(document.getElementById('cc_end').value) || 0;
         if (startTime > 0 && String(startTime).length < 12) {
-            showTips('开始时间戳位数不足，毫秒级时间戳应为 13 位数。示例: 1700000000000', 'error'); return;
+            showTips(t('error.start_ts_short'), 'error'); return;
         }
         if (endTime > 0 && String(endTime).length < 12) {
-            showTips('结束时间戳位数不足，毫秒级时间戳应为 13 位数。示例: 1700100000000', 'error'); return;
+            showTips(t('error.end_ts_short'), 'error'); return;
         }
         if (startTime > 0 && endTime > 0 && startTime >= endTime) {
-            showTips('开始时间必须早于结束时间', 'error'); return;
+            showTips(t('error.start_after_end'), 'error'); return;
         }
         body.startTime = startTime;
         body.endTime = endTime;
@@ -992,47 +1095,48 @@ function submitCreateCode() {
         const startTime = parseInt(document.getElementById('cc_cy_start').value) || 0;
         const interval = parseInt(document.getElementById('cc_cy_interval').value);
         if (startTime > 0 && String(startTime).length < 12) {
-            showTips('时间戳位数不足，毫秒级应为 13 位数', 'error'); return;
+            showTips(t('error.ts_short'), 'error'); return;
         }
-        if (!interval || interval <= 0) { showTips('周期必须大于 0 秒', 'error'); return; }
+        if (!interval || interval <= 0) { showTips(t('error.interval_zero'), 'error'); return; }
         body.startTime = startTime;
         body.interval = interval * 1000;
     }
 
     const btn = document.getElementById('cc_submit');
-    btn.disabled = true; btn.textContent = '创建中...';
+    btn.disabled = true; btn.textContent = t('code.btn_submitting');
 
     apiRequest('/api/codes', { method: 'POST', body })
         .then(data => {
             if (data.success) {
-                showTips('创建成功: ' + data.code, 'success');
+                showTips(t('code.created') + data.code, 'success');
                 renderCreateCode();
             } else {
-                showTips(data.message || '创建失败', 'error');
+                showTips(data.message || t('error.create_failed'), 'error');
             }
         })
-        .catch(() => { showTips('请求失败', 'error'); })
-        .finally(() => { btn.disabled = false; btn.textContent = '创建兑换码'; });
+        .catch(() => { showTips(t('error.request_failed'), 'error'); })
+        .finally(() => { btn.disabled = false; btn.textContent = t('code.btn_submit'); });
 }
 
+/* ======================== Logs ======================== */
 let logOffset = 0;
 const logPageSize = 30;
 
 function renderLogs(offset) {
     logOffset = offset;
-    contentArea.innerHTML = '<div class="card"><div class="flex-between"><div class="card-title" style="margin-bottom:0;border:none;padding:0">操作日志</div>' +
-        '<button class="btn btn-outline btn-sm" onclick="renderLogs(0)">↻ 刷新</button></div>' +
-        '<div id="logsBody" style="margin-top:14px">加载中...</div></div>';
+    contentArea.innerHTML = '<div class="card"><div class="flex-between"><div class="card-title" style="margin-bottom:0;border:none;padding:0">' + t('logs.title') + '</div>' +
+        '<button class="btn btn-outline btn-sm" onclick="renderLogs(0)">↻ ' + t('common.refresh') + '</button></div>' +
+        '<div id="logsBody" style="margin-top:14px">' + t('code.loading') + '</div></div>';
 
     apiRequest(`/api/logs?offset=${offset}&limit=${logPageSize}`).then(data => {
         if (!data.success) return;
         const logs = data.data;
         if (logs.length === 0 && offset === 0) {
-            document.getElementById('logsBody').innerHTML = '<div class="empty-state">暂无操作记录</div>';
+            document.getElementById('logsBody').innerHTML = '<div class="empty-state">' + t('logs.empty') + '</div>';
             return;
         }
 
-        let html = '<table><thead><tr><th>时间</th><th>类型</th><th>执行者</th><th>详情</th></tr></thead><tbody>';
+        let html = '<table><thead><tr><th>' + t('table.time') + '</th><th>' + t('table.type') + '</th><th>' + t('table.executor') + '</th><th>' + t('table.details') + '</th></tr></thead><tbody>';
         for (const log of logs) {
             html += `<tr>
                 <td class="text-sm">${escHtml(log.time)}</td>
@@ -1042,27 +1146,29 @@ function renderLogs(offset) {
             </tr>`;
         }
         html += '</tbody></table>';
+        const pageNum = Math.floor(offset / logPageSize) + 1;
         html += `<div class="pagination">
-            <button ${offset === 0 ? 'disabled' : ''} onclick="renderLogs(${Math.max(0, offset - logPageSize)})">上一页</button>
-            <span>第 ${Math.floor(offset / logPageSize) + 1} 页</span>
-            <button ${logs.length < logPageSize ? 'disabled' : ''} onclick="renderLogs(${offset + logPageSize})">下一页</button>
+            <button ${offset === 0 ? 'disabled' : ''} onclick="renderLogs(${Math.max(0, offset - logPageSize)})">${t('logs.prev')}</button>
+            <span>${t('logs.page')} ${pageNum} ${currentLang === 'zh' ? '页' : ''}</span>
+            <button ${logs.length < logPageSize ? 'disabled' : ''} onclick="renderLogs(${offset + logPageSize})">${t('logs.next')}</button>
         </div>`;
         document.getElementById('logsBody').innerHTML = html;
     }).catch(() => {});
 }
 
+/* ======================== Players ======================== */
 function renderPlayers() {
-    contentArea.innerHTML = '<div class="card"><div class="card-title">在线玩家</div><div id="playersBody">加载中...</div></div>';
+    contentArea.innerHTML = '<div class="card"><div class="card-title">' + t('players.title') + '</div><div id="playersBody">' + t('code.loading') + '</div></div>';
 
     apiRequest('/api/players').then(data => {
         if (!data.success) return;
         const players = data.data;
         if (players.length === 0) {
-            document.getElementById('playersBody').innerHTML = '<div class="empty-state">当前没有在线玩家</div>';
+            document.getElementById('playersBody').innerHTML = '<div class="empty-state">' + t('players.empty') + '</div>';
             return;
         }
 
-        let html = '<table><thead><tr><th>玩家名</th><th>UUID</th><th>延迟</th></tr></thead><tbody>';
+        let html = '<table><thead><tr><th>' + t('table.player_name') + '</th><th>' + t('table.uuid') + '</th><th>' + t('table.ping') + '</th></tr></thead><tbody>';
         for (const p of players) {
             html += `<tr>
                 <td><strong>${escHtml(p.name)}</strong></td>
@@ -1075,13 +1181,14 @@ function renderPlayers() {
     }).catch(() => {});
 }
 
+/* ======================== Settings ======================== */
 function renderSettings() {
-    contentArea.innerHTML = '<div class="card"><div class="card-title">当前配置</div><div class="card-body" id="configBody">加载中...</div></div>';
+    contentArea.innerHTML = '<div class="card"><div class="card-title">' + t('settings.title') + '</div><div class="card-body" id="configBody">' + t('code.loading') + '</div></div>';
 
     apiRequest('/api/config').then(data => {
         if (!data.success) return;
         const cfg = data.data;
-        let html = '<table><thead><tr><th>配置项</th><th>值</th></tr></thead><tbody>';
+        let html = '<table><thead><tr><th>' + t('table.config_key') + '</th><th>' + t('table.value') + '</th></tr></thead><tbody>';
         for (const [k, v] of Object.entries(cfg)) {
             html += `<tr>
                 <td class="mono">${escHtml(k)}</td>
@@ -1089,19 +1196,20 @@ function renderSettings() {
             </tr>`;
         }
         html += '</tbody></table>';
-        html += '<p class="text-sm text-muted mt-16">修改配置请编辑服务器 config/redemptioncodefabric/redemptioncodefabric.properties 文件，然后使用"重载配置"功能。</p>';
+        html += '<p class="text-sm text-muted mt-16">' + t('settings.hint') + '</p>';
         document.getElementById('configBody').innerHTML = html;
     }).catch(() => {});
 }
 
+/* ======================== Reload ======================== */
 function renderReload() {
     contentArea.innerHTML = `<div class="card">
-        <div class="card-title">重载配置</div>
+        <div class="card-title">${t('reload.title')}</div>
         <div class="card-body">
-            <p>点击按钮将重新读取服务器配置文件，并重载所有服务（SQL、Redis、Web 服务器等）。</p>
-            <p class="text-sm text-muted mt-8">注意：重载会使所有已登录的 Web Token 失效，您需要重新登录。</p>
+            <p>${t('reload.desc')}</p>
+            <p class="text-sm text-muted mt-8">${t('reload.warning')}</p>
             <div class="mt-16">
-                <button class="btn btn-success" id="reloadBtn" onclick="doReload()">重载配置</button>
+                <button class="btn btn-success" id="reloadBtn" onclick="doReload()">${t('reload.btn')}</button>
             </div>
         </div>
     </div>`;
@@ -1109,20 +1217,20 @@ function renderReload() {
 
 function doReload() {
     const btn = document.getElementById('reloadBtn');
-    btn.disabled = true; btn.textContent = '重载中...';
+    btn.disabled = true; btn.textContent = t('reload.btn_reloading');
 
     apiRequest('/api/reload', { method: 'POST' })
         .then(data => {
             if (data.success) {
-                showTips('配置已重载，即将跳转到登录页...', 'success');
+                showTips(t('reload.success'), 'success');
                 clearToken();
                 setTimeout(() => { window.location.href = '/index.html'; }, 1500);
             } else {
-                showTips(data.message || '重载失败', 'error');
+                showTips(data.message || t('error.reload_failed'), 'error');
             }
         })
-        .catch(() => { showTips('请求失败', 'error'); })
-        .finally(() => { btn.disabled = false; btn.textContent = '重载配置'; });
+        .catch(() => { showTips(t('error.request_failed'), 'error'); })
+        .finally(() => { btn.disabled = false; btn.textContent = t('reload.btn'); });
 }
 
 document.getElementById('detailModal').addEventListener('click', function(e) {

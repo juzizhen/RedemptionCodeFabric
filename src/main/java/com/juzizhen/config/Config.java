@@ -246,9 +246,6 @@ public class Config {
         return getInt("redis.database", 0);
     }
 
-    public int getPort() {
-        return getInt("web.port", 8080);
-    }
 
     public static String getString(String key, String defaultValue) {
         return properties.getProperty(key, defaultValue);

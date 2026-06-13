@@ -111,7 +111,7 @@ public final class AsyncIoManager {
         }
 
         // ★ 初始化 Web 服务器
-        initWebServer(config, server);
+        initWebServer();
 
         initialized = true;
         LOGGER.info("AsyncIoManager initialized successfully.");
@@ -120,7 +120,7 @@ public final class AsyncIoManager {
     /**
      * 启动 Web 服务器（如果 web.enabled=true）并向 OP 发送 URL。
      */
-    private static void initWebServer(Config config, MinecraftServer server) {
+    private static void initWebServer() {
         if (!Config.getBoolean("web.enabled", false)) {
             LOGGER.info("Web server is disabled in config.");
             activeWebPort = -1;
@@ -233,17 +233,4 @@ public final class AsyncIoManager {
         LOGGER.info("AsyncIoManager shut down complete.");
     }
 
-    /**
-     * 检查是否已初始化。
-     */
-    public static boolean isInitialized() {
-        return initialized;
-    }
-
-    /**
-     * 获取当前 Web 服务器实际监听端口（-1 表示未运行）。
-     */
-    public static int getActiveWebPort() {
-        return activeWebPort;
-    }
 }

@@ -204,7 +204,7 @@ public class SimpleConnectionPool {
                     continue;
                 }
                 // 检查有效性
-                if (!validateConnection(entry)) {
+                if (isConnectionInvalid(entry)) {
                     closeAndRemove(entry, "validation failed on borrow");
                     continue;
                 }
@@ -324,10 +324,6 @@ public class SimpleConnectionPool {
         return totalConnections.get();
     }
 
-    public int getMaxPoolSize() {
-        return maxPoolSize;
-    }
-
     public String getPoolStats() {
         return String.format("[total=%d, active=%d, idle=%d, max=%d]",
                 getTotalConnections(), getActiveConnections(), getIdleConnections(), maxPoolSize);
@@ -388,7 +384,7 @@ public class SimpleConnectionPool {
             // 仅验证超过 keepaliveTime 未验证的连接
             if ((now - entry.lastValidatedAt) < keepaliveTime) continue;
 
-            if (!validateConnection(entry)) {
+            if (isConnectionInvalid(entry)) {
                 idleQueue.remove(entry);
                 closeAndRemove(entry, "keepalive validation failed");
             } else {
@@ -457,7 +453,7 @@ public class SimpleConnectionPool {
         }
     }
 
-    private boolean validateConnection(PoolEntry entry) {
+    private boolean isConnectionInvalid(PoolEntry entry) {
         try {
             if (entry.connection.isClosed()) return false;
             boolean valid = entry.connection.isValid(Math.max(validationTimeoutSec, 1));
