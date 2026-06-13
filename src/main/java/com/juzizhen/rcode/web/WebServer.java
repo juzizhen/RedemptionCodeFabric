@@ -30,6 +30,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 基于 JDK 原生 {@link HttpServer} 的轻量级 Web 服务器，
@@ -52,6 +53,39 @@ public class WebServer {
 
     private HttpServer server;
     private final Set<String> activeTokens = ConcurrentHashMap.newKeySet();
+
+    /**
+     * 登录暴力破解防护：记录每个 IP 的失败次数和时间戳。
+     */
+    private static final int MAX_LOGIN_ATTEMPTS = 5;
+    private static final long LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 分钟
+    private final ConcurrentHashMap<String, LoginAttempt> loginAttempts = new ConcurrentHashMap<>();
+
+    private static class LoginAttempt {
+        final AtomicInteger failCount = new AtomicInteger(0);
+        volatile long lastFailTime = 0;
+
+        boolean isLockedOut() {
+            if (failCount.get() >= MAX_LOGIN_ATTEMPTS) {
+                if (System.currentTimeMillis() - lastFailTime < LOCKOUT_DURATION_MS) {
+                    return true;
+                }
+                // 锁定时间已过，重置
+                failCount.set(0);
+            }
+            return false;
+        }
+
+        void recordFailure() {
+            failCount.incrementAndGet();
+            lastFailTime = System.currentTimeMillis();
+        }
+
+        void reset() {
+            failCount.set(0);
+            lastFailTime = 0;
+        }
+    }
 
     private WebServer() {
     }
@@ -123,6 +157,7 @@ public class WebServer {
         if (server != null) {
             server.stop(0);
             activeTokens.clear();
+            loginAttempts.clear();
             server = null;
             LOGGER.info("Web server stopped.");
         }
@@ -165,7 +200,25 @@ public class WebServer {
         return false;
     }
 
+    /**
+     * 添加安全响应头，防止常见 Web 攻击。
+     */
+    private void addSecurityHeaders(HttpExchange exchange) {
+        exchange.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
+        exchange.getResponseHeaders().set("X-Frame-Options", "DENY");
+        exchange.getResponseHeaders().set("Referrer-Policy", "strict-origin-when-cross-origin");
+    }
+
+    private String getClientIp(HttpExchange exchange) {
+        String forwarded = exchange.getRequestHeaders().getFirst("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isEmpty()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return exchange.getRemoteAddress().getAddress().getHostAddress();
+    }
+
     private void sendJsonResponse(HttpExchange exchange, int statusCode, Object data) throws IOException {
+        addSecurityHeaders(exchange);
         String json = GSON.toJson(data);
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
@@ -203,9 +256,10 @@ public class WebServer {
     private void serveResource(HttpExchange exchange, String path, String contentType) throws IOException {
         try (InputStream is = WebServer.class.getResourceAsStream(path)) {
             if (is == null) {
-                sendJsonResponse(exchange, 404, Map.of("error", "Not Found: " + path));
+                sendJsonResponse(exchange, 404, Map.of("error", "Not Found"));
                 return;
             }
+            addSecurityHeaders(exchange);
             byte[] bytes = is.readAllBytes();
             exchange.getResponseHeaders().set("Content-Type", contentType + "; charset=utf-8");
             exchange.sendResponseHeaders(200, bytes.length);
@@ -249,6 +303,16 @@ public class WebServer {
                 return;
             }
 
+            String clientIp = getClientIp(exchange);
+            LoginAttempt attempt = loginAttempts.computeIfAbsent(clientIp, k -> new LoginAttempt());
+
+            // 暴力破解防护：检查是否被锁定
+            if (attempt.isLockedOut()) {
+                LOGGER.warn("Login rate-limited for IP: {}", clientIp);
+                sendJsonResponse(exchange, 429, Map.of("success", false, "message", "登录尝试过于频繁，请稍后再试"));
+                return;
+            }
+
             Map<String, String> form = parseFormBody(exchange);
             String user = form.get("user");
             String pass = form.get("password");
@@ -258,10 +322,14 @@ public class WebServer {
             if (cfgUser.equals(user) && cfgPass.equals(pass)) {
                 String token = UUID.randomUUID().toString();
                 activeTokens.add(token);
-                LOGGER.info("Web login success for user: {}", user);
+                attempt.reset(); // 登录成功，重置计数
+                LOGGER.info("Web login success for user: {} from IP: {}", user, clientIp);
                 String adminPath = Config.getString("web.adminPath", "/admin.html");
                 sendJsonResponse(exchange, 200, Map.of("success", true, "token", token, "adminPath", adminPath));
             } else {
+                attempt.recordFailure();
+                int remaining = MAX_LOGIN_ATTEMPTS - attempt.failCount.get();
+                LOGGER.warn("Web login failed for user: {} from IP: {} ({} attempts remaining)", user, clientIp, Math.max(0, remaining));
                 sendJsonResponse(exchange, 401, Map.of("success", false, "message", "用户名或密码错误"));
             }
         }
@@ -378,7 +446,7 @@ public class WebServer {
             // 检查是否是单个代码查询
             String path = exchange.getRequestURI().getPath();
             if (path.matches("/api/codes/.+")) {
-                String code = path.substring("/api/codes/".length());
+                String code = java.net.URLDecoder.decode(path.substring("/api/codes/".length()), StandardCharsets.UTF_8);
                 handleGetSingleCode(exchange, cm, code);
                 return;
             }
@@ -528,7 +596,7 @@ public class WebServer {
             MinecraftServer server = getServer();
 
             String path = exchange.getRequestURI().getPath();
-            String code = path.substring("/api/codes/".length());
+            String code = java.net.URLDecoder.decode(path.substring("/api/codes/".length()), StandardCharsets.UTF_8);
 
             if (cm == null || server == null) {
                 sendJsonResponse(exchange, 500, Map.of("success", false, "message", "服务未就绪"));
