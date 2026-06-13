@@ -2,6 +2,9 @@ package com.juzizhen.rcode.repository;
 
 import com.juzizhen.RedemptionCodeFabric;
 import com.juzizhen.config.Config;
+import com.juzizhen.rcode.redis.RedisManager;
+import com.juzizhen.rcode.redis.RedisRepository;
+import com.juzizhen.rcode.sql.SqlManager;
 
 public class RepositoryFactory {
 
@@ -11,14 +14,22 @@ public class RepositoryFactory {
 
         return switch (repositoryType.toLowerCase()) {
             case "redis" -> {
-                // return new RedisRepository(config); // To be implemented
-                RedemptionCodeFabric.LOGGER.warn("Redis repository is not yet implemented, falling back to file repository.");
-                yield new FileRepository();
+                if (RedisManager.getInstance().isConnected()) {
+                    RedemptionCodeFabric.LOGGER.info("Using Redis repository.");
+                    yield new RedisRepository();
+                } else {
+                    RedemptionCodeFabric.LOGGER.warn("Redis connection not available, falling back to file repository.");
+                    yield new FileRepository();
+                }
             }
             case "sql" -> {
-                // return new SqlRepository(config); // To be implemented
-                RedemptionCodeFabric.LOGGER.warn("SQL repository is not yet implemented, falling back to file repository.");
-                yield new FileRepository();
+                if (SqlManager.getInstance().isConnected()) {
+                    RedemptionCodeFabric.LOGGER.info("Using SQL repository.");
+                    yield new SqlRepository(SqlManager.getInstance());
+                } else {
+                    RedemptionCodeFabric.LOGGER.warn("SQL connection not available, falling back to file repository.");
+                    yield new FileRepository();
+                }
             }
             default -> new FileRepository();
         };

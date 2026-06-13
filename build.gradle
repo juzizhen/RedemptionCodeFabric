@@ -1,64 +1,138 @@
+import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
+
 plugins {
-	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+    id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+    id 'com.gradleup.shadow' version '9.4.2'
 }
 
 version = project.mod_version
 group = project.maven_group
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
-	mavenCentral()
+    mavenCentral()
+}
+
+configurations {
+    shadowBundle
+    implementation.extendsFrom shadowBundle
 }
 
 dependencies {
-	// To change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    // Minecraft And Fabric
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    // SQL Driver
+    shadowBundle("com.mysql:mysql-connector-j:9.7.0")
 
-	implementation "io.javalin:javalin:7.2.2"
-	implementation "com.zaxxer:HikariCP:5.1.0"
-	implementation "org.jdbi:jdbi3-core:3.45.0"
-	implementation "org.jdbi:jdbi3-sqlobject:3.45.0"
-	runtimeOnly "mysql:mysql-connector-java:8.0.33"
-
+    // Redis
+    shadowBundle("redis.clients:jedis:5.2.0")
 }
 
 processResources {
-	def version = project.version
-	inputs.property "version", version
+    def version = project.version
+    inputs.property "version", version
 
-	filesMatching("fabric.mod.json") {
-		expand "version": version
-	}
+    filesMatching("fabric.mod.json") {
+        expand "version": version
+    }
+
+    from(project.rootProject.file("LICENSE")) {
+        rename { "LICENSE_${project.name}" }
+    }
+
+    // Minification HTML
+    doLast {
+        fileTree("$buildDir/resources/main/assets/redemptioncodefabric/web").matching {
+            include '**/*.html'
+        }.forEach { file ->
+            def content = file.text
+
+            content = content.replaceAll(/(?is)(<style[^>]*>)(.*?)(<\/style>)/) { match, startTag, cssBlock, endTag ->
+                def minifiedCss = cssBlock.replaceAll(/(?s)\/\*.*?\*\//, "").replaceAll(/\s+/, " ").replaceAll(/\s*([{}:;,])\s*/, '$1')
+                return startTag + minifiedCss.trim() + endTag
+            }
+
+            content = content.replaceAll(/(?is)(<script(?![^>]*\bsrc\b)[^>]*>)(.*?)(<\/script>)/) { match, startTag, jsBlock, endTag ->
+                def minifiedJs = jsBlock.replaceAll(/(?s)\/\*.*?\*\//, "").replaceAll(/(?m)(?<!:)\/\/.*$/, "").replaceAll(/\s+/, " ").replaceAll(/\s*([{};,=\(\)])\s*/, '$1')
+                return startTag + minifiedJs.trim() + endTag
+            }
+
+            def minifiedHtml = content.replaceAll(/(?s)/, "").replaceAll(/>\s+</, "><").replaceAll(/\s{2,}/, " ")
+
+            file.text = minifiedHtml
+        }
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 17
+    it.options.release = 17
 }
 
 java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
-	withSourcesJar()
-
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 jar {
-	def projectName = project.name
-	inputs.property "projectName", projectName
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 
-	from("LICENSE") {
-		rename { "${it}_$projectName"}
-	}
+shadowJar {
+    configurations = [project.configurations.shadowBundle]
+
+    minimize {
+        exclude(dependency('com.mysql:mysql-connector-j:.*'))
+        exclude(dependency('redis.clients:.*:.*'))
+        exclude(dependency('org.apache.commons.pool2:.*:.*'))
+        exclude(dependency('com.google.code.gson:.*:.*'))
+        exclude(dependency('org.slf4j:.*:.*'))
+    }
+
+    def shadowPrefix = "com.juzizhen.rcode.shadow"
+
+    relocate 'com.mysql', "${shadowPrefix}.mysql"
+    relocate 'redis.clients', "${shadowPrefix}.redis"
+    relocate 'org.apache.commons.pool2', "${shadowPrefix}.pool2"
+    relocate 'com.google', "${shadowPrefix}.google"
+    relocate 'org.json', "${shadowPrefix}.org.json"
+    relocate 'org.slf4j', "${shadowPrefix}.org.slf4j"
+
+    exclude 'META-INF/maven/**'
+    exclude 'META-INF/versions/**'
+    exclude 'module-info.class'
+    exclude '**/Thumbs.db'
+    exclude 'README*'
+    exclude 'INFO_BIN'
+    exclude 'INFO_SRC'
+    exclude 'jndi.properties'
+    exclude '*.xsd'
+    exclude 'google/**'
+    exclude '**/*.proto'
+
+    mergeServiceFiles()
+
+    def licenseNames = ['LICENSE', 'LICENSE.txt', 'LICENSE.md', 'NOTICE', 'NOTICE.txt', 'NOTICE.md']
+    licenseNames.each { fileName ->
+        transform(AppendingTransformer) {
+            resource = "META-INF/${fileName}"
+        }
+    }
+
+    eachFile { file ->
+        if (file.path == 'LICENSE') {
+            file.path = 'META-INF/LICENSE_MySQL'
+        } else if (file.path == 'LICENSE.txt' || file.path == 'LICENSE.md') {
+            file.path = 'META-INF/LICENSE_ThirdParty'
+        } else if (file.path == 'NOTICE' || file.path == 'NOTICE.txt' || file.path == 'NOTICE.md') {
+            file.path = 'META-INF/NOTICE_ThirdParty'
+        }
+    }
+}
+
+remapJar {
+    dependsOn shadowJar
+    inputFile.set(shadowJar.archiveFile)
 }

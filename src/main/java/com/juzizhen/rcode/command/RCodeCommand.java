@@ -13,7 +13,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.ScoreboardObjectiveArgumentType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -58,12 +57,14 @@ public class RCodeCommand {
             var rewardArg = argument("reward", StringArgumentType.greedyString());
 
             if (type == CodeType.PERSONAL) {
-                var playerArg = argument("player", EntityArgumentType.players());
+                // Use a single greedyString for player+reward combined, parsed manually in executeGenerate.
+                // This supports UUIDs, player names, and @selectors — GameProfileArgumentType cannot handle raw UUIDs.
+                var playerAndReward = argument("player_and_reward", StringArgumentType.greedyString());
                 var withCode = literal("code")
                         .then(argument("code", StringArgumentType.string())
-                                .then(playerArg.then(rewardArg.executes(RCodeCommand::executeGenerate))));
+                                .then(playerAndReward.executes(RCodeCommand::executeGenerate)));
                 subCommand.then(withCode);
-                subCommand.then(playerArg.then(rewardArg.executes(RCodeCommand::executeGenerate)));
+                subCommand.then(playerAndReward.executes(RCodeCommand::executeGenerate));
             } else if (type == CodeType.GLOBAL_LIMIT) {
                 var limitArg = argument("limit", IntegerArgumentType.integer());
                 var limitAndRewardNode = limitArg.then(rewardArg.executes(RCodeCommand::executeGenerate));
@@ -88,7 +89,7 @@ public class RCodeCommand {
                 subCommand.then(timeAndRewardNode);
             } else if (type == CodeType.CYCLE) {
                 var startTimeArg = argument("start_time", StringArgumentType.string());
-                var intervalArg = argument("interval", IntegerArgumentType.integer(1)); // In seconds
+                var intervalArg = argument("interval", IntegerArgumentType.integer(1));
                 var cycleAndRewardNode = startTimeArg.then(intervalArg.then(rewardArg.executes(RCodeCommand::executeGenerate)));
                 var codeAndCycleNode = literal("code").then(argument("code", StringArgumentType.string()).then(cycleAndRewardNode));
                 subCommand.then(codeAndCycleNode);
@@ -110,7 +111,25 @@ public class RCodeCommand {
 
     private static int executeGenerate(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String code = context.getNodes().stream().anyMatch(n -> n.getNode().getName().equals("code")) ? StringArgumentType.getString(context, "code") : Utils.generateRandomString(16);
-        String rewardStr = StringArgumentType.getString(context, "reward");
+
+        CodeType type = CodeType.valueOf(context.getNodes().get(2).getNode().getName().toUpperCase());
+
+        String rewardStr;
+        String owner = null;
+
+        if (type == CodeType.PERSONAL) {
+            // For PERSONAL, the combined "player_and_reward" greedy string contains both
+            String combined = StringArgumentType.getString(context, "player_and_reward");
+            String[] resolved = Utils.resolvePlayerRef(combined, context.getSource().getServer());
+            owner = resolved[0];
+            rewardStr = resolved[1];
+            if (owner == null || owner.isEmpty()) {
+                MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.player_not_resolved");
+                return 0;
+            }
+        } else {
+            rewardStr = StringArgumentType.getString(context, "reward");
+        }
 
         boolean cover = rewardStr.endsWith(" cover");
         if (cover) {
@@ -143,11 +162,9 @@ public class RCodeCommand {
             return 0;
         }
 
-        CodeType type = CodeType.valueOf(context.getNodes().get(2).getNode().getName().toUpperCase());
         String parsedReward = parseReward(rewardStr, context.getSource());
         if (parsedReward == null) return 0;
 
-        String owner = null;
         int count = -1;
         long startTime = 0;
         long endTime = 0;
@@ -155,10 +172,7 @@ public class RCodeCommand {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 
-        if (type == CodeType.PERSONAL) {
-            Collection<ServerPlayerEntity> players = EntityArgumentType.getPlayers(context, "player");
-            owner = players.stream().map(p -> p.getUuid().toString()).collect(Collectors.joining(","));
-        } else if (type == CodeType.GLOBAL_LIMIT) {
+        if (type == CodeType.GLOBAL_LIMIT) {
             int limit = IntegerArgumentType.getInteger(context, "limit");
             if (limit == 0) {
                 MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.limit_cannot_be_zero");
@@ -246,11 +260,12 @@ public class RCodeCommand {
                     return 0;
                 }
             }
-            interval = IntegerArgumentType.getInteger(context, "interval") * 1000L; // to milliseconds
+            interval = IntegerArgumentType.getInteger(context, "interval") * 1000L;
         }
 
         CodeData codeData = new CodeData(code, type, parsedReward, owner, count, startTime, endTime, interval);
-        RedemptionCodeFabric.codeManager.addCode(codeData, context.getSource().getName());
+        String executorUuid = context.getSource().getPlayer() != null ? context.getSource().getPlayer().getUuidAsString() : null;
+        RedemptionCodeFabric.codeManager.addCode(codeData, context.getSource().getName(), executorUuid);
 
         MutableText feedback = (MutableText) MessageUtils.createText(context.getSource(), "redemptioncodefabric.message.generate_success_simple", type.name());
         MutableText codeText = Text.literal(code).setStyle(Text.empty().getStyle().withColor(Formatting.GREEN)
@@ -294,7 +309,8 @@ public class RCodeCommand {
 
     private static int executeDelete(CommandContext<ServerCommandSource> context) {
         String code = StringArgumentType.getString(context, "code");
-        boolean success = RedemptionCodeFabric.codeManager.deleteCode(code, context.getSource().getName());
+        String executorUuid = context.getSource().getPlayer() != null ? context.getSource().getPlayer().getUuidAsString() : null;
+        boolean success = RedemptionCodeFabric.codeManager.deleteCode(code, context.getSource().getName(), executorUuid);
         if (success) {
             MessageUtils.sendFeedback(context.getSource(), "redemptioncodefabric.message.code_deleted_success", true, code);
         } else {

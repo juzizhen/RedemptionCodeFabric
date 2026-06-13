@@ -36,5 +36,13 @@
   "redemptioncodefabric.message.copy_to_clipboard": "Click to copy",
   "redemptioncodefabric.message.generate_success_simple": "Generated %s code: ",
   "redemptioncodefabric.message.code_out_of_time": "This code is not active at this time.",
-  "redemptioncodefabric.message.code_not_yet_active": "This code is not yet active."
+  "redemptioncodefabric.message.code_not_yet_active": "This code is not yet active.",
+  "redemptioncodefabric.message.player_not_resolved": "Could not resolve the player reference. Please use a valid UUID, player name, or @selector.",
+  "redemptioncodefabric.message.info_usage_counts_header": "Usage Counts by Player:",
+  "redemptioncodefabric.message.info_not_used_yet": "  Not used by anyone yet.",
+  "redemptioncodefabric.message.info_copy_uuid": "Copy UUID",
+  "redemptioncodefabric.message.info_usage_entry": "  - %s: %s times",
+  "redemptioncodefabric.message.webpage_link_hover": "Click to open backend webpage",
+  "redemptioncodefabric.message.webpage_prefix": "[System] Backend Webpage: ",
+  "redemptioncodefabric.message.sql_fallback_alert": "⚠ [RedemptionCodeFabric] SQL connection failed! Switched to FILE storage mode. Check server logs for details."
 }

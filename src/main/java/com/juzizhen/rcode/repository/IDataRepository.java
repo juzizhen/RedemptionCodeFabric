@@ -3,6 +3,7 @@ package com.juzizhen.rcode.repository;
 import com.juzizhen.rcode.model.CodeData;
 import com.juzizhen.rcode.model.OperationLogEntry;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,11 +42,19 @@ public interface IDataRepository {
      */
     void removeCode(String code);
 
-
     /**
-     * Appends a new operation log entry to the log file.
+     * Appends a new operation log entry to the log.
      *
      * @param logEntry The log entry to append.
      */
     void appendOperationLog(OperationLogEntry logEntry);
+
+    /**
+     * Retrieves operation log entries, newest first.
+     *
+     * @param offset number of entries to skip
+     * @param limit  max number of entries to return
+     * @return list of log entries
+     */
+    List<OperationLogEntry> getOperationLog(int offset, int limit);
 }

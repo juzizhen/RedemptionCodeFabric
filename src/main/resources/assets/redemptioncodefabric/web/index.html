@@ -1,10 +1,259 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Redemption Code Fabric</title>
+    <title>登录界面</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            display: flex;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .form-section {
+            padding: 40px;
+            width: 360px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-section h2 {
+            margin: 0 0 8px 0;
+            color: #1f2937;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: none;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            color: #374151;
+            background-color: #f9fafb;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #3b82f6;
+            background-color: #ffffff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn-group button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-login {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-login:hover {
+            background: #2563eb;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-login:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-forgot {
+            background: #ffffff;
+            color: #4b5563;
+            border: 1px solid #d1d5db !important;
+        }
+
+        .btn-forgot:hover {
+            border-color: #3b82f6 !important;
+            color: #3b82f6;
+        }
+
+        .tips {
+            position: fixed;
+            top: 30px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        #tipsDiv {
+            display: none;
+            background: #ffffff;
+            padding: 14px 28px;
+            border-radius: 8px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            border-left: 4px solid #3b82f6;
+            pointer-events: auto;
+            max-width: 480px;
+        }
+
+        #tipsDiv p {
+            margin: 0;
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+    </style>
 </head>
 <body>
-    <h1>Redemption Code Fabric Web Interface</h1>
+
+<div class="login-container">
+    <div class="form-section">
+        <h2>欢迎回来</h2>
+        <div class="subtitle">请登录您的账号继续</div>
+
+        <div class="input-group">
+            <label for="username">用户名</label>
+            <input id="username" placeholder="请输入用户名" type="text" autocomplete="username">
+        </div>
+        <div class="input-group">
+            <label for="password">密码</label>
+            <input id="password" placeholder="请输入密码" type="password" autocomplete="current-password">
+        </div>
+
+        <div class="btn-group">
+            <button id="loginBtn" class="btn-login" onclick="login()">登录</button>
+            <button class="btn-forgot" onclick="forgotPassword()">忘记密码</button>
+        </div>
+    </div>
+</div>
+
+<div class="tips">
+    <div id="tipsDiv">
+        <p id="tipsTitle"></p>
+    </div>
+</div>
+
+<script>
+    document.getElementById('password').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') login();
+    });
+    document.getElementById('username').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') document.getElementById('password').focus();
+    });
+
+    function login() {
+        const user = document.getElementById('username').value.trim();
+        const pass = document.getElementById('password').value;
+        const btn = document.getElementById('loginBtn');
+
+        if (!user || !pass) {
+            showTips('请输入用户名和密码', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = '登录中...';
+
+        const params = new URLSearchParams();
+        params.append('user', user);
+        params.append('password', pass);
+
+        fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                setCookie('token', data.token, 7);
+                showTips('登录成功，正在跳转...', 'info');
+                setTimeout(() => {
+                    window.location.href = '/admin.html';
+                }, 600);
+            } else {
+                showTips(data.message || '用户名或密码错误', 'error');
+            }
+        })
+        .catch(() => {
+            showTips('网络错误，请重试', 'error');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = '登录';
+        });
+    }
+
+    function forgotPassword() {
+        showTips(
+            '密码存储在服务器配置文件中。请打开 config/redemptioncodefabric/redemptioncodefabric.properties，' +
+            '查看或修改 "web.password" 字段后重启服务器即可。',
+            'info'
+        );
+    }
+
+    let tipsTimer = null;
+    function showTips(msg, type) {
+        const div = document.getElementById('tipsDiv');
+        const title = document.getElementById('tipsTitle');
+        div.className = type || 'info';
+        title.textContent = msg;
+        div.style.display = 'block';
+        if (tipsTimer) clearTimeout(tipsTimer);
+        tipsTimer = setTimeout(() => {
+            div.style.display = 'none';
+        }, 5000);
+    }
+
+    function setCookie(name, value, days) {
+        const d = new Date();
+        d.setTime(d.getTime() + days * 86400000);
+        document.cookie = name + '=' + value + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+    }
+</script>
 </body>
 </html>

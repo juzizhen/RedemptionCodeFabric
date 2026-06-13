@@ -1,0 +1,53 @@
+# Third-Party Licenses and Credits
+
+This project (RedemptionCodeFabric) incorporates several open-source libraries. Some licenses are automatically merged into the META-INF directory of the packaged jar. For complete compliance, the full list of direct and transitive dependencies and their licenses is declared below.
+This jar incorporates several open-source libraries. Some licenses were automatically merged into the META-INF directory. For libraries that do not bundle license files in their compiled jars, their copyright notices and license terms are declared below to fulfill distribution requirements.
+
+---
+### 1. Direct Dependencies
+
+**MySQL Connector/J**
+* Repository: https://github.com/mysql/mysql-connector-j
+* License: GPL v2 with Universal FOSS Exception
+* Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+**Jedis**
+* Repository: https://github.com/redis/jedis
+* License: MIT License
+* Copyright (c) 2011 Jonathan Leibiusky
+
+---
+### 2. Transitive Dependencies (Bundled internally)
+
+**Apache Commons Pool 2** (Required by Jedis)
+* Repository: https://github.com/apache/commons-pool
+* License: Apache License 2.0
+* Copyright 2001-2024 The Apache Software Foundation
+
+**Google Protobuf** (Required by MySQL Connector/J)
+* Repository: https://github.com/protocolbuffers/protobuf
+* License: BSD 3-Clause License
+* Copyright 2008 Google Inc.
+
+**Google Gson** (Required by Jedis)
+* Repository: https://github.com/google/gson
+* License: Apache License 2.0
+* Copyright Google Inc.
+
+**SLF4J API** (Required by Jedis / Commons Pool)
+* Repository: https://github.com/qos-ch/slf4j
+* License: MIT License
+* Copyright (c) 2004-2023 QOS.ch Sarl (Switzerland)
+
+**JSON-java (org.json)** (Required by Jedis)
+* Repository: https://github.com/stleary/JSON-java
+* License: MIT / Public Domain
+* Copyright (c) 2002 JSON.org
+
+**Google Error Prone Annotations**
+* Repository: https://github.com/google/error-prone
+* License: Apache License 2.0
+* Copyright 2015 The Error Prone Authors.
+
+---
+For the full text of the Apache License 2.0, MIT License, BSD 3-Clause, and GPL v2, please refer to their respective official repositories or the merged files located in the META-INF/ directory of this jar.

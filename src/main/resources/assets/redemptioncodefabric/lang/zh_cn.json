@@ -36,5 +36,13 @@
   "redemptioncodefabric.message.copy_to_clipboard": "点击复制",
   "redemptioncodefabric.message.generate_success_simple": "生成了 %s 兑换码: ",
   "redemptioncodefabric.message.code_out_of_time": "此兑换码当前不在可用时间内。",
-  "redemptioncodefabric.message.code_not_yet_active": "此兑换码尚未生效。"
+  "redemptioncodefabric.message.code_not_yet_active": "此兑换码尚未生效。",
+  "redemptioncodefabric.message.player_not_resolved": "无法解析玩家引用。请使用有效的 UUID、玩家名或 @选择器。",
+  "redemptioncodefabric.message.info_usage_counts_header": "玩家使用次数:",
+  "redemptioncodefabric.message.info_not_used_yet": "  尚无人使用。",
+  "redemptioncodefabric.message.info_copy_uuid": "复制 UUID",
+  "redemptioncodefabric.message.info_usage_entry": "  - %s: %s 次",
+  "redemptioncodefabric.message.webpage_link_hover": "点击打开后台网页",
+  "redemptioncodefabric.message.webpage_prefix": "[系统] 后台网页: ",
+  "redemptioncodefabric.message.sql_fallback_alert": "⚠ [RedemptionCodeFabric] SQL 连接失败！已切换到文件存储模式。请查看服务器日志了解详情。"
 }

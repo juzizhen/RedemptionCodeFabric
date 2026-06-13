@@ -8,6 +8,7 @@ import com.juzizhen.rcode.model.OperationLogEntry;
 import com.juzizhen.rcode.repository.IDataRepository;
 import com.juzizhen.rcode.repository.RepositoryFactory;
 import com.juzizhen.util.MessageUtils;
+import com.juzizhen.util.Utils;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.StringNbtReader;
@@ -38,14 +39,27 @@ public class CodeManager {
         return codes.get(code);
     }
 
+    public Map<String, CodeData> getAllCodes() {
+        return Collections.unmodifiableMap(codes);
+    }
+
+    public List<OperationLogEntry> getOperationLog(int offset, int limit) {
+        return repository.getOperationLog(offset, limit);
+    }
+
     public void addCode(CodeData codeData, String executorName) {
+        addCode(codeData, executorName, null);
+    }
+
+    public void addCode(CodeData codeData, String executorName, String executorUuid) {
         codes.put(codeData.getCode(), codeData);
-        repository.saveCode(codeData); // Use incremental save
+        repository.saveCode(codeData);
 
         Map<String, String> details = new LinkedHashMap<>();
         details.put("code", codeData.getCode());
         details.put("type", codeData.getType().name());
         details.put("reward", codeData.getReward());
+        if (executorUuid != null && !executorUuid.isEmpty()) details.put("executor_uuid", executorUuid);
         if (codeData.getPlayer() != null) details.put("owner", codeData.getPlayer());
         if (codeData.getCount() != -1) details.put("count", String.valueOf(codeData.getCount()));
         if (codeData.getStartTime() != 0) details.put("startTime", String.valueOf(codeData.getStartTime()));
@@ -56,12 +70,17 @@ public class CodeManager {
     }
 
     public boolean deleteCode(String code, String executorName) {
+        return deleteCode(code, executorName, null);
+    }
+
+    public boolean deleteCode(String code, String executorName, String executorUuid) {
         if (codes.containsKey(code)) {
             CodeData deletedCode = codes.remove(code);
-            repository.removeCode(code); // Use incremental delete
+            repository.removeCode(code);
             Map<String, String> details = new HashMap<>();
             details.put("code", code);
             details.put("type", deletedCode.getType().name());
+            if (executorUuid != null && !executorUuid.isEmpty()) details.put("executor_uuid", executorUuid);
             repository.appendOperationLog(new OperationLogEntry(System.currentTimeMillis(), "DELETE", executorName, details));
             return true;
         }
@@ -111,37 +130,26 @@ public class CodeManager {
         }
 
         if (codeData.getType() == CodeType.PERMANENT || codeData.getType() == CodeType.CYCLE) {
-            info.append(Text.literal("Usage Counts by Player:").formatted(Formatting.BLUE));
+            info.append(MessageUtils.createText(source, "redemptioncodefabric.message.info_usage_counts_header").copy().formatted(Formatting.BLUE));
             info.append("\n");
 
             Map<String, List<Long>> usedByMap = codeData.getUsedBy();
             if (usedByMap.isEmpty()) {
-                info.append(Text.literal("  Not used by anyone yet.").formatted(Formatting.GRAY));
+                info.append(MessageUtils.createText(source, "redemptioncodefabric.message.info_not_used_yet").copy().formatted(Formatting.GRAY));
                 info.append("\n");
             } else {
                 usedByMap.entrySet().stream()
                     .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size()))
                     .forEach(entry -> {
                         String uuid = entry.getKey();
-                        long count = entry.getValue().size();
-                        String name = uuid;
+                        long usageCount = entry.getValue().size();
+                        String displayName = resolvePlayerDisplayName(source, uuid);
 
-                        try {
-                            UUID playerUuid = UUID.fromString(uuid);
-                            ServerPlayerEntity onlinePlayer = source.getServer().getPlayerManager().getPlayer(playerUuid);
-                            if (onlinePlayer != null) {
-                                name = onlinePlayer.getName().getString();
-                            } else {
-                                if (source.getServer().getUserCache() == null) return;
-                                source.getServer().getUserCache().getByUuid(playerUuid).ifPresent(profile -> info.append(Text.literal(profile.getName())));
-                            }
-                        } catch (IllegalArgumentException e) { /* keep name as uuid */ }
-
-                        MutableText userText = Text.literal(name).formatted(Formatting.AQUA)
+                        MutableText userText = Text.literal(displayName).formatted(Formatting.AQUA)
                                 .styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid))
-                                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Copy UUID"))));
+                                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, MessageUtils.createText(source, "redemptioncodefabric.message.info_copy_uuid"))));
 
-                        info.append(Text.literal("  - ").append(userText).append(Text.literal(": " + count + " times")).formatted(Formatting.BLUE));
+                        info.append(MessageUtils.createText(source, "redemptioncodefabric.message.info_usage_entry", userText, usageCount).copy().formatted(Formatting.BLUE));
                         info.append("\n");
                     });
             }
@@ -149,12 +157,13 @@ public class CodeManager {
             info.append(MessageUtils.createText(source, "redemptioncodefabric.message.info_used_by_header", codeData.getUsedBy().size()).copy().formatted(Formatting.BLUE));
             info.append("\n");
             for (String uuid : codeData.getUsedBy().keySet()) {
-                MutableText uuidText = Text.literal(uuid)
+                String displayName = resolvePlayerDisplayName(source, uuid);
+                MutableText playerText = Text.literal(displayName)
                     .setStyle(Text.empty().getStyle()
                     .withColor(Formatting.AQUA)
                     .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid))
-                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Copy UUID"))));
-                info.append(MessageUtils.createText(source, "redemptioncodefabric.message.info_used_by_entry", "").copy().append(uuidText));
+                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, MessageUtils.createText(source, "redemptioncodefabric.message.info_copy_uuid"))));
+                info.append(MessageUtils.createText(source, "redemptioncodefabric.message.info_used_by_entry", "").copy().append(playerText));
                 info.append("\n");
             }
         }
@@ -296,6 +305,9 @@ public class CodeManager {
                 if (expPart.toUpperCase().endsWith("L")) {
                     finalAmount = Integer.parseInt(expPart.substring(0, expPart.length() - 1));
                     player.addExperienceLevels(finalAmount);
+                } else if (expPart.toUpperCase().endsWith("P")) {
+                    finalAmount = Integer.parseInt(expPart.substring(0, expPart.length() - 1));
+                    player.addExperience(finalAmount);
                 } else {
                     finalAmount = Integer.parseInt(expPart);
                     player.addExperience(finalAmount);
@@ -311,6 +323,24 @@ public class CodeManager {
 
     private void recordUsage(CodeData codeData, String playerUUID, long currentTime) {
         codeData.addUsedBy(playerUUID, currentTime);
-        repository.saveCode(codeData); // Use incremental save for usage recording
+        repository.saveCode(codeData);
+    }
+
+    /**
+     * 根据 UUID 解析玩家显示名称：在线则返回玩家名，离线则返回 UUID。
+     */
+    private String resolvePlayerDisplayName(ServerCommandSource source, String uuid) {
+        try {
+            UUID playerUuid = UUID.fromString(uuid);
+            if (Utils.isPlayerOnline(source.getServer(), playerUuid)) {
+                ServerPlayerEntity onlinePlayer = source.getServer().getPlayerManager().getPlayer(playerUuid);
+                if (onlinePlayer != null) {
+                    return onlinePlayer.getName().getString();
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            // Not a valid UUID, return as-is
+        }
+        return uuid;
     }
 }

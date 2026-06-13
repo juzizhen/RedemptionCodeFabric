@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理 - RedemptionCodeFabric</title>
+    <style>
+        :root {
+            --bg-body: #f0f2f5;
+            --bg-sidebar: #ffffff;
+            --bg-main: #f8f9fb;
+            --bg-card: #ffffff;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --hover-bg: #f3f4f6;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+            --success-hover: #059669;
+            --warning: #f59e0b;
+            --radius: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 240px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 17px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
+            color: var(--primary);
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 12px 0;
+            overflow-y: auto;
+        }
+
+        .menu-category {
+            font-size: 11px;
+            color: var(--text-muted);
+            padding: 0 20px;
+            margin-bottom: 6px;
+            margin-top: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .sidebar-menu ul { list-style: none; }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: var(--text-main);
+            text-decoration: none;
+            transition: all 0.15s;
+            font-size: 14px;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+
+        .sidebar-menu li a:hover { background-color: var(--hover-bg); }
+
+        .sidebar-menu li a.active {
+            background-color: #eff6ff;
+            border-left-color: var(--primary);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .sidebar-menu li a.danger:hover {
+            color: var(--danger);
+            background-color: #fef2f2;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .top-navbar {
+            height: 60px;
+            background-color: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
+
+        .top-navbar .page-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .top-navbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .top-navbar .user-info span {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .btn-logout {
+            padding: 6px 14px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+        .content-area {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: var(--bg-main);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-body { color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .stat-card .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .stat-card .stat-value.blue { color: var(--primary); }
+        .stat-card .stat-value.green { color: var(--success); }
+
+        .btn {
+            padding: 8px 18px;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+        .btn-primary { background: var(--primary); }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: var(--danger-hover); }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: var(--success-hover); }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); box-shadow: none; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #fafbfc;
+        }
+
+        tr:hover td { background: #f9fafb; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-blue { background: #dbeafe; color: #1d4ed8; }
+        .badge-green { background: #d1fae5; color: #065f46; }
+        .badge-yellow { background: #fef3c7; color: #92400e; }
+        .badge-red { background: #fee2e2; color: #991b1b; }
+        .badge-gray { background: #f3f4f6; color: #4b5563; }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 14px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-group input, .form-group select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-main);
+            background: #f9fafb;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+            background: #fff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 500;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-close {
+            float: right;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+        }
+
+        .modal-close:hover { color: var(--danger); }
+
+        .tips-bar {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        #adminTips {
+            display: none;
+            background: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            border-left: 4px solid var(--primary);
+            pointer-events: auto;
+            max-width: 500px;
+        }
+
+        #adminTips p { margin: 0; color: var(--text-main); font-size: 14px; font-weight: 500; }
+        #adminTips.error { border-left-color: var(--danger); }
+        #adminTips.info { border-left-color: var(--primary); }
+        #adminTips.success { border-left-color: var(--success); }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .pagination button {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+
+        .pagination button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+        .pagination button:disabled { opacity: 0.4; cursor: default; }
+        .pagination span { font-size: 13px; color: var(--text-muted); }
+
+        .text-muted { color: var(--text-muted); }
+        .text-sm { font-size: 12px; }
+        .mt-8 { margin-top: 8px; }
+        .mt-16 { margin-top: 16px; }
+        .mb-8 { margin-bottom: 8px; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .mono { font-family: "SF Mono", "Fira Code", Consolas, monospace; font-size: 12px; }
+        .clickable { cursor: pointer; color: var(--primary); }
+        .clickable:hover { text-decoration: underline; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">管理面板</div>
+    <div class="sidebar-menu">
+        <div class="menu-category">概览</div>
+        <ul>
+            <li><a class="active" data-page="dashboard">仪表盘</a></li>
+        </ul>
+        <div class="menu-category">兑换码管理</div>
+        <ul>
+            <li><a data-page="codes">兑换码列表</a></li>
+            <li><a data-page="create-code">创建兑换码</a></li>
+        </ul>
+        <div class="menu-category">系统</div>
+        <ul>
+            <li><a data-page="logs">操作日志</a></li>
+            <li><a data-page="players">在线玩家</a></li>
+            <li><a data-page="settings">配置信息</a></li>
+            <li><a data-page="reload">重载配置</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="top-navbar">
+        <div class="page-title" id="pageTitle">仪表盘</div>
+        <div class="user-info">
+            <span>管理员</span>
+            <button class="btn-logout" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+    <div class="content-area" id="contentArea"></div>
+</div>
+
+<div class="modal-overlay" id="detailModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div class="modal-title" id="modalTitle">详情</div>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<div class="tips-bar">
+    <div id="adminTips"><p id="adminTipsMsg"></p></div>
+</div>
+
+<template id="tpl-create-code">
+    <div class="card">
+        <div class="card-title">创建兑换码</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>兑换码 (留空自动生成)</label>
+                    <input type="text" id="cc_code" placeholder="可选，自定义兑换码">
+                </div>
+                <div class="form-group">
+                    <label>类型 *</label>
+                    <select id="cc_type">
+                        <option value="ONCE">ONCE (一次性)</option>
+                        <option value="PERMANENT">PERMANENT (永久)</option>
+                        <option value="PERSONAL">PERSONAL (个人专属)</option>
+                        <option value="GLOBAL_UNLIMITED">GLOBAL_UNLIMITED (全局无限)</option>
+                        <option value="GLOBAL_LIMIT">GLOBAL_LIMIT (全局有限)</option>
+                        <option value="TIMED">TIMED (限时)</option>
+                        <option value="CYCLE">CYCLE (周期循环)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>奖励 *</label>
+                    <input type="text" id="cc_reward" placeholder="item@minecraft:diamond, exp@100P, exp@5L">
+                    <div class="text-sm text-muted mt-8">格式: item@资源ID{NBT}, exp@点数P, exp@等级L。例: item@minecraft:diamond, exp@100P, exp@5L</div>
+                </div>
+            </div>
+
+            <div id="cc_personal_section" style="display:none">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>绑定玩家 UUID * (逗号分隔)</label>
+                        <input type="text" id="cc_player" placeholder="a80ab41d-df4d-3f98-991d-99fd5f96d418, ...">
+                        <div class="text-sm text-muted mt-8">标准 UUID 格式: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx，多个用逗号分隔</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cc_global_limit_section" style="display:none">
+                <div class="form-row">
+                    <div class="form-group" style="flex:0 0 160px">
+                        <label>选择模式 *</label>
+                        <select id="cc_gl_mode" onchange="updateGlMode()">
+                            <option value="tag">按 Tag</option>
+                            <option value="scoreboard">按计分板</option>
+                            <option value="manual">手动输入</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="cc_gl_tag_group">
+                        <label>Tag 名称 *</label>
+                        <input type="text" id="cc_gl_tag" placeholder="如 vip, winner">
+                    </div>
+                    <div class="form-group" id="cc_gl_scoreboard_group" style="display:none">
+                        <label>计分板目标 *</label>
+                        <select id="cc_gl_scoreboard"><option value="">加载中...</option></select>
+                    </div>
+                    <div class="form-group" id="cc_gl_player_group" style="display:none">
+                        <label>玩家 UUID * (逗号分隔)</label>
+                        <input type="text" id="cc_gl_player" placeholder="UUID1, UUID2, ...">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>选取数量 (limit) *</label>
+                        <input type="number" id="cc_gl_limit" placeholder="正数=取前N个, 负数=取后N个" value="10">
+                        <div class="text-sm text-muted mt-8">Tag 模式: 按在线玩家顺序取。计分板模式: 正数=分数最高 N 人, 负数=分数最低 N 人。</div>
+                    </div>
+                    <div class="form-group">
+                        <label>最大兑换次数 (留空=选中人数)</label>
+                        <input type="number" id="cc_gl_count" placeholder="默认等于选中人数" value="">
+                    </div>
+                </div>
+            </div>
+
+            <div id="cc_timed_section" style="display:none">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>开始时间 (毫秒时间戳) *</label>
+                        <input type="number" id="cc_start" placeholder="0 表示立即生效" value="0" oninput="updateTsPreview('cc_start','cc_start_preview')">
+                        <div class="text-sm text-muted mt-8" id="cc_start_preview"></div>
+                        <div class="text-sm text-muted">示例: 1700000000000 = 2023-11-14 22:13:20。填 0 表示立即开始。</div>
+                    </div>
+                    <div class="form-group">
+                        <label>结束时间 (毫秒时间戳) *</label>
+                        <input type="number" id="cc_end" placeholder="0 表示永不过期" value="0" oninput="updateTsPreview('cc_end','cc_end_preview')">
+                        <div class="text-sm text-muted mt-8" id="cc_end_preview"></div>
+                        <div class="text-sm text-muted">示例: 1700100000000 = 2023-11-15 02:00:00。填 0 表示永不过期。</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cc_cycle_section" style="display:none">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>开始时间 (毫秒时间戳) *</label>
+                        <input type="number" id="cc_cy_start" placeholder="0 表示立即" value="0" oninput="updateTsPreview('cc_cy_start','cc_cy_start_preview')">
+                        <div class="text-sm text-muted mt-8" id="cc_cy_start_preview"></div>
+                        <div class="text-sm text-muted">填 0 表示从当前时间开始计算周期。</div>
+                    </div>
+                    <div class="form-group">
+                        <label>周期 (秒) *</label>
+                        <input type="number" id="cc_cy_interval" placeholder="如 86400 = 1天" value="">
+                        <div class="text-sm text-muted mt-8">常用: 3600=1小时, 86400=1天, 604800=1周。必须大于 0。</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-16">
+                <button class="btn btn-primary" id="cc_submit" onclick="submitCreateCode()">创建兑换码</button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+function getToken() {
+    const m = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
+    return m ? m[1] : null;
+}
+
+function clearToken() {
+    document.cookie = 'token=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+}
+
+function apiRequest(url, options) {
+    options = options || {};
+    options.headers = options.headers || {};
+    options.headers['Authorization'] = 'Bearer ' + getToken();
+    if (options.body && typeof options.body === 'object') {
+        options.headers['Content-Type'] = 'application/json';
+        options.body = JSON.stringify(options.body);
+    }
+    return fetch(url, options).then(res => {
+        if (res.status === 401) {
+            showTips('登录已过期，请重新登录', 'error');
+            setTimeout(() => { window.location.href = '/index.html'; }, 1200);
+            return Promise.reject(new Error('Unauthorized'));
+        }
+        return res.json();
+    });
+}
+
+let tipsTimer = null;
+function showTips(msg, type) {
+    const div = document.getElementById('adminTips');
+    const p = document.getElementById('adminTipsMsg');
+    div.className = type || 'info';
+    p.textContent = msg;
+    div.style.display = 'block';
+    if (tipsTimer) clearTimeout(tipsTimer);
+    tipsTimer = setTimeout(() => { div.style.display = 'none'; }, 4000);
+}
+
+function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => showTips('已复制: ' + text, 'success'));
+}
+
+function escHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+const typeBadge = {
+    'ONCE': 'badge-gray',
+    'PERMANENT': 'badge-green',
+    'PERSONAL': 'badge-blue',
+    'GLOBAL_UNLIMITED': 'badge-yellow',
+    'GLOBAL_LIMIT': 'badge-yellow',
+    'TIMED': 'badge-red',
+    'CYCLE': 'badge-red'
+};
+
+(function checkAuth() {
+    const token = getToken();
+    if (!token) { window.location.replace('/index.html'); return; }
+    fetch('/api/verify', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(res => { if (!res.ok) { clearToken(); window.location.replace('/index.html'); } })
+        .catch(() => { window.location.replace('/index.html'); });
+})();
+
+function logout() {
+    apiRequest('/api/logout', { method: 'POST' })
+        .catch(() => {})
+        .finally(() => { clearToken(); window.location.href = '/index.html'; });
+}
+
+const contentArea = document.getElementById('contentArea');
+const pageTitle = document.getElementById('pageTitle');
+const menuLinks = document.querySelectorAll('.sidebar-menu li a');
+
+const pageTitles = {
+    'dashboard': '仪表盘',
+    'codes': '兑换码列表',
+    'create-code': '创建兑换码',
+    'logs': '操作日志',
+    'players': '在线玩家',
+    'settings': '配置信息',
+    'reload': '重载配置'
+};
+
+menuLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const page = this.dataset.page;
+        menuLinks.forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+        pageTitle.textContent = pageTitles[page] || page;
+        navigateTo(page);
+    });
+});
+
+function navigateTo(page) {
+    switch(page) {
+        case 'dashboard': renderDashboard(); break;
+        case 'codes': renderCodes(); break;
+        case 'create-code': renderCreateCode(); break;
+        case 'logs': renderLogs(0); break;
+        case 'players': renderPlayers(); break;
+        case 'settings': renderSettings(); break;
+        case 'reload': renderReload(); break;
+    }
+}
+
+function switchPage(page) {
+    menuLinks.forEach(l => l.classList.remove('active'));
+    const target = document.querySelector(`.sidebar-menu li a[data-page="${page}"]`);
+    if (target) target.classList.add('active');
+    pageTitle.textContent = pageTitles[page] || page;
+    navigateTo(page);
+}
+
+function renderDashboard() {
+    contentArea.innerHTML = '<div class="stat-grid" id="statGrid"><div class="empty-state">加载中...</div></div>' +
+        '<div class="card"><div class="card-title">最近操作</div><div class="card-body" id="recentLogs">加载中...</div></div>';
+
+    apiRequest('/api/status').then(data => {
+        if (!data.success) return;
+        const d = data.data;
+        document.getElementById('statGrid').innerHTML =
+            statCard('在线玩家', d.onlinePlayers, 'green') +
+            statCard('兑换码总数', d.totalCodes, 'blue') +
+            statCard('存储类型', d.datastoreType, '') +
+            statCard('Mod 版本', d.modVersion, '');
+    }).catch(() => {});
+
+    apiRequest('/api/logs?offset=0&limit=10').then(data => {
+        if (!data.success) return;
+        const logs = data.data;
+        if (logs.length === 0) {
+            document.getElementById('recentLogs').innerHTML = '<div class="empty-state">暂无操作记录</div>';
+            return;
+        }
+        let html = '<table><thead><tr><th>时间</th><th>类型</th><th>执行者</th><th>详情</th></tr></thead><tbody>';
+        for (const log of logs) {
+            html += `<tr>
+                <td class="text-sm">${escHtml(log.time)}</td>
+                <td>${logTypeBadge(log.type)}</td>
+                <td>${renderExecutor(log)}</td>
+                <td class="text-sm text-muted">${formatDetails(log.details)}</td>
+            </tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('recentLogs').innerHTML = html;
+    }).catch(() => {});
+}
+
+function statCard(label, value, color) {
+    return `<div class="stat-card">
+        <div class="stat-label">${escHtml(label)}</div>
+        <div class="stat-value ${color}">${escHtml(value)}</div>
+    </div>`;
+}
+
+function logTypeBadge(type) {
+    const cls = type === 'GENERATE' ? 'badge-green' : type === 'DELETE' ? 'badge-red' : type === 'REDEEM' ? 'badge-blue' : 'badge-gray';
+    return `<span class="badge ${cls}">${escHtml(type)}</span>`;
+}
+
+function formatExecutor(name) {
+    if (!name) return '';
+    const systemExecutors = ['WebAdmin', 'Server', 'console', 'Rcon'];
+    if (systemExecutors.includes(name)) return `[${name}]`;
+    return name;
+}
+
+let execIdCounter = 0;
+function renderExecutor(log) {
+    const name = log.executor || '';
+    const uuid = (log.details && (log.details.player_uuid || log.details.executor_uuid)) || '';
+    if (!uuid) return escHtml(formatExecutor(name));
+    const id = 'exec_' + (++execIdCounter);
+    return `<span class="clickable" id="${id}" data-name="${escHtml(formatExecutor(name))}" data-uuid="${escHtml(uuid)}" onclick="toggleExec('${id}')">${escHtml(name)}</span>`;
+}
+
+function toggleExec(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const showingUuid = el.dataset.showing === 'uuid';
+    el.textContent = showingUuid ? el.dataset.name : el.dataset.uuid;
+    el.dataset.showing = showingUuid ? 'name' : 'uuid';
+}
+
+function formatDetails(details) {
+    if (!details) return '';
+    return Object.entries(details).map(([k,v]) => `${escHtml(k)}=${escHtml(v)}`).join(', ');
+}
+
+function renderCodes() {
+    contentArea.innerHTML = '<div class="card"><div class="flex-between mb-8">' +
+        '<div class="card-title" style="margin-bottom:0;border:none;padding:0">所有兑换码</div>' +
+        '<div style="display:flex;gap:8px">' +
+        '<button class="btn btn-outline btn-sm" onclick="renderCodes()">↻ 刷新</button>' +
+        '<button class="btn btn-primary btn-sm" onclick="switchPage(\'create-code\')">+ 创建</button></div></div>' +
+        '<div id="codesTable">加载中...</div></div>';
+
+    apiRequest('/api/codes').then(data => {
+        if (!data.success) return;
+        const codes = data.data;
+        if (codes.length === 0) {
+            document.getElementById('codesTable').innerHTML = '<div class="empty-state">暂无兑换码，点击右上角创建</div>';
+            return;
+        }
+        let html = '<table><thead><tr><th>兑换码</th><th>类型</th><th>奖励</th><th>使用次数</th><th>操作</th></tr></thead><tbody>';
+        for (const c of codes) {
+            const reward = c.reward.length > 30 ? c.reward.substring(0, 30) + '...' : c.reward;
+            html += `<tr>
+                <td class="mono clickable" onclick="showCodeDetail('${escHtml(c.code)}')">${escHtml(c.code)}</td>
+                <td><span class="badge ${typeBadge[c.type] || 'badge-gray'}">${escHtml(c.type)}</span></td>
+                <td class="text-sm" title="${escHtml(c.reward)}">${escHtml(reward)}</td>
+                <td>${c.totalUses}${c.count > 0 ? ' / ' + c.count : ''}</td>
+                <td>
+                    <button class="btn btn-outline btn-sm" onclick="showCodeDetail('${escHtml(c.code)}')">详情</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteCode('${escHtml(c.code)}')">删除</button>
+                </td>
+            </tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('codesTable').innerHTML = html;
+    }).catch(() => {});
+}
+
+function showCodeDetail(code) {
+    apiRequest('/api/codes/' + encodeURIComponent(code)).then(data => {
+        if (!data.success) { showTips(data.message || '获取失败', 'error'); return; }
+        const d = data.data;
+        let html = '<div class="card-body">';
+        html += `<p><strong>兑换码:</strong> <span class="mono clickable" onclick="copyText('${escHtml(d.code)}')">${escHtml(d.code)}</span></p>`;
+        html += `<p><strong>类型:</strong> <span class="badge ${typeBadge[d.type] || 'badge-gray'}">${escHtml(d.type)}</span></p>`;
+        html += `<p><strong>奖励:</strong> <span class="mono">${escHtml(d.reward)}</span></p>`;
+        if (d.player) html += `<p><strong>绑定玩家:</strong> <span class="mono text-sm">${escHtml(d.player)}</span></p>`;
+        if (d.count > 0) html += `<p><strong>最大使用次数:</strong> ${d.count}</p>`;
+        if (d.startTimeStr) html += `<p><strong>开始时间:</strong> ${escHtml(d.startTimeStr)}</p>`;
+        if (d.endTimeStr) html += `<p><strong>结束时间:</strong> ${escHtml(d.endTimeStr)}</p>`;
+        if (d.interval) html += `<p><strong>周期:</strong> ${Math.round(d.interval/1000)} 秒</p>`;
+
+        if (d.usedBy && d.usedBy.length > 0) {
+            html += '<hr style="margin:12px 0;border:none;border-top:1px solid var(--border)">';
+            html += '<p><strong>使用记录:</strong></p>';
+            html += '<table><thead><tr><th>UUID</th><th>次数</th><th>最近使用</th></tr></thead><tbody>';
+            for (const u of d.usedBy) {
+                const lastTs = u.timestamps.length > 0 ? u.timestamps[u.timestamps.length - 1] : '-';
+                html += `<tr>
+                    <td class="mono clickable text-sm" onclick="copyText('${escHtml(u.uuid)}')">${escHtml(u.uuid)}</td>
+                    <td>${u.times}</td>
+                    <td class="text-sm">${escHtml(lastTs)}</td>
+                </tr>`;
+            }
+            html += '</tbody></table>';
+        } else {
+            html += '<p class="text-muted mt-8">暂无使用记录</p>';
+        }
+        html += '</div>';
+
+        document.getElementById('modalTitle').textContent = '兑换码详情 - ' + d.code;
+        document.getElementById('modalBody').innerHTML = html;
+        document.getElementById('detailModal').classList.add('show');
+    }).catch(() => {});
+}
+
+function closeModal() {
+    document.getElementById('detailModal').classList.remove('show');
+}
+
+function deleteCode(code) {
+    if (!confirm('确定要删除兑换码 "' + code + '" 吗？此操作不可撤销。')) return;
+    apiRequest('/api/codes/' + encodeURIComponent(code), { method: 'DELETE' }).then(data => {
+        if (data.success) {
+            showTips('已删除: ' + code, 'success');
+            renderCodes();
+        } else {
+            showTips(data.message || '删除失败', 'error');
+        }
+    }).catch(() => {});
+}
+
+function renderCreateCode() {
+    var tpl = document.getElementById('tpl-create-code');
+    contentArea.innerHTML = '';
+    contentArea.appendChild(tpl.content.cloneNode(true));
+
+    document.getElementById('cc_type').addEventListener('change', updateCreateForm);
+    updateCreateForm();
+
+    apiRequest('/api/scoreboards').then(function(data) {
+        if (!data.success) return;
+        var sel = document.getElementById('cc_gl_scoreboard');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">-- 选择计分板 --</option>';
+        for (var i = 0; i < data.data.length; i++) {
+            var obj = data.data[i];
+            var opt = document.createElement('option');
+            opt.value = obj.name;
+            opt.textContent = obj.displayName + ' (' + obj.name + ')';
+            sel.appendChild(opt);
+        }
+    }).catch(function() {});
+}
+
+function updateCreateForm() {
+    const type = document.getElementById('cc_type').value;
+    const show = (id, v) => { const el = document.getElementById(id); if (el) el.style.display = v ? '' : 'none'; };
+    show('cc_personal_section', type === 'PERSONAL');
+    show('cc_global_limit_section', type === 'GLOBAL_LIMIT');
+    show('cc_timed_section', type === 'TIMED');
+    show('cc_cycle_section', type === 'CYCLE');
+}
+
+function updateGlMode() {
+    const mode = document.getElementById('cc_gl_mode').value;
+    const show = (id, v) => { const el = document.getElementById(id); if (el) el.style.display = v ? '' : 'none'; };
+    show('cc_gl_tag_group', mode === 'tag');
+    show('cc_gl_scoreboard_group', mode === 'scoreboard');
+    show('cc_gl_player_group', mode === 'manual');
+}
+
+function updateTsPreview(inputId, previewId) {
+    const val = parseInt(document.getElementById(inputId).value);
+    const el = document.getElementById(previewId);
+    if (!el) return;
+    if (!val || val <= 0) { el.textContent = ''; return; }
+    if (String(val).length < 12) {
+        el.textContent = '看起来像秒级时间戳，毫秒级应为 13 位数';
+        el.style.color = 'var(--warning)';
+        return;
+    }
+    const d = new Date(val);
+    if (isNaN(d.getTime())) { el.textContent = '无效时间戳'; el.style.color = 'var(--danger)'; return; }
+    el.textContent = d.toLocaleString('zh-CN');
+    el.style.color = 'var(--text-muted)';
+}
+
+const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+function validateUuids(str) {
+    return str.split(',').map(s => s.trim()).filter(Boolean).every(u => UUID_RE.test(u));
+}
+
+function submitCreateCode() {
+    const type = document.getElementById('cc_type').value;
+    const reward = document.getElementById('cc_reward').value.trim();
+    const code = document.getElementById('cc_code').value.trim();
+
+    if (!reward) { showTips('奖励不能为空', 'error'); return; }
+    if (!/^(item@|exp@|permissions@).+/i.test(reward)) {
+        showTips('奖励格式不正确，应以 item@、exp@ 或 permissions@ 开头。示例: item@minecraft:diamond', 'error'); return;
+    }
+
+    const body = { type, reward, code };
+
+    if (type === 'PERSONAL') {
+        const player = document.getElementById('cc_player').value.trim();
+        if (!player) { showTips('PERSONAL 类型必须填写绑定玩家 UUID', 'error'); return; }
+        if (!validateUuids(player)) { showTips('UUID 格式错误，请检查。标准格式: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 'error'); return; }
+        body.player = player;
+    }
+
+    if (type === 'GLOBAL_LIMIT') {
+        const mode = document.getElementById('cc_gl_mode').value;
+        const limit = parseInt(document.getElementById('cc_gl_limit').value);
+        if (!limit || limit === 0) { showTips('limit 不能为 0 或空', 'error'); return; }
+        body.selectMode = mode;
+        body.limit = limit;
+
+        if (mode === 'tag') {
+            const tag = document.getElementById('cc_gl_tag').value.trim();
+            if (!tag) { showTips('Tag 名称不能为空', 'error'); return; }
+            body.tag = tag;
+        } else if (mode === 'scoreboard') {
+            const sb = document.getElementById('cc_gl_scoreboard').value;
+            if (!sb) { showTips('请选择一个计分板目标', 'error'); return; }
+            body.scoreboard = sb;
+        } else {
+            const player = document.getElementById('cc_gl_player').value.trim();
+            if (!player) { showTips('手动模式必须填写玩家 UUID', 'error'); return; }
+            if (!validateUuids(player)) { showTips('UUID 格式错误，请检查', 'error'); return; }
+            body.player = player;
+        }
+
+        const countVal = document.getElementById('cc_gl_count').value.trim();
+        if (countVal !== '') {
+            const count = parseInt(countVal);
+            if (isNaN(count) || count === 0) { showTips('最大兑换次数不能为 0', 'error'); return; }
+            body.count = count;
+        }
+    }
+
+    if (type === 'TIMED') {
+        const startTime = parseInt(document.getElementById('cc_start').value) || 0;
+        const endTime = parseInt(document.getElementById('cc_end').value) || 0;
+        if (startTime > 0 && String(startTime).length < 12) {
+            showTips('开始时间戳位数不足，毫秒级时间戳应为 13 位数。示例: 1700000000000', 'error'); return;
+        }
+        if (endTime > 0 && String(endTime).length < 12) {
+            showTips('结束时间戳位数不足，毫秒级时间戳应为 13 位数。示例: 1700100000000', 'error'); return;
+        }
+        if (startTime > 0 && endTime > 0 && startTime >= endTime) {
+            showTips('开始时间必须早于结束时间', 'error'); return;
+        }
+        body.startTime = startTime;
+        body.endTime = endTime;
+    }
+
+    if (type === 'CYCLE') {
+        const startTime = parseInt(document.getElementById('cc_cy_start').value) || 0;
+        const interval = parseInt(document.getElementById('cc_cy_interval').value);
+        if (startTime > 0 && String(startTime).length < 12) {
+            showTips('时间戳位数不足，毫秒级应为 13 位数', 'error'); return;
+        }
+        if (!interval || interval <= 0) { showTips('周期必须大于 0 秒', 'error'); return; }
+        body.startTime = startTime;
+        body.interval = interval * 1000;
+    }
+
+    const btn = document.getElementById('cc_submit');
+    btn.disabled = true; btn.textContent = '创建中...';
+
+    apiRequest('/api/codes', { method: 'POST', body })
+        .then(data => {
+            if (data.success) {
+                showTips('创建成功: ' + data.code, 'success');
+                renderCreateCode();
+            } else {
+                showTips(data.message || '创建失败', 'error');
+            }
+        })
+        .catch(() => { showTips('请求失败', 'error'); })
+        .finally(() => { btn.disabled = false; btn.textContent = '创建兑换码'; });
+}
+
+let logOffset = 0;
+const logPageSize = 30;
+
+function renderLogs(offset) {
+    logOffset = offset;
+    contentArea.innerHTML = '<div class="card"><div class="flex-between"><div class="card-title" style="margin-bottom:0;border:none;padding:0">操作日志</div>' +
+        '<button class="btn btn-outline btn-sm" onclick="renderLogs(0)">↻ 刷新</button></div>' +
+        '<div id="logsBody" style="margin-top:14px">加载中...</div></div>';
+
+    apiRequest(`/api/logs?offset=${offset}&limit=${logPageSize}`).then(data => {
+        if (!data.success) return;
+        const logs = data.data;
+        if (logs.length === 0 && offset === 0) {
+            document.getElementById('logsBody').innerHTML = '<div class="empty-state">暂无操作记录</div>';
+            return;
+        }
+
+        let html = '<table><thead><tr><th>时间</th><th>类型</th><th>执行者</th><th>详情</th></tr></thead><tbody>';
+        for (const log of logs) {
+            html += `<tr>
+                <td class="text-sm">${escHtml(log.time)}</td>
+                <td>${logTypeBadge(log.type)}</td>
+                <td>${renderExecutor(log)}</td>
+                <td class="text-sm text-muted">${formatDetails(log.details)}</td>
+            </tr>`;
+        }
+        html += '</tbody></table>';
+        html += `<div class="pagination">
+            <button ${offset === 0 ? 'disabled' : ''} onclick="renderLogs(${Math.max(0, offset - logPageSize)})">上一页</button>
+            <span>第 ${Math.floor(offset / logPageSize) + 1} 页</span>
+            <button ${logs.length < logPageSize ? 'disabled' : ''} onclick="renderLogs(${offset + logPageSize})">下一页</button>
+        </div>`;
+        document.getElementById('logsBody').innerHTML = html;
+    }).catch(() => {});
+}
+
+function renderPlayers() {
+    contentArea.innerHTML = '<div class="card"><div class="card-title">在线玩家</div><div id="playersBody">加载中...</div></div>';
+
+    apiRequest('/api/players').then(data => {
+        if (!data.success) return;
+        const players = data.data;
+        if (players.length === 0) {
+            document.getElementById('playersBody').innerHTML = '<div class="empty-state">当前没有在线玩家</div>';
+            return;
+        }
+
+        let html = '<table><thead><tr><th>玩家名</th><th>UUID</th><th>延迟</th></tr></thead><tbody>';
+        for (const p of players) {
+            html += `<tr>
+                <td><strong>${escHtml(p.name)}</strong></td>
+                <td class="mono clickable text-sm" onclick="copyText('${escHtml(p.uuid)}')">${escHtml(p.uuid)}</td>
+                <td>${escHtml(p.ping)} ms</td>
+            </tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('playersBody').innerHTML = html;
+    }).catch(() => {});
+}
+
+function renderSettings() {
+    contentArea.innerHTML = '<div class="card"><div class="card-title">当前配置</div><div class="card-body" id="configBody">加载中...</div></div>';
+
+    apiRequest('/api/config').then(data => {
+        if (!data.success) return;
+        const cfg = data.data;
+        let html = '<table><thead><tr><th>配置项</th><th>值</th></tr></thead><tbody>';
+        for (const [k, v] of Object.entries(cfg)) {
+            html += `<tr>
+                <td class="mono">${escHtml(k)}</td>
+                <td>${escHtml(String(v))}</td>
+            </tr>`;
+        }
+        html += '</tbody></table>';
+        html += '<p class="text-sm text-muted mt-16">修改配置请编辑服务器 config/redemptioncodefabric/redemptioncodefabric.properties 文件，然后使用"重载配置"功能。</p>';
+        document.getElementById('configBody').innerHTML = html;
+    }).catch(() => {});
+}
+
+function renderReload() {
+    contentArea.innerHTML = `<div class="card">
+        <div class="card-title">重载配置</div>
+        <div class="card-body">
+            <p>点击按钮将重新读取服务器配置文件，并重载所有服务（SQL、Redis、Web 服务器等）。</p>
+            <p class="text-sm text-muted mt-8">注意：重载会使所有已登录的 Web Token 失效，您需要重新登录。</p>
+            <div class="mt-16">
+                <button class="btn btn-success" id="reloadBtn" onclick="doReload()">重载配置</button>
+            </div>
+        </div>
+    </div>`;
+}
+
+function doReload() {
+    const btn = document.getElementById('reloadBtn');
+    btn.disabled = true; btn.textContent = '重载中...';
+
+    apiRequest('/api/reload', { method: 'POST' })
+        .then(data => {
+            if (data.success) {
+                showTips('配置已重载，即将跳转到登录页...', 'success');
+                clearToken();
+                setTimeout(() => { window.location.href = '/index.html'; }, 1500);
+            } else {
+                showTips(data.message || '重载失败', 'error');
+            }
+        })
+        .catch(() => { showTips('请求失败', 'error'); })
+        .finally(() => { btn.disabled = false; btn.textContent = '重载配置'; });
+}
+
+document.getElementById('detailModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+renderDashboard();
+</script>
+</body>
+</html>

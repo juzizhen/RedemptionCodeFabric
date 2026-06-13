@@ -11,8 +11,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class FileRepository implements IDataRepository {
@@ -83,5 +82,26 @@ public class FileRepository implements IDataRepository {
         } catch (IOException e) {
             RedemptionCodeFabric.LOGGER.error("Failed to write operation log", e);
         }
+    }
+
+    @Override
+    public List<OperationLogEntry> getOperationLog(int offset, int limit) {
+        List<OperationLogEntry> all = new ArrayList<>();
+        if (!LOG_FILE.exists()) return all;
+        try (BufferedReader reader = new BufferedReader(new FileReader(LOG_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                OperationLogEntry entry = GSON.fromJson(line, OperationLogEntry.class);
+                if (entry != null) all.add(entry);
+            }
+        } catch (IOException e) {
+            RedemptionCodeFabric.LOGGER.error("Failed to read operation log", e);
+        }
+        // Reverse for newest-first, then apply pagination
+        Collections.reverse(all);
+        int fromIndex = Math.min(offset, all.size());
+        int toIndex = Math.min(fromIndex + limit, all.size());
+        return all.subList(fromIndex, toIndex);
     }
 }
