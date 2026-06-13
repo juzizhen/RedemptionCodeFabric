@@ -617,7 +617,6 @@
 </template>
 
 <script>
-/* ======================== i18n ======================== */
 const langData = {};
 let currentLang = 'zh';
 
@@ -685,7 +684,6 @@ function switchLang(lang) {
     Promise.all([loadLang('zh'), loadLang('en')]).then(() => { updateLanguage(lang); });
 })();
 
-/* ======================== Auth & Utils ======================== */
 function getToken() {
     const m = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
     return m ? m[1] : null;
@@ -733,6 +731,11 @@ function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+function escJsStr(s) {
+    if (s == null) return '';
+    return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+}
+
 const typeBadge = {
     'ONCE': 'badge-gray',
     'PERMANENT': 'badge-green',
@@ -757,7 +760,6 @@ function logout() {
         .finally(() => { clearToken(); window.location.href = '/index.html'; });
 }
 
-/* ======================== Navigation ======================== */
 const contentArea = document.getElementById('contentArea');
 const pageTitle = document.getElementById('pageTitle');
 const menuLinks = document.querySelectorAll('.sidebar-menu li a');
@@ -795,7 +797,6 @@ function switchPage(page) {
     navigateTo(page);
 }
 
-/* ======================== Dashboard ======================== */
 function renderDashboard() {
     contentArea.innerHTML = '<div class="stat-grid" id="statGrid"><div class="empty-state">' + t('code.loading') + '</div></div>' +
         '<div class="card"><div class="card-title">' + t('dashboard.recent_activity') + '</div><div class="card-body" id="recentLogs">' + t('code.loading') + '</div></div>';
@@ -856,7 +857,7 @@ function renderExecutor(log) {
     const uuid = (log.details && (log.details.player_uuid || log.details.executor_uuid)) || '';
     if (!uuid) return escHtml(formatExecutor(name));
     const id = 'exec_' + (++execIdCounter);
-    return `<span class="clickable" id="${id}" data-name="${escHtml(formatExecutor(name))}" data-uuid="${escHtml(uuid)}" onclick="toggleExec('${id}')">${escHtml(name)}</span>`;
+    return `<span class="clickable" id="${id}" data-name="${escHtml(formatExecutor(name))}" data-uuid="${escJsStr(uuid)}" onclick="toggleExec('${id}')">${escHtml(name)}</span>`;
 }
 
 function toggleExec(id) {
@@ -872,7 +873,6 @@ function formatDetails(details) {
     return Object.entries(details).map(([k,v]) => `${escHtml(k)}=${escHtml(v)}`).join(', ');
 }
 
-/* ======================== Codes ======================== */
 function renderCodes() {
     contentArea.innerHTML = '<div class="card"><div class="flex-between mb-8">' +
         '<div class="card-title" style="margin-bottom:0;border:none;padding:0">' + t('code.all_codes') + '</div>' +
@@ -892,13 +892,13 @@ function renderCodes() {
         for (const c of codes) {
             const reward = c.reward.length > 30 ? c.reward.substring(0, 30) + '...' : c.reward;
             html += `<tr>
-                <td class="mono clickable" onclick="showCodeDetail('${escHtml(c.code)}')">${escHtml(c.code)}</td>
+                <td class="mono clickable" onclick="showCodeDetail('${escJsStr(c.code)}')">${escHtml(c.code)}</td>
                 <td><span class="badge ${typeBadge[c.type] || 'badge-gray'}">${escHtml(c.type)}</span></td>
                 <td class="text-sm" title="${escHtml(c.reward)}">${escHtml(reward)}</td>
                 <td>${c.totalUses}${c.count > 0 ? ' / ' + c.count : ''}</td>
                 <td>
-                    <button class="btn btn-outline btn-sm" onclick="showCodeDetail('${escHtml(c.code)}')">${t('common.detail')}</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteCode('${escHtml(c.code)}')">${t('common.delete')}</button>
+                    <button class="btn btn-outline btn-sm" onclick="showCodeDetail('${escJsStr(c.code)}')">${t('common.detail')}</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteCode('${escJsStr(c.code)}')">${t('common.delete')}</button>
                 </td>
             </tr>`;
         }
@@ -912,7 +912,7 @@ function showCodeDetail(code) {
         if (!data.success) { showTips(data.message || t('error.get_failed'), 'error'); return; }
         const d = data.data;
         let html = '<div class="card-body">';
-        html += `<p><strong>${t('code.detail_code')}</strong> <span class="mono clickable" onclick="copyText('${escHtml(d.code)}')">${escHtml(d.code)}</span></p>`;
+        html += `<p><strong>${t('code.detail_code')}</strong> <span class="mono clickable" onclick="copyText('${escJsStr(d.code)}')">${escHtml(d.code)}</span></p>`;
         html += `<p><strong>${t('code.detail_type')}</strong> <span class="badge ${typeBadge[d.type] || 'badge-gray'}">${escHtml(d.type)}</span></p>`;
         html += `<p><strong>${t('code.detail_reward')}</strong> <span class="mono">${escHtml(d.reward)}</span></p>`;
         if (d.player) html += `<p><strong>${t('code.detail_player')}</strong> <span class="mono text-sm">${escHtml(d.player)}</span></p>`;
@@ -928,7 +928,7 @@ function showCodeDetail(code) {
             for (const u of d.usedBy) {
                 const lastTs = u.timestamps.length > 0 ? u.timestamps[u.timestamps.length - 1] : '-';
                 html += `<tr>
-                    <td class="mono clickable text-sm" onclick="copyText('${escHtml(u.uuid)}')">${escHtml(u.uuid)}</td>
+                    <td class="mono clickable text-sm" onclick="copyText('${escJsStr(u.uuid)}')">${escHtml(u.uuid)}</td>
                     <td>${u.times}</td>
                     <td class="text-sm">${escHtml(lastTs)}</td>
                 </tr>`;
@@ -961,7 +961,6 @@ function deleteCode(code) {
     }).catch(() => {});
 }
 
-/* ======================== Create Code ======================== */
 function renderCreateCode() {
     const tpl = document.getElementById('tpl-create-code');
     contentArea.innerHTML = '';
@@ -1118,7 +1117,6 @@ function submitCreateCode() {
         .finally(() => { btn.disabled = false; btn.textContent = t('code.btn_submit'); });
 }
 
-/* ======================== Logs ======================== */
 let logOffset = 0;
 const logPageSize = 30;
 
@@ -1156,7 +1154,6 @@ function renderLogs(offset) {
     }).catch(() => {});
 }
 
-/* ======================== Players ======================== */
 function renderPlayers() {
     contentArea.innerHTML = '<div class="card"><div class="card-title">' + t('players.title') + '</div><div id="playersBody">' + t('code.loading') + '</div></div>';
 
@@ -1172,7 +1169,7 @@ function renderPlayers() {
         for (const p of players) {
             html += `<tr>
                 <td><strong>${escHtml(p.name)}</strong></td>
-                <td class="mono clickable text-sm" onclick="copyText('${escHtml(p.uuid)}')">${escHtml(p.uuid)}</td>
+                <td class="mono clickable text-sm" onclick="copyText('${escJsStr(p.uuid)}')">${escHtml(p.uuid)}</td>
                 <td>${escHtml(p.ping)} ms</td>
             </tr>`;
         }
@@ -1181,7 +1178,6 @@ function renderPlayers() {
     }).catch(() => {});
 }
 
-/* ======================== Settings ======================== */
 function renderSettings() {
     contentArea.innerHTML = '<div class="card"><div class="card-title">' + t('settings.title') + '</div><div class="card-body" id="configBody">' + t('code.loading') + '</div></div>';
 
@@ -1201,7 +1197,6 @@ function renderSettings() {
     }).catch(() => {});
 }
 
-/* ======================== Reload ======================== */
 function renderReload() {
     contentArea.innerHTML = `<div class="card">
         <div class="card-title">${t('reload.title')}</div>
