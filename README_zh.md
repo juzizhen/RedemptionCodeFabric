@@ -1,15 +1,15 @@
-<p style="text-align:center;">
+<p align="center">
   <img src="src/main/resources/assets/redemptioncodefabric/icon.png" alt="RedemptionCodeFabric" width="128" />
 </p>
 
-<h1 style="text-align:center;">RedemptionCodeFabric</h1>
+<h1 align="center">RedemptionCodeFabric</h1>
 
-<p style="text-align:center;">
+<p align="center">
   一个仅需服务端安装的 Minecraft Fabric 兑换码模组，为你的服务器提供强大的兑换码系统。<br/>
   <a href="README.md">English</a>
 </p>
 
-<p style="text-align:center;">
+<p align="center">
   <img src="https://img.shields.io/badge/Minecraft-1.20.1-brightgreen" alt="Minecraft 1.20.1" />
   <img src="https://img.shields.io/badge/Fabric-0.18.4+-blue" alt="Fabric Loader" />
   <img src="https://img.shields.io/badge/Java-17%2B-orange" alt="Java 17+" />

@@ -1,15 +1,15 @@
-<p style="text-align:center;">
+<p align="center">
   <img src="src/main/resources/assets/redemptioncodefabric/icon.png" alt="RedemptionCodeFabric" width="128" />
 </p>
 
-<h1 style="text-align:center;">RedemptionCodeFabric</h1>
+<h1 align="center"">RedemptionCodeFabric</h1>
 
-<p style="text-align:center;">
+<p align="center"">
   A server-side Minecraft Fabric mod that adds a powerful redemption code system to your server.<br/>
   <a href="README_zh.md">中文文档</a>
 </p>
 
-<p style="text-align:center;">
+<p align="center"">
   <img src="https://img.shields.io/badge/Minecraft-1.20.1-brightgreen" alt="Minecraft 1.20.1" />
   <img src="https://img.shields.io/badge/Fabric-0.18.4+-blue" alt="Fabric Loader" />
   <img src="https://img.shields.io/badge/Java-17%2B-orange" alt="Java 17+" />
