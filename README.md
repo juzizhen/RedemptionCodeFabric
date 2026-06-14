@@ -276,3 +276,4 @@ See [CREDITS.md](CREDITS.md) for third-party dependency licenses.
 
 - **GitHub:** https://github.com/juzizhen/RedemptionCodeFabric
 - **Issues:** https://github.com/juzizhen/RedemptionCodeFabric/issues
+- **Curseforge:** https://www.curseforge.com/minecraft/mc-mods/redemptioncodefabric

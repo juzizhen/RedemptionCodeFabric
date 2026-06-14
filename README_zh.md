@@ -276,3 +276,4 @@ pool.connectionInitSql=
 
 - **GitHub：** https://github.com/juzizhen/RedemptionCodeFabric
 - **问题反馈：** https://github.com/juzizhen/RedemptionCodeFabric/issues
+- **Curseforge:** https://www.curseforge.com/minecraft/mc-mods/redemptioncodefabric
