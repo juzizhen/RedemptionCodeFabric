@@ -194,7 +194,6 @@ public class SimpleConnectionPool {
         long deadlineNanos = startTime + TimeUnit.MILLISECONDS.toNanos(connectionTimeout);
 
         while (!isShutdown) {
-            // === Step 1: 尝试从空闲队列获取 ===
             PoolEntry entry = idleQueue.poll();
 
             if (entry != null) {
@@ -214,7 +213,6 @@ public class SimpleConnectionPool {
                 return entry.connection;
             }
 
-            // === Step 2: 尝试创建新连接 ===
             int current;
             while ((current = totalConnections.get()) < maxPoolSize) {
                 if (totalConnections.compareAndSet(current, current + 1)) {
@@ -233,7 +231,6 @@ public class SimpleConnectionPool {
                 // CAS 失败 → 重试
             }
 
-            // === Step 3: 池已满，等待归还 ===
             long remainingNanos = deadlineNanos - System.nanoTime();
             if (remainingNanos <= 0) {
                 throw new RuntimeException(
