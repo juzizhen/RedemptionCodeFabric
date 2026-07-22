@@ -16,10 +16,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.juzizhen.RedemptionCodeFabric"
+          "com.juzizhen.redemptioncodefabric.RedemptionCodeFabric"
 		],
 		"client": [
-			"com.juzizhen.RedemptionCodeFabricClient"
+          "com.juzizhen.redemptioncodefabric.RedemptionCodeFabricClient"
 		]
 	},
 	"depends": {

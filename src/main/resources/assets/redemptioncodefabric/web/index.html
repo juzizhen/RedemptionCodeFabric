@@ -309,7 +309,7 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                setCookie('token', data.token, 7);
+                localStorage.setItem('admin_token', data.token);
                 showTips(t('login.alert_success'), 'info');
                 setTimeout(() => {
                     window.location.href = data.adminPath || '/admin.html';
@@ -342,14 +342,6 @@
         tipsTimer = setTimeout(() => {
             div.style.display = 'none';
         }, 5000);
-    }
-
-    function setCookie(name, value, days) {
-        const d = new Date();
-        d.setTime(d.getTime() + days * 86400000);
-        let cookie = name + '=' + value + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
-        if (window.location.protocol === 'https:') cookie += ';Secure';
-        document.cookie = cookie;
     }
 </script>
 </body>

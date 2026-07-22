@@ -685,18 +685,17 @@ function switchLang(lang) {
 })();
 
 function getToken() {
-    const m = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
-    return m ? m[1] : null;
+    return localStorage.getItem('admin_token');
 }
 
 function clearToken() {
-    document.cookie = 'token=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+    localStorage.removeItem('admin_token');
 }
 
 function apiRequest(url, options) {
     options = options || {};
     options.headers = options.headers || {};
-    options.headers['Authorization'] = 'Bearer ' + getToken();
+    options.headers['X-Admin-Token'] = getToken();
     if (options.body && typeof options.body === 'object') {
         options.headers['Content-Type'] = 'application/json';
         options.body = JSON.stringify(options.body);
@@ -749,7 +748,7 @@ const typeBadge = {
 (function checkAuth() {
     const token = getToken();
     if (!token) { window.location.replace('/index.html'); return; }
-    fetch('/api/verify', { headers: { 'Authorization': 'Bearer ' + token } })
+    fetch('/api/verify', { headers: { 'X-Admin-Token': token } })
         .then(res => { if (!res.ok) { clearToken(); window.location.replace('/index.html'); } })
         .catch(() => { window.location.replace('/index.html'); });
 })();
@@ -799,6 +798,11 @@ function switchPage(page) {
 
 function renderDashboard() {
     contentArea.innerHTML = '<div class="stat-grid" id="statGrid"><div class="empty-state">' + t('code.loading') + '</div></div>' +
+        '<div class="grid" style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px">' +
+        '<div class="card"><div class="card-title">' + t('dashboard.trend_title') + '</div><canvas id="trendChart" width="600" height="220" style="width:100%;height:auto"></canvas></div>' +
+        '<div class="card"><div class="card-title">' + t('dashboard.status_title') + '</div><div id="statusPie" style="display:flex;justify-content:center;align-items:center;min-height:180px">' + t('code.loading') + '</div></div>' +
+        '</div>' +
+        '<div class="card" style="margin-bottom:16px"><div class="card-title">' + t('dashboard.quick_actions') + '</div><div class="card-body"><button class="btn btn-primary" onclick="exportCSV()">' + t('dashboard.export_csv') + '</button></div></div>' +
         '<div class="card"><div class="card-title">' + t('dashboard.recent_activity') + '</div><div class="card-body" id="recentLogs">' + t('code.loading') + '</div></div>';
 
     apiRequest('/api/status').then(data => {
@@ -808,7 +812,20 @@ function renderDashboard() {
             statCard(t('dashboard.online_players'), d.onlinePlayers, 'green') +
             statCard(t('dashboard.total_codes'), d.totalCodes, 'blue') +
             statCard(t('dashboard.storage_type'), d.datastoreType, '') +
-            statCard(t('dashboard.mod_version'), d.modVersion, '');
+            statCard(t('dashboard.mod_version'), d.modVersion, '') +
+            statCard(t('dashboard.mc_version'), d.mcVersion, '');
+    }).catch(() => {});
+
+    // 加载趋势图
+    apiRequest('/api/stats/daily').then(data => {
+        if (!data.success) return;
+        drawCanvasChart(data.data);
+    }).catch(() => {});
+
+    // 加载状态饼图
+    apiRequest('/api/codes').then(data => {
+        if (!data.success) return;
+        drawStatusPie(data.data);
     }).catch(() => {});
 
     apiRequest('/api/logs?offset=0&limit=10').then(data => {
@@ -830,6 +847,147 @@ function renderDashboard() {
         html += '</tbody></table>';
         document.getElementById('recentLogs').innerHTML = html;
     }).catch(() => {});
+}
+
+let _trendData = null;
+
+function drawCanvasChart(data) {
+    _trendData = data;
+    const cvs = document.getElementById('trendChart');
+    if (!cvs) return;
+    const ctx = cvs.getContext('2d');
+
+    // 高清适配：按设备像素比放大 canvas  backing store，避免高分屏拉伸模糊
+    const dpr = window.devicePixelRatio || 1;
+    const cssWidth = cvs.clientWidth || 600;
+    const cssHeight = Math.round(cssWidth * 220 / 600); // 保持固有宽高比
+    cvs.width = Math.round(cssWidth * dpr);
+    cvs.height = Math.round(cssHeight * dpr);
+    cvs.style.height = cssHeight + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+    const padding = 40;
+    const width = cssWidth - padding * 2;
+    const height = cssHeight - padding * 2;
+    const maxVal = Math.max(...data.map(d => d.count), 10);
+
+    // 网格线
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = padding + (i / 4) * height;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(cssWidth - padding, y);
+        ctx.stroke();
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.round(maxVal * (1 - i / 4)), padding - 6, y + 4);
+    }
+
+    // X 轴标签
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#6b7280';
+    data.forEach((pt, i) => {
+        const x = padding + (i / Math.max(data.length - 1, 1)) * width;
+        ctx.fillText(pt.date, x, cssHeight - padding + 16);
+    });
+
+    // 折线
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    data.forEach((pt, i) => {
+        const x = padding + (i / Math.max(data.length - 1, 1)) * width;
+        const y = cssHeight - padding - (pt.count / maxVal) * height;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // 数据点
+    data.forEach((pt, i) => {
+        const x = padding + (i / Math.max(data.length - 1, 1)) * width;
+        const y = cssHeight - padding - (pt.count / maxVal) * height;
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#3b82f6';
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    });
+}
+
+// 窗口缩放时按新尺寸重绘趋势图，保持清晰
+let _trendResizeTimer = null;
+window.addEventListener('resize', () => {
+    if (!_trendData || !document.getElementById('trendChart')) return;
+    clearTimeout(_trendResizeTimer);
+    _trendResizeTimer = setTimeout(() => drawCanvasChart(_trendData), 150);
+});
+
+function drawStatusPie(codes) {
+    const container = document.getElementById('statusPie');
+    if (!container) return;
+
+    let unused = 0, used = 0, expired = 0;
+    const now = Date.now();
+    for (const c of codes) {
+        if (c.endTime && c.endTime > 0 && c.endTime < now) { expired++; }
+        else if (c.totalUses > 0) { used++; }
+        else { unused++; }
+    }
+    const total = codes.length || 1;
+
+    const r = 70, cx = 90, cy = 90, strokeW = 24;
+    const circumference = 2 * Math.PI * r;
+    const segments = [
+        { label: t('dashboard.status_unused'), count: unused, color: '#10b981' },
+        { label: t('dashboard.status_used'), count: used, color: '#3b82f6' },
+        { label: t('dashboard.status_expired'), count: expired, color: '#ef4444' }
+    ];
+
+    let offset = 0;
+    let circles = '';
+    for (const seg of segments) {
+        const ratio = seg.count / total;
+        const dash = ratio * circumference;
+        circles += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="${strokeW}" stroke-dasharray="${dash} ${circumference - dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
+        offset += dash;
+    }
+
+    let legend = '';
+    for (const seg of segments) {
+        legend += `<div style="display:flex;align-items:center;gap:6px;margin:4px 0"><span style="width:10px;height:10px;border-radius:2px;background:${seg.color};display:inline-block"></span><span style="font-size:12px;color:#6b7280">${seg.label}: ${seg.count}</span></div>`;
+    }
+
+    container.innerHTML = `<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center">
+        <svg width="180" height="180" viewBox="0 0 180 180">${circles}
+        <text x="${cx}" y="${cy}" text-anchor="middle" dy="5" font-size="20" font-weight="700" fill="#1f2937">${codes.length}</text>
+        </svg>
+        <div>${legend}</div>
+    </div>`;
+}
+
+function exportCSV() {
+    const token = getToken();
+    fetch('/api/export', { headers: { 'X-Admin-Token': token } })
+        .then(res => {
+            if (res.status === 401) { clearToken(); window.location.href = '/index.html'; return; }
+            return res.blob();
+        })
+        .then(blob => {
+            if (!blob) return;
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'redemption_codes.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
 }
 
 function statCard(label, value, color) {

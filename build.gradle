@@ -91,7 +91,7 @@ shadowJar {
         exclude(dependency('org.slf4j:.*:.*'))
     }
 
-    def shadowPrefix = "com.juzizhen.rcode.shadow"
+    def shadowPrefix = "com.juzizhen.redemptioncodefabric.rcode.shadow"
 
     relocate 'com.mysql', "${shadowPrefix}.mysql"
     relocate 'redis.clients', "${shadowPrefix}.redis"
