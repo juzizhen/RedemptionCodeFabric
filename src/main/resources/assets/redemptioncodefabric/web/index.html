@@ -180,7 +180,9 @@
             color: #3b82f6;
         }
 
-        body.i18n-loading .login-container { visibility: hidden; }
+        body.i18n-loading .login-container {
+            visibility: hidden;
+        }
     </style>
 </head>
 <body class="i18n-loading">
@@ -195,17 +197,19 @@
         <div class="subtitle" data-i18n="login.subtitle">请登录您的账号继续</div>
 
         <div class="input-group">
-            <label for="username" data-i18n="login.username_label">用户名</label>
-            <input id="username" data-i18n-placeholder="login.username_placeholder" placeholder="请输入用户名" type="text" autocomplete="username">
+            <label data-i18n="login.username_label" for="username">用户名</label>
+            <input autocomplete="username" data-i18n-placeholder="login.username_placeholder" id="username"
+                   placeholder="请输入用户名" type="text">
         </div>
         <div class="input-group">
-            <label for="password" data-i18n="login.password_label">密码</label>
-            <input id="password" data-i18n-placeholder="login.password_placeholder" placeholder="请输入密码" type="password" autocomplete="current-password">
+            <label data-i18n="login.password_label" for="password">密码</label>
+            <input autocomplete="current-password" data-i18n-placeholder="login.password_placeholder" id="password"
+                   placeholder="请输入密码" type="password">
         </div>
 
         <div class="btn-group">
-            <button id="loginBtn" class="btn-login" onclick="login()" data-i18n="login.btn_login">登录</button>
-            <button class="btn-forgot" onclick="forgotPassword()" data-i18n="login.btn_forgot">忘记密码</button>
+            <button class="btn-login" data-i18n="login.btn_login" id="loginBtn" onclick="login()">登录</button>
+            <button class="btn-forgot" data-i18n="login.btn_forgot" onclick="forgotPassword()">忘记密码</button>
         </div>
     </div>
 </div>
@@ -226,11 +230,18 @@
 
     function loadLang(lang) {
         return fetch('/lang/' + langFileName(lang))
-            .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-            .then(data => { langData[lang] = data; })
+            .then(r => {
+                if (!r.ok) throw new Error();
+                return r.json();
+            })
+            .then(data => {
+                langData[lang] = data;
+            })
             .catch(() => {
                 if (lang !== 'en') {
-                    return fetch('/lang/en_us.json').then(r => r.json()).then(data => { langData[lang] = data; });
+                    return fetch('/lang/en_us.json').then(r => r.json()).then(data => {
+                        langData[lang] = data;
+                    });
                 }
             });
     }
@@ -247,8 +258,11 @@
             const key = el.getAttribute('data-i18n');
             const val = t(key);
             if (val !== key) {
-                if (el.tagName === 'TITLE') { document.title = val; }
-                else { el.textContent = val; }
+                if (el.tagName === 'TITLE') {
+                    document.title = val;
+                } else {
+                    el.textContent = val;
+                }
             }
         });
 
@@ -274,7 +288,9 @@
         const lang = saved || (browserLang.startsWith('zh') ? 'zh' : 'en');
 
         const promises = [loadLang('zh'), loadLang('en')];
-        Promise.all(promises).then(() => { updateLanguage(lang); });
+        Promise.all(promises).then(() => {
+            updateLanguage(lang);
+        });
     })();
 
     document.getElementById('password').addEventListener('keydown', function (e) {
@@ -303,28 +319,28 @@
 
         fetch('/api/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: params.toString()
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                localStorage.setItem('admin_token', data.token);
-                showTips(t('login.alert_success'), 'info');
-                setTimeout(() => {
-                    window.location.href = data.adminPath || '/admin.html';
-                }, 600);
-            } else {
-                showTips(data.message || t('login.alert_wrong'), 'error');
-            }
-        })
-        .catch(() => {
-            showTips(t('login.alert_network'), 'error');
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btn.textContent = t('login.btn_login');
-        });
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    localStorage.setItem('admin_token', data.token);
+                    showTips(t('login.alert_success'), 'info');
+                    setTimeout(() => {
+                        window.location.href = data.adminPath || '/admin.html';
+                    }, 600);
+                } else {
+                    showTips(data.message || t('login.alert_wrong'), 'error');
+                }
+            })
+            .catch(() => {
+                showTips(t('login.alert_network'), 'error');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = t('login.btn_login');
+            });
     }
 
     function forgotPassword() {
@@ -332,6 +348,7 @@
     }
 
     let tipsTimer = null;
+
     function showTips(msg, type) {
         const div = document.getElementById('tipsDiv');
         const title = document.getElementById('tipsTitle');

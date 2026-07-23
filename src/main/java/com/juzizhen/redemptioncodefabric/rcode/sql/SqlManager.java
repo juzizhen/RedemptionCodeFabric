@@ -97,18 +97,18 @@ public class SqlManager {
 
             // 创建 redemption_codes 表
             String createCodesTable = """
-                CREATE TABLE IF NOT EXISTS redemption_codes (
-                    code VARCHAR(255) PRIMARY KEY,
-                    type VARCHAR(50) NOT NULL,
-                    reward TEXT NOT NULL,
-                    player TEXT,
-                    count INT DEFAULT -1,
-                    start_time BIGINT DEFAULT 0,
-                    end_time BIGINT DEFAULT 0,
-                    code_interval BIGINT DEFAULT 0,
-                    used_by LONGTEXT
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-                """;
+                    CREATE TABLE IF NOT EXISTS redemption_codes (
+                        code VARCHAR(255) PRIMARY KEY,
+                        type VARCHAR(50) NOT NULL,
+                        reward TEXT NOT NULL,
+                        player TEXT,
+                        count INT DEFAULT -1,
+                        start_time BIGINT DEFAULT 0,
+                        end_time BIGINT DEFAULT 0,
+                        code_interval BIGINT DEFAULT 0,
+                        used_by LONGTEXT
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                    """;
 
             try (var stmt = conn.prepareStatement(createCodesTable)) {
                 stmt.execute();
@@ -116,14 +116,14 @@ public class SqlManager {
 
             // 创建 operation_logs 表
             String createLogsTable = """
-                CREATE TABLE IF NOT EXISTS operation_logs (
-                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                    timestamp BIGINT NOT NULL,
-                    operation_type VARCHAR(50) NOT NULL,
-                    executor VARCHAR(255) NOT NULL,
-                    details LONGTEXT
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-                """;
+                    CREATE TABLE IF NOT EXISTS operation_logs (
+                        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                        timestamp BIGINT NOT NULL,
+                        operation_type VARCHAR(50) NOT NULL,
+                        executor VARCHAR(255) NOT NULL,
+                        details LONGTEXT
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                    """;
 
             try (var stmt = conn.prepareStatement(createLogsTable)) {
                 stmt.execute();

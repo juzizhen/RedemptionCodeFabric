@@ -6,7 +6,7 @@ public class OperationLogEntry {
     private final long timestamp;
     private final String operationType;
     private final String executor;
-    private final Map<String, String> details; // Changed from String to Map<String, String>
+    private final Map<String, String> details;
 
     public OperationLogEntry(long timestamp, String operationType, String executor, Map<String, String> details) {
         this.timestamp = timestamp;
@@ -15,7 +15,7 @@ public class OperationLogEntry {
         this.details = details;
     }
 
-    // Getters are needed for Gson to serialize the object
+    // Gson 序列化需要 getter 方法
     public long getTimestamp() {
         return timestamp;
     }

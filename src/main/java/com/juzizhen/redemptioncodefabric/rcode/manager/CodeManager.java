@@ -138,19 +138,19 @@ public class CodeManager {
                 info.append("\n");
             } else {
                 usedByMap.entrySet().stream()
-                    .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size()))
-                    .forEach(entry -> {
-                        String uuid = entry.getKey();
-                        long usageCount = entry.getValue().size();
-                        String displayName = resolvePlayerDisplayName(source, uuid);
+                        .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size()))
+                        .forEach(entry -> {
+                            String uuid = entry.getKey();
+                            long usageCount = entry.getValue().size();
+                            String displayName = resolvePlayerDisplayName(source, uuid);
 
-                        MutableText userText = Text.literal(displayName).formatted(Formatting.AQUA)
-                                .styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid))
-                                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, MessageUtils.createText(source, "redemptioncodefabric.message.info_copy_uuid"))));
+                            MutableText userText = Text.literal(displayName).formatted(Formatting.AQUA)
+                                    .styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid))
+                                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, MessageUtils.createText(source, "redemptioncodefabric.message.info_copy_uuid"))));
 
-                        info.append(MessageUtils.createText(source, "redemptioncodefabric.message.info_usage_entry", userText, usageCount).copy().formatted(Formatting.BLUE));
-                        info.append("\n");
-                    });
+                            info.append(MessageUtils.createText(source, "redemptioncodefabric.message.info_usage_entry", userText, usageCount).copy().formatted(Formatting.BLUE));
+                            info.append("\n");
+                        });
             }
         } else {
             info.append(MessageUtils.createText(source, "redemptioncodefabric.message.info_used_by_header", codeData.getUsedBy().size()).copy().formatted(Formatting.BLUE));
@@ -158,10 +158,10 @@ public class CodeManager {
             for (String uuid : codeData.getUsedBy().keySet()) {
                 String displayName = resolvePlayerDisplayName(source, uuid);
                 MutableText playerText = Text.literal(displayName)
-                    .setStyle(Text.empty().getStyle()
-                    .withColor(Formatting.AQUA)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid))
-                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, MessageUtils.createText(source, "redemptioncodefabric.message.info_copy_uuid"))));
+                        .setStyle(Text.empty().getStyle()
+                                .withColor(Formatting.AQUA)
+                                .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, uuid))
+                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, MessageUtils.createText(source, "redemptioncodefabric.message.info_copy_uuid"))));
                 info.append(MessageUtils.createText(source, "redemptioncodefabric.message.info_used_by_entry", "").copy().append(playerText));
                 info.append("\n");
             }
@@ -191,7 +191,7 @@ public class CodeManager {
             }
             return MessageUtils.createText(source, validationErrorKey);
         }
-        
+
         Text rewardResult = grantReward(source, codeData);
         if (rewardResult != null) {
             return rewardResult;
@@ -227,12 +227,13 @@ public class CodeManager {
                 if (!playerUsageTimestamps.isEmpty()) return "redemptioncodefabric.message.code_already_used";
                 break;
             case TIMED:
-                if (currentTime < codeData.getStartTime() || (codeData.getEndTime() != 0 && currentTime > codeData.getEndTime())) return "redemptioncodefabric.message.code_out_of_time";
+                if (currentTime < codeData.getStartTime() || (codeData.getEndTime() != 0 && currentTime > codeData.getEndTime()))
+                    return "redemptioncodefabric.message.code_out_of_time";
                 if (!playerUsageTimestamps.isEmpty()) return "redemptioncodefabric.message.code_already_used";
                 break;
             case CYCLE:
                 if (currentTime < codeData.getStartTime()) return "redemptioncodefabric.message.code_not_yet_active";
-                
+
                 long timeSinceStart = currentTime - codeData.getStartTime();
                 long currentCycleIndex = timeSinceStart / codeData.getInterval();
                 long currentCycleStartTime = codeData.getStartTime() + currentCycleIndex * codeData.getInterval();

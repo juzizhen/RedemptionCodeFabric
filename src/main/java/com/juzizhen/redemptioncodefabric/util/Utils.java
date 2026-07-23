@@ -25,6 +25,7 @@ public class Utils {
 
     /**
      * 生成指定长度的随机字符串
+     *
      * @param length 字符串长度
      * @return 随机字符串
      */
@@ -38,6 +39,7 @@ public class Utils {
 
     /**
      * 检查端口是否可用
+     *
      * @param port 要检测的端口
      * @return true 表示可用，false 表示已被占用
      */
@@ -52,8 +54,9 @@ public class Utils {
 
     /**
      * 从起始端口开始查找第一个可用端口
+     *
      * @param startPort 起始端口
-     * @param maxPort 最大端口范围
+     * @param maxPort   最大端口范围
      * @return 可用端口号，如果没有找到返回 -1
      */
     public static int findAvailablePort(int startPort, int maxPort) {
@@ -67,8 +70,9 @@ public class Utils {
 
     /**
      * 判断玩家是否在线
+     *
      * @param server MinecraftServer 实例
-     * @param uuid 玩家 UUID
+     * @param uuid   玩家 UUID
      * @return 如果玩家在线返回 true，否则返回 false
      */
     public static boolean isPlayerOnline(MinecraftServer server, UUID uuid) {

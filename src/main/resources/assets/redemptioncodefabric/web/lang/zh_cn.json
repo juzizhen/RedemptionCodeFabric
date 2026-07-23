@@ -14,12 +14,10 @@
   "login.alert_wrong": "\u7528\u6237\u540d\u6216\u5bc6\u7801\u9519\u8bef",
   "login.alert_network": "\u7f51\u7edc\u9519\u8bef\uff0c\u8bf7\u91cd\u8bd5",
   "login.forgot_msg": "\u5bc6\u7801\u5b58\u50a8\u5728\u670d\u52a1\u5668\u914d\u7f6e\u6587\u4ef6\u4e2d\u3002\u8bf7\u6253\u5f00 config/redemptioncodefabric/redemptioncodefabric.properties\uff0c\u67e5\u770b\u6216\u4fee\u6539 \"web.password\" \u5b57\u6bb5\u540e\u91cd\u542f\u670d\u52a1\u5668\u5373\u53ef\u3002",
-
   "admin.title": "\u540e\u53f0\u7ba1\u7406 - RedemptionCodeFabric",
   "admin.panel": "\u7ba1\u7406\u9762\u677f",
   "admin.admin": "\u7ba1\u7406\u5458",
   "admin.logout": "\u9000\u51fa\u767b\u5f55",
-
   "sidebar.overview": "\u6982\u89c8",
   "sidebar.dashboard": "\u4eea\u8868\u76d8",
   "sidebar.code_mgmt": "\u5151\u6362\u7801\u7ba1\u7406",
@@ -31,7 +29,6 @@
   "sidebar.players": "\u5728\u7ebf\u73a9\u5bb6",
   "sidebar.settings": "\u914d\u7f6e\u4fe1\u606f",
   "sidebar.reload": "\u91cd\u8f7d\u914d\u7f6e",
-
   "dashboard.online_players": "\u5728\u7ebf\u73a9\u5bb6",
   "dashboard.total_codes": "\u5151\u6362\u7801\u603b\u6570",
   "dashboard.storage_type": "\u5b58\u50a8\u7c7b\u578b",
@@ -45,7 +42,6 @@
   "dashboard.status_unused": "\u672a\u4f7f\u7528",
   "dashboard.status_used": "\u5df2\u5151\u6362",
   "dashboard.status_expired": "\u5df2\u8fc7\u671f",
-
   "table.time": "\u65f6\u95f4",
   "table.type": "\u7c7b\u578b",
   "table.executor": "\u6267\u884c\u8005",
@@ -59,7 +55,6 @@
   "table.ping": "\u5ef6\u8fdf",
   "table.config_key": "\u914d\u7f6e\u9879",
   "table.value": "\u503c",
-
   "code.type_once": "ONCE (\u4e00\u6b21\u6027)",
   "code.type_permanent": "PERMANENT (\u6c38\u4e45)",
   "code.type_personal": "PERSONAL (\u4e2a\u4eba\u4e13\u5c5e)",
@@ -127,26 +122,21 @@
   "code.select_scoreboard": "-- \u9009\u62e9\u8ba1\u5206\u677f --",
   "code.scoreboard_loading": "\u52a0\u8f7d\u4e2d...",
   "code.loading": "\u52a0\u8f7d\u4e2d...",
-
   "logs.title": "\u64cd\u4f5c\u65e5\u5fd7",
   "logs.empty": "\u6682\u65e0\u64cd\u4f5c\u8bb0\u5f55",
   "logs.page": "\u7b2c",
   "logs.prev": "\u4e0a\u4e00\u9875",
   "logs.next": "\u4e0b\u4e00\u9875",
-
   "players.title": "\u5728\u7ebf\u73a9\u5bb6",
   "players.empty": "\u5f53\u524d\u6ca1\u6709\u5728\u7ebf\u73a9\u5bb6",
-
   "settings.title": "\u5f53\u524d\u914d\u7f6e",
   "settings.hint": "\u4fee\u6539\u914d\u7f6e\u8bf7\u7f16\u8f91\u670d\u52a1\u5668 config/redemptioncodefabric/redemptioncodefabric.properties \u6587\u4ef6\uff0c\u7136\u540e\u4f7f\u7528\"\u91cd\u8f7d\u914d\u7f6e\"\u529f\u80fd\u3002",
-
   "reload.title": "\u91cd\u8f7d\u914d\u7f6e",
   "reload.desc": "\u70b9\u51fb\u6309\u94ae\u5c06\u91cd\u65b0\u8bfb\u53d6\u670d\u52a1\u5668\u914d\u7f6e\u6587\u4ef6\uff0c\u5e76\u91cd\u8f7d\u6240\u6709\u670d\u52a1\uff08SQL\u3001Redis\u3001Web \u670d\u52a1\u5668\u7b49\uff09\u3002",
   "reload.warning": "\u6ce8\u610f\uff1a\u91cd\u8f7d\u4f1a\u4f7f\u6240\u6709\u5df2\u767b\u5f55\u7684 Web Token \u5931\u6548\uff0c\u60a8\u9700\u8981\u91cd\u65b0\u767b\u5f55\u3002",
   "reload.btn": "\u91cd\u8f7d\u914d\u7f6e",
   "reload.btn_reloading": "\u91cd\u8f7d\u4e2d...",
   "reload.success": "\u914d\u7f6e\u5df2\u91cd\u8f7d\uff0c\u5373\u5c06\u8df3\u8f6c\u5230\u767b\u5f55\u9875...",
-
   "common.refresh": "\u5237\u65b0",
   "common.create": "\u521b\u5efa",
   "common.detail": "\u8be6\u60c5",
@@ -155,7 +145,6 @@
   "common.close": "\u5173\u95ed",
   "common.confirm": "\u786e\u8ba4",
   "common.cancel": "\u53d6\u6d88",
-
   "error.unauthorized": "\u767b\u5f55\u5df2\u8fc7\u671f\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55",
   "error.request_failed": "\u8bf7\u6c42\u5931\u8d25",
   "error.delete_failed": "\u5220\u9664\u5931\u8d25",
@@ -176,7 +165,6 @@
   "error.start_after_end": "\u5f00\u59cb\u65f6\u95f4\u5fc5\u987b\u65e9\u4e8e\u7ed3\u675f\u65f6\u95f4",
   "error.ts_short": "\u65f6\u95f4\u6233\u4f4d\u6570\u4e0d\u8db3\uff0c\u6beb\u79d2\u7ea7\u5e94\u4e3a 13 \u4f4d\u6570",
   "error.interval_zero": "\u5468\u671f\u5fc5\u987b\u5927\u4e8e 0 \u79d2",
-
   "ts_hint.seconds": "\u770b\u8d77\u6765\u50cf\u79d2\u7ea7\u65f6\u95f4\u6233\uff0c\u6beb\u79d2\u7ea7\u5e94\u4e3a 13 \u4f4d\u6570",
   "ts_hint.invalid": "\u65e0\u6548\u65f6\u95f4\u6233"
 }

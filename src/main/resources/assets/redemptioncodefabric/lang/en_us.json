@@ -30,6 +30,7 @@
   "redemptioncodefabric.message.info_used_by_entry": " - %s",
   "redemptioncodefabric.message.info_footer": "---------------------------",
   "redemptioncodefabric.message.config_reloaded": "Config reloaded!",
+  "redemptioncodefabric.message.not_ready": "System is initializing or reloading, please try again shortly.",
   "redemptioncodefabric.message.info_player_group": "Designated for a group of %s players.",
   "redemptioncodefabric.message.limit_cannot_be_zero": "Limit cannot be zero.",
   "redemptioncodefabric.message.invalid_date_format": "Invalid date format. Please use yyyy-MM-dd_HH-mm-ss, or 0-0-0_0-0-0 for the current time.",

@@ -8,8 +8,8 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 /**
- * Singleton manager for the Jedis connection pool,
- * mirroring the init/reload/shutdown pattern used by {@link com.juzizhen.redemptioncodefabric.rcode.sql.SqlManager}.
+ * Jedis 连接池的单例管理器，
+ * 沿用 {@link com.juzizhen.redemptioncodefabric.rcode.sql.SqlManager} 的 init/reload/shutdown 模式。
  */
 public class RedisManager {
 
@@ -33,10 +33,10 @@ public class RedisManager {
     }
 
     /**
-     * Initializes the Redis connection pool with retry logic.
+     * 初始化 Redis 连接池，带重试逻辑。
      *
-     * @param config the mod configuration containing Redis connection properties
-     * @return true if the connection was established successfully, false if all retries failed
+     * @param config 包含 Redis 连接属性的 mod 配置
+     * @return 连接成功返回 true，所有重试均失败返回 false
      */
     public boolean init(Config config) {
         shutdown();
@@ -98,10 +98,10 @@ public class RedisManager {
     }
 
     /**
-     * Obtains a Jedis instance from the pool.
-     * Callers MUST close the returned Jedis (try-with-resources recommended).
+     * 从连接池获取一个 Jedis 实例。
+     * 调用方必须关闭返回的 Jedis（推荐 try-with-resources）。
      *
-     * @return a Jedis connection, or null if not connected
+     * @return Jedis 连接；未连接时返回 null
      */
     public Jedis getResource() {
         if (!connected || jedisPool == null) return null;
@@ -109,7 +109,7 @@ public class RedisManager {
     }
 
     /**
-     * Shuts down the connection pool and releases all resources.
+     * 关闭连接池并释放所有资源。
      */
     public void shutdown() {
         if (jedisPool != null) {
@@ -132,7 +132,7 @@ public class RedisManager {
     }
 
     /**
-     * Returns whether the Redis connection is currently active.
+     * 返回当前 Redis 连接是否处于可用状态。
      */
     public boolean isConnected() {
         return connected && jedisPool != null && !jedisPool.isClosed();

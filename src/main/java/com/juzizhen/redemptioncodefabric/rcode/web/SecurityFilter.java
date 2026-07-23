@@ -27,21 +27,13 @@ public class SecurityFilter extends Filter {
 
     private static final String REDIS_KEY_TOKEN = "admin:active_token";
     private static final int TOKEN_TTL_SECONDS = 1800; // 30 分钟
-
+    // ── 内存降级：限流 ──
+    private static final ConcurrentHashMap<String, RateBucket> memoryRateBuckets = new ConcurrentHashMap<>();
     // ── 独立 Redis 连接池（web.redis.* 配置） ──
     private static volatile JedisPool webRedisPool = null;
-
     // ── 内存降级：单 Token ──
     private static volatile String memoryActiveToken = null;
     private static volatile long memoryTokenExpireAt = 0;
-
-    // ── 内存降级：限流 ──
-    private static final ConcurrentHashMap<String, RateBucket> memoryRateBuckets = new ConcurrentHashMap<>();
-
-    private static class RateBucket {
-        final AtomicInteger count = new AtomicInteger(0);
-        volatile long windowStart = System.currentTimeMillis();
-    }
 
     /**
      * 初始化 Web 安全层专用 Redis 连接池。
@@ -267,5 +259,10 @@ public class SecurityFilter extends Filter {
     @Override
     public String description() {
         return "Security and Auth Filter";
+    }
+
+    private static class RateBucket {
+        final AtomicInteger count = new AtomicInteger(0);
+        volatile long windowStart = System.currentTimeMillis();
     }
 }

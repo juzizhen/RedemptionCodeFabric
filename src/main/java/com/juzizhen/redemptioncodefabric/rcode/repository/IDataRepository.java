@@ -7,54 +7,25 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * An interface that defines the contract for data storage operations.
- * This allows for different storage implementations (e.g., file, SQL, Redis)
- * without changing the core business logic.
+ * 数据存储操作的契约接口，便于在不改动核心业务逻辑的前提下切换不同的存储实现（文件、SQL、Redis）。
  */
 public interface IDataRepository {
 
-    /**
-     * Loads all redemption codes from the data source.
-     *
-     * @return A map of all redemption codes.
-     */
     Map<String, CodeData> loadAllCodes();
 
-    /**
-     * Saves all redemption codes to the data source.
-     * This is intended for full persistence, e.g., on server shutdown.
-     *
-     * @param codes The map of codes to save.
-     */
     void saveAllCodes(Map<String, CodeData> codes);
 
-    /**
-     * Saves or updates a single redemption code.
-     *
-     * @param codeData The code data to save.
-     */
     void saveCode(CodeData codeData);
 
-    /**
-     * Deletes a single redemption code from the data source.
-     *
-     * @param code The code to delete.
-     */
     void removeCode(String code);
 
-    /**
-     * Appends a new operation log entry to the log.
-     *
-     * @param logEntry The log entry to append.
-     */
     void appendOperationLog(OperationLogEntry logEntry);
 
     /**
-     * Retrieves operation log entries, newest first.
+     * 获取操作日志，按时间倒序（最新在前）。
      *
-     * @param offset number of entries to skip
-     * @param limit  max number of entries to return
-     * @return list of log entries
+     * @param offset 跳过的条目数
+     * @param limit  返回的最大条目数
      */
     List<OperationLogEntry> getOperationLog(int offset, int limit);
 }

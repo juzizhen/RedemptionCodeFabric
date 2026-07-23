@@ -9,12 +9,12 @@ public class CodeData {
     private final String code;
     private final CodeType type;
     private final String reward;
-    private final String player; // For PERSONAL codes
-    private final int count; // For GLOBAL_LIMIT codes
-    private final long startTime; // For TIMED and CYCLE codes
-    private final long endTime; // For TIMED codes
-    private final long interval; // For CYCLE codes
-    private Map<String, List<Long>> usedBy; // To track who has used the code and when
+    private final String player; // 用于 PERSONAL 类型
+    private final int count; // 用于 GLOBAL_LIMIT 类型
+    private final long startTime; // 用于 TIMED 和 CYCLE 类型
+    private final long endTime; // 用于 TIMED 类型
+    private final long interval; // 用于 CYCLE 类型
+    private Map<String, List<Long>> usedBy; // 记录谁在何时使用了该码
 
     public CodeData(String code, CodeType type, String reward, String player, int count, long startTime, long endTime, long interval) {
         this.code = code;
@@ -25,10 +25,9 @@ public class CodeData {
         this.startTime = startTime;
         this.endTime = endTime;
         this.interval = interval;
-        this.usedBy = new HashMap<>(); // Initialize as HashMap
+        this.usedBy = new HashMap<>();
     }
 
-    // Getters and setters
     public String getCode() {
         return code;
     }
@@ -62,7 +61,7 @@ public class CodeData {
     }
 
     public Map<String, List<Long>> getUsedBy() {
-        // Ensure it's never null, especially after deserialization
+        // 确保非 null，尤其是在反序列化之后
         if (usedBy == null) {
             usedBy = new HashMap<>();
         }

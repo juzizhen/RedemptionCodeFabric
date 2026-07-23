@@ -36,16 +36,20 @@ import java.util.concurrent.TimeUnit;
 public final class AsyncIoManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("RedemptionCodeFabric-AsyncIO");
-
+    /**
+     * 生命周期锁：串行化异步重载，避免并发 reload 互相踩踏。
+     */
+    private static final Object LIFECYCLE_LOCK = new Object();
     /**
      * 专用 I/O 线程池。非 final，shutdown 后可在下次 init 时重建。
      */
     private static volatile ExecutorService ioExecutor;
-
     private static boolean initialized = false;
-
-    /** 记录当前 Web 服务器实际监听的端口（-1 表示未运行） */
+    /**
+     * 记录当前 Web 服务器实际监听的端口（-1 表示未运行）
+     */
     private static int activeWebPort = -1;
+    private static volatile boolean reloading = false;
 
     private AsyncIoManager() {
     }
@@ -197,6 +201,44 @@ public final class AsyncIoManager {
         LOGGER.info("Reloading AsyncIoManager...");
         shutdown();
         init(config, server);
+    }
+
+    /**
+     * 在独立的后台守护线程上异步执行重载（shutdown → init → onReady），
+     * 使 SQL/Redis 的连接重试、连接池关闭等阻塞操作不再占用 Minecraft 主线程。
+     * <p>
+     * 注意：不能提交到 {@link #getIoExecutor()}，因为 {@link #shutdown()} 会关闭并
+     * awaitTermination 该线程池自身，在其工作线程上调用会造成自锁。这里使用专用线程。
+     *
+     * @param config  新配置
+     * @param server  Minecraft 服务器实例
+     * @param onReady I/O 资源就绪后的回调（用于重建 CodeManager），在后台线程执行，可为 null
+     */
+    public static void reloadAsync(Config config, MinecraftServer server, Runnable onReady) {
+        synchronized (LIFECYCLE_LOCK) {
+            if (reloading) {
+                LOGGER.warn("A reload is already in progress, ignoring this request.");
+                return;
+            }
+            reloading = true;
+        }
+
+        Thread thread = new Thread(() -> {
+            try {
+                LOGGER.info("Reloading AsyncIoManager asynchronously...");
+                shutdown();
+                init(config, server);
+                if (onReady != null) {
+                    onReady.run();
+                }
+            } catch (Exception e) {
+                LOGGER.error("Asynchronous reload failed.", e);
+            } finally {
+                reloading = false;
+            }
+        }, "RCF-Reload");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /**

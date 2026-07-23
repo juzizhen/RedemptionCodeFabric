@@ -38,6 +38,11 @@ public class WebServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("RedemptionCodeFabric-Web");
     private static final Gson GSON = new Gson();
+    private static WebServer instance;
+    private HttpServer server;
+
+    private WebServer() {
+    }
 
     /**
      * 线程安全的日期格式化（SimpleDateFormat 非线程安全，不能共享实例）。
@@ -45,13 +50,6 @@ public class WebServer {
      */
     private static String formatDate(long timestamp) {
         return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(timestamp));
-    }
-
-    private static WebServer instance;
-
-    private HttpServer server;
-
-    private WebServer() {
     }
 
     public static WebServer getInstance() {
@@ -183,7 +181,8 @@ public class WebServer {
     private Map<String, Object> parseJsonBody(HttpExchange exchange) throws IOException {
         try (InputStream is = exchange.getRequestBody()) {
             String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-            Type mapType = new TypeToken<Map<String, Object>>() {}.getType();
+            Type mapType = new TypeToken<Map<String, Object>>() {
+            }.getType();
             return GSON.fromJson(body, mapType);
         }
     }
@@ -196,7 +195,7 @@ public class WebServer {
                 String[] parts = param.split("=", 2);
                 if (parts.length == 2) {
                     params.put(java.net.URLDecoder.decode(parts[0], StandardCharsets.UTF_8),
-                              java.net.URLDecoder.decode(parts[1], StandardCharsets.UTF_8));
+                            java.net.URLDecoder.decode(parts[1], StandardCharsets.UTF_8));
                 }
             }
             return params;
@@ -211,6 +210,8 @@ public class WebServer {
             }
             byte[] bytes = is.readAllBytes();
             exchange.getResponseHeaders().set("Content-Type", contentType + "; charset=utf-8");
+            // 面板资源随模组版本更新，禁用浏览器缓存，避免更新后仍加载旧版 HTML/JS 导致显示异常
+            exchange.getResponseHeaders().set("Cache-Control", "no-store");
             exchange.sendResponseHeaders(200, bytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(bytes);
@@ -601,9 +602,15 @@ public class WebServer {
                     String[] parts = param.split("=", 2);
                     if (parts.length == 2) {
                         if ("offset".equals(parts[0])) {
-                            try { offset = Integer.parseInt(parts[1]); } catch (NumberFormatException ignored) {}
+                            try {
+                                offset = Integer.parseInt(parts[1]);
+                            } catch (NumberFormatException ignored) {
+                            }
                         } else if ("limit".equals(parts[0])) {
-                            try { limit = Integer.parseInt(parts[1]); } catch (NumberFormatException ignored) {}
+                            try {
+                                limit = Integer.parseInt(parts[1]);
+                            } catch (NumberFormatException ignored) {
+                            }
                         }
                     }
                 }
@@ -755,10 +762,10 @@ public class WebServer {
 
             exchange.getResponseHeaders().set("Content-Type", "text/csv; charset=UTF-8");
             exchange.getResponseHeaders().set("Content-Disposition", "attachment; filename=\"redemption_codes.csv\"");
-            exchange.sendResponseHeaders(200, 0); // chunked
+            exchange.sendResponseHeaders(200, 0); // 分块传输（chunked）
 
             try (OutputStream os = exchange.getResponseBody()) {
-                // BOM for Excel UTF-8 compatibility
+                // 写入 BOM 以便 Excel 正确识别 UTF-8
                 os.write(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF});
                 String header = "code,type,reward,player,count,total_uses,start_time,end_time,interval\n";
                 os.write(header.getBytes(StandardCharsets.UTF_8));

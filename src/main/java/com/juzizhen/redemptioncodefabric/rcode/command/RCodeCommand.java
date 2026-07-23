@@ -57,8 +57,8 @@ public class RCodeCommand {
             var rewardArg = argument("reward", StringArgumentType.greedyString());
 
             if (type == CodeType.PERSONAL) {
-                // Use a single greedyString for player+reward combined, parsed manually in executeGenerate.
-                // This supports UUIDs, player names, and @selectors — GameProfileArgumentType cannot handle raw UUIDs.
+                // 用一个 greedyString 同时承载 玩家+奖励，在 executeGenerate 中手动解析。
+                // 这样可以支持 UUID、玩家名和 @选择器——GameProfileArgumentType 无法处理原始 UUID。
                 var playerAndReward = argument("player_and_reward", StringArgumentType.greedyString());
                 var withCode = literal("code")
                         .then(argument("code", StringArgumentType.string())
@@ -110,6 +110,10 @@ public class RCodeCommand {
     }
 
     private static int executeGenerate(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if (RedemptionCodeFabric.codeManager == null) {
+            MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.not_ready");
+            return 0;
+        }
         String code = context.getNodes().stream().anyMatch(n -> n.getNode().getName().equals("code")) ? StringArgumentType.getString(context, "code") : Utils.generateRandomString(16);
 
         CodeType type = CodeType.valueOf(context.getNodes().get(2).getNode().getName().toUpperCase());
@@ -118,7 +122,7 @@ public class RCodeCommand {
         String owner = null;
 
         if (type == CodeType.PERSONAL) {
-            // For PERSONAL, the combined "player_and_reward" greedy string contains both
+            // 对 PERSONAL 类型，合并的 "player_and_reward" greedy 字符串同时包含玩家和奖励
             String combined = StringArgumentType.getString(context, "player_and_reward");
             String[] resolved = Utils.resolvePlayerRef(combined, context.getSource().getServer());
             owner = resolved[0];
@@ -296,6 +300,10 @@ public class RCodeCommand {
     }
 
     private static int executeRedeem(CommandContext<ServerCommandSource> context) {
+        if (RedemptionCodeFabric.codeManager == null) {
+            MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.not_ready");
+            return 0;
+        }
         Text result = RedemptionCodeFabric.codeManager.redeemCode(context.getSource(), StringArgumentType.getString(context, "code"));
         context.getSource().sendFeedback(() -> result, false);
         return 1;
@@ -308,6 +316,10 @@ public class RCodeCommand {
     }
 
     private static int executeDelete(CommandContext<ServerCommandSource> context) {
+        if (RedemptionCodeFabric.codeManager == null) {
+            MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.not_ready");
+            return 0;
+        }
         String code = StringArgumentType.getString(context, "code");
         String executorUuid = context.getSource().getPlayer() != null ? context.getSource().getPlayer().getUuidAsString() : null;
         boolean success = RedemptionCodeFabric.codeManager.deleteCode(code, context.getSource().getName(), executorUuid);
@@ -320,6 +332,10 @@ public class RCodeCommand {
     }
 
     private static int executeInfo(CommandContext<ServerCommandSource> context) {
+        if (RedemptionCodeFabric.codeManager == null) {
+            MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.not_ready");
+            return 0;
+        }
         Text info = RedemptionCodeFabric.codeManager.getCodeInfo(context.getSource(), StringArgumentType.getString(context, "code"));
         context.getSource().sendFeedback(() -> info, false);
         return 1;

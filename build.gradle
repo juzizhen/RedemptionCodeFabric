@@ -1,9 +1,10 @@
-import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
-
 plugins {
     id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
     id 'com.gradleup.shadow' version '9.4.2'
 }
+
+// 面板资源压缩逻辑（词法分析压缩内联 <style>/<script>）
+apply from: 'gradle/minify.gradle'
 
 version = project.mod_version
 group = project.maven_group
@@ -42,29 +43,6 @@ processResources {
     from(project.rootProject.file("LICENSE")) {
         rename { "LICENSE_${project.name}" }
     }
-
-    // Minification HTML
-    doLast {
-        fileTree("$buildDir/resources/main/assets/redemptioncodefabric/web").matching {
-            include '**/*.html'
-        }.forEach { file ->
-            def content = file.text
-
-            content = content.replaceAll(/(?is)(<style[^>]*>)(.*?)(<\/style>)/) { match, startTag, cssBlock, endTag ->
-                def minifiedCss = cssBlock.replaceAll(/(?s)\/\*.*?\*\//, "").replaceAll(/\s+/, " ").replaceAll(/\s*([{}:;,])\s*/, '$1')
-                return startTag + minifiedCss.trim() + endTag
-            }
-
-            content = content.replaceAll(/(?is)(<script(?![^>]*\bsrc\b)[^>]*>)(.*?)(<\/script>)/) { match, startTag, jsBlock, endTag ->
-                def minifiedJs = jsBlock.replaceAll(/(?s)\/\*.*?\*\//, "").replaceAll(/(?m)(?<!:)\/\/.*$/, "").replaceAll(/\s+/, " ").replaceAll(/\s*([{};,=\(\)])\s*/, '$1')
-                return startTag + minifiedJs.trim() + endTag
-            }
-
-            def minifiedHtml = content.replaceAll(/(?s)/, "").replaceAll(/>\s+</, "><").replaceAll(/\s{2,}/, " ")
-
-            file.text = minifiedHtml
-        }
-    }
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -81,7 +59,7 @@ jar {
 }
 
 shadowJar {
-    configurations = [project.configurations.shadowBundle]
+    configurations.add(project.configurations.shadowBundle)
 
     minimize {
         exclude(dependency('com.mysql:mysql-connector-j:.*'))
@@ -116,9 +94,7 @@ shadowJar {
 
     def licenseNames = ['LICENSE', 'LICENSE.txt', 'LICENSE.md', 'NOTICE', 'NOTICE.txt', 'NOTICE.md']
     licenseNames.each { fileName ->
-        transform(AppendingTransformer) {
-            resource = "META-INF/${fileName}"
-        }
+        append("META-INF/${fileName}")
     }
 
     eachFile { file ->

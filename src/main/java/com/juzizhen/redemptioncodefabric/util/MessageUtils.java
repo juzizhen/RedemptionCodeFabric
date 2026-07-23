@@ -31,7 +31,7 @@ public class MessageUtils {
         String lang = locale.getLanguage();
         if ("zh".equals(lang)) return "zh_cn.json";
         if ("en".equals(lang)) return "en_us.json";
-        // Try language_country pattern for other locales
+        // 其他语言环境尝试 语言_国家 格式
         String country = locale.getCountry().toLowerCase();
         if (!country.isEmpty()) {
             return lang + "_" + country + ".json";
@@ -52,7 +52,8 @@ public class MessageUtils {
             }
             return new Gson().fromJson(
                     new InputStreamReader(is, StandardCharsets.UTF_8),
-                    new TypeToken<Map<String, String>>() {}.getType()
+                    new TypeToken<Map<String, String>>() {
+                    }.getType()
             );
         } catch (Exception e) {
             RedemptionCodeFabric.LOGGER.error("Failed to load lang file {}: {}", fileName, e.getMessage());
@@ -71,22 +72,22 @@ public class MessageUtils {
     }
 
     /**
-     * Sends a feedback message to the command source and broadcasts to ops.
+     * 向命令来源发送反馈消息，并可选择广播给 OP。
      */
     public static void sendFeedback(ServerCommandSource source, String key, boolean broadcastToOps, Object... args) {
         source.sendFeedback(() -> createText(source, key, args), broadcastToOps);
     }
 
     /**
-     * Sends an error message to the command source, adapting to whether the client has the mod.
+     * 向命令来源发送错误消息，并根据客户端是否安装 mod 自适应。
      */
     public static void sendError(ServerCommandSource source, String key, Object... args) {
         source.sendError(createText(source, key, args));
     }
 
     /**
-     * Creates a Text object, either translatable or literal, based on whether the player has the mod.
-     * Use this overload when you have a ServerCommandSource (commands, CodeManager, etc.).
+     * 根据玩家是否安装 mod，创建可翻译或字面量 Text。
+     * 持有 ServerCommandSource 时使用此重载（命令、CodeManager 等）。
      */
     public static Text createText(ServerCommandSource source, String key, Object... args) {
         ServerPlayerEntity player = source.getPlayer();
@@ -95,8 +96,8 @@ public class MessageUtils {
     }
 
     /**
-     * Creates a Text object, either translatable or literal, based on whether the player has the mod.
-     * Use this overload when you only have a player UUID (e.g., event handlers, direct sendMessage).
+     * 根据玩家是否安装 mod，创建可翻译或字面量 Text。
+     * 仅持有玩家 UUID 时使用此重载（事件处理器、直接 sendMessage 等）。
      */
     public static Text createText(UUID playerUuid, String key, Object... args) {
         if (playerUuid != null && RedemptionCodeFabric.hasMod(playerUuid)) {

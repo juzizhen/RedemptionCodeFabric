@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title data-i18n="admin.title">后台管理 - RedemptionCodeFabric</title>
     <style>
         :root {
@@ -76,7 +76,9 @@
             font-weight: 600;
         }
 
-        .sidebar-menu ul { list-style: none; }
+        .sidebar-menu ul {
+            list-style: none;
+        }
 
         .sidebar-menu li a {
             display: flex;
@@ -90,7 +92,9 @@
             cursor: pointer;
         }
 
-        .sidebar-menu li a:hover { background-color: var(--hover-bg); }
+        .sidebar-menu li a:hover {
+            background-color: var(--hover-bg);
+        }
 
         .sidebar-menu li a.active {
             background-color: #eff6ff;
@@ -149,7 +153,10 @@
             transition: all 0.15s;
         }
 
-        .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+        .btn-logout:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
 
         .content-area {
             flex: 1;
@@ -164,7 +171,7 @@
             padding: 20px;
             border: 1px solid var(--border);
             margin-bottom: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
         .card-title {
@@ -175,7 +182,11 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .card-body { color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+        .card-body {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.7;
+        }
 
         .stat-grid {
             display: grid;
@@ -189,7 +200,7 @@
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
         .stat-card .stat-label {
@@ -206,8 +217,13 @@
             color: var(--text-main);
         }
 
-        .stat-card .stat-value.blue { color: var(--primary); }
-        .stat-card .stat-value.green { color: var(--success); }
+        .stat-card .stat-value.blue {
+            color: var(--primary);
+        }
+
+        .stat-card .stat-value.green {
+            color: var(--success);
+        }
 
         .btn {
             padding: 8px 18px;
@@ -223,21 +239,56 @@
             gap: 6px;
         }
 
-        .btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
-        .btn-primary { background: var(--primary); }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-danger { background: var(--danger); }
-        .btn-danger:hover { background: var(--danger-hover); }
-        .btn-success { background: var(--success); }
-        .btn-success:hover { background: var(--success-hover); }
-        .btn-sm { padding: 5px 12px; font-size: 12px; }
+        .btn:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:hover {
+            background: var(--success-hover);
+        }
+
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 12px;
+        }
+
         .btn-outline {
             background: transparent;
             border: 1px solid var(--border);
             color: var(--text-main);
         }
-        .btn-outline:hover { border-color: var(--primary); color: var(--primary); box-shadow: none; }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: none;
+        }
 
         table {
             width: 100%;
@@ -260,7 +311,9 @@
             background: #fafbfc;
         }
 
-        tr:hover td { background: #f9fafb; }
+        tr:hover td {
+            background: #f9fafb;
+        }
 
         .badge {
             display: inline-block;
@@ -271,11 +324,30 @@
             letter-spacing: 0.3px;
         }
 
-        .badge-blue { background: #dbeafe; color: #1d4ed8; }
-        .badge-green { background: #d1fae5; color: #065f46; }
-        .badge-yellow { background: #fef3c7; color: #92400e; }
-        .badge-red { background: #fee2e2; color: #991b1b; }
-        .badge-gray { background: #f3f4f6; color: #4b5563; }
+        .badge-blue {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge-green {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-yellow {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-gray {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
 
         .form-row {
             display: flex;
@@ -311,20 +383,25 @@
             border-color: var(--primary);
             background: #fff;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
 
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.3);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
             z-index: 500;
             justify-content: center;
             align-items: center;
         }
 
-        .modal-overlay.show { display: flex; }
+        .modal-overlay.show {
+            display: flex;
+        }
 
         .modal {
             background: #fff;
@@ -334,7 +411,7 @@
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
         }
 
         .modal-title {
@@ -354,7 +431,9 @@
             border: none;
         }
 
-        .modal-close:hover { color: var(--danger); }
+        .modal-close:hover {
+            color: var(--danger);
+        }
 
         .tips-bar {
             position: fixed;
@@ -372,16 +451,30 @@
             background: #fff;
             padding: 12px 24px;
             border-radius: 8px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
             border-left: 4px solid var(--primary);
             pointer-events: auto;
             max-width: 500px;
         }
 
-        #adminTips p { margin: 0; color: var(--text-main); font-size: 14px; font-weight: 500; }
-        #adminTips.error { border-left-color: var(--danger); }
-        #adminTips.info { border-left-color: var(--primary); }
-        #adminTips.success { border-left-color: var(--success); }
+        #adminTips p {
+            margin: 0;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        #adminTips.error {
+            border-left-color: var(--danger);
+        }
+
+        #adminTips.info {
+            border-left-color: var(--primary);
+        }
+
+        #adminTips.success {
+            border-left-color: var(--success);
+        }
 
         .pagination {
             display: flex;
@@ -401,20 +494,66 @@
             transition: all 0.15s;
         }
 
-        .pagination button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
-        .pagination button:disabled { opacity: 0.4; cursor: default; }
-        .pagination span { font-size: 13px; color: var(--text-muted); }
+        .pagination button:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
 
-        .text-muted { color: var(--text-muted); }
-        .text-sm { font-size: 12px; }
-        .mt-8 { margin-top: 8px; }
-        .mt-16 { margin-top: 16px; }
-        .mb-8 { margin-bottom: 8px; }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        .mono { font-family: "SF Mono", "Fira Code", Consolas, monospace; font-size: 12px; }
-        .clickable { cursor: pointer; color: var(--primary); }
-        .clickable:hover { text-decoration: underline; }
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .pagination button:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .pagination span {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+
+        .text-sm {
+            font-size: 12px;
+        }
+
+        .mt-8 {
+            margin-top: 8px;
+        }
+
+        .mt-16 {
+            margin-top: 16px;
+        }
+
+        .mb-8 {
+            margin-bottom: 8px;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mono {
+            font-family: "SF Mono", "Fira Code", Consolas, monospace;
+            font-size: 12px;
+        }
+
+        .clickable {
+            cursor: pointer;
+            color: var(--primary);
+        }
+
+        .clickable:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
 
         .lang-switch {
             display: flex;
@@ -446,7 +585,9 @@
             color: var(--primary);
         }
 
-        body.i18n-loading .sidebar, body.i18n-loading .content-area { visibility: hidden; }
+        body.i18n-loading .sidebar, body.i18n-loading .content-area {
+            visibility: hidden;
+        }
     </style>
 </head>
 <body class="i18n-loading">
@@ -456,33 +597,33 @@
     <div class="sidebar-menu">
         <div class="menu-category" data-i18n="sidebar.overview">概览</div>
         <ul>
-            <li><a class="active" data-page="dashboard" data-i18n="sidebar.dashboard">仪表盘</a></li>
+            <li><a class="active" data-i18n="sidebar.dashboard" data-page="dashboard">仪表盘</a></li>
         </ul>
         <div class="menu-category" data-i18n="sidebar.code_mgmt">兑换码管理</div>
         <ul>
-            <li><a data-page="codes" data-i18n="sidebar.code_list">兑换码列表</a></li>
-            <li><a data-page="create-code" data-i18n="sidebar.create_code">创建兑换码</a></li>
+            <li><a data-i18n="sidebar.code_list" data-page="codes">兑换码列表</a></li>
+            <li><a data-i18n="sidebar.create_code" data-page="create-code">创建兑换码</a></li>
         </ul>
         <div class="menu-category" data-i18n="sidebar.system">系统</div>
         <ul>
-            <li><a data-page="logs" data-i18n="sidebar.logs">操作日志</a></li>
-            <li><a data-page="players" data-i18n="sidebar.players">在线玩家</a></li>
-            <li><a data-page="settings" data-i18n="sidebar.settings">配置信息</a></li>
-            <li><a data-page="reload" data-i18n="sidebar.reload">重载配置</a></li>
+            <li><a data-i18n="sidebar.logs" data-page="logs">操作日志</a></li>
+            <li><a data-i18n="sidebar.players" data-page="players">在线玩家</a></li>
+            <li><a data-i18n="sidebar.settings" data-page="settings">配置信息</a></li>
+            <li><a data-i18n="sidebar.reload" data-page="reload">重载配置</a></li>
         </ul>
     </div>
 </div>
 
 <div class="main-content">
     <div class="top-navbar">
-        <div class="page-title" id="pageTitle" data-i18n="sidebar.dashboard">仪表盘</div>
+        <div class="page-title" data-i18n="sidebar.dashboard" id="pageTitle">仪表盘</div>
         <div class="user-info">
             <div class="lang-switch">
                 <button id="langBtn_zh" onclick="switchLang('zh')">中文</button>
                 <button id="langBtn_en" onclick="switchLang('en')">EN</button>
             </div>
             <span data-i18n="admin.admin">管理员</span>
-            <button class="btn-logout" onclick="logout()" data-i18n="admin.logout">退出登录</button>
+            <button class="btn-logout" data-i18n="admin.logout" onclick="logout()">退出登录</button>
         </div>
     </div>
     <div class="content-area" id="contentArea"></div>
@@ -491,7 +632,7 @@
 <div class="modal-overlay" id="detailModal">
     <div class="modal">
         <button class="modal-close" onclick="closeModal()">&times;</button>
-        <div class="modal-title" id="modalTitle" data-i18n="common.detail">详情</div>
+        <div class="modal-title" data-i18n="common.detail" id="modalTitle">详情</div>
         <div id="modalBody"></div>
     </div>
 </div>
@@ -506,36 +647,47 @@
         <div class="card-body">
             <div class="form-row">
                 <div class="form-group">
-                    <label for="cc_code" data-i18n="code.label_code">兑换码 (留空自动生成)</label>
-                    <input type="text" id="cc_code" data-i18n-placeholder="code.placeholder_code" placeholder="可选，自定义兑换码">
+                    <label data-i18n="code.label_code" for="cc_code">兑换码 (留空自动生成)</label>
+                    <input data-i18n-placeholder="code.placeholder_code" id="cc_code" placeholder="可选，自定义兑换码"
+                           type="text">
                 </div>
                 <div class="form-group">
-                    <label for="cc_type" data-i18n="code.label_type">类型 *</label>
+                    <label data-i18n="code.label_type" for="cc_type">类型 *</label>
                     <select id="cc_type">
-                        <option value="ONCE" data-i18n="code.type_once">ONCE (一次性)</option>
-                        <option value="PERMANENT" data-i18n="code.type_permanent">PERMANENT (永久)</option>
-                        <option value="PERSONAL" data-i18n="code.type_personal">PERSONAL (个人专属)</option>
-                        <option value="GLOBAL_UNLIMITED" data-i18n="code.type_global_unlimited">GLOBAL_UNLIMITED (全局无限)</option>
-                        <option value="GLOBAL_LIMIT" data-i18n="code.type_global_limit">GLOBAL_LIMIT (全局有限)</option>
-                        <option value="TIMED" data-i18n="code.type_timed">TIMED (限时)</option>
-                        <option value="CYCLE" data-i18n="code.type_cycle">CYCLE (周期循环)</option>
+                        <option data-i18n="code.type_once" value="ONCE">ONCE (一次性)</option>
+                        <option data-i18n="code.type_permanent" value="PERMANENT">PERMANENT (永久)</option>
+                        <option data-i18n="code.type_personal" value="PERSONAL">PERSONAL (个人专属)</option>
+                        <option data-i18n="code.type_global_unlimited" value="GLOBAL_UNLIMITED">GLOBAL_UNLIMITED
+                            (全局无限)
+                        </option>
+                        <option data-i18n="code.type_global_limit" value="GLOBAL_LIMIT">GLOBAL_LIMIT (全局有限)</option>
+                        <option data-i18n="code.type_timed" value="TIMED">TIMED (限时)</option>
+                        <option data-i18n="code.type_cycle" value="CYCLE">CYCLE (周期循环)</option>
                     </select>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label for="cc_reward" data-i18n="code.label_reward">奖励 *</label>
-                    <input type="text" id="cc_reward" data-i18n-placeholder="code.placeholder_reward" placeholder="item@minecraft:diamond, exp@100P, exp@5L">
-                    <div class="text-sm text-muted mt-8" data-i18n="code.reward_hint">格式: item@资源ID{NBT}, exp@点数P, exp@等级L。例: item@minecraft:diamond, exp@100P, exp@5L</div>
+                    <label data-i18n="code.label_reward" for="cc_reward">奖励 *</label>
+                    <input data-i18n-placeholder="code.placeholder_reward" id="cc_reward"
+                           placeholder="item@minecraft:diamond, exp@100P, exp@5L"
+                           type="text">
+                    <div class="text-sm text-muted mt-8" data-i18n="code.reward_hint">格式: item@资源ID{NBT}, exp@点数P,
+                        exp@等级L。例: item@minecraft:diamond, exp@100P, exp@5L
+                    </div>
                 </div>
             </div>
 
             <div id="cc_personal_section" style="display:none">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="cc_player" data-i18n="code.label_player_uuid">绑定玩家 UUID * (逗号分隔)</label>
-                        <input type="text" id="cc_player" data-i18n-placeholder="code.placeholder_player_uuid" placeholder="a80ab41d-df4d-3f98-991d-99fd5f96d418, ...">
-                        <div class="text-sm text-muted mt-8" data-i18n="code.uuid_hint">标准 UUID 格式: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx，多个用逗号分隔</div>
+                        <label data-i18n="code.label_player_uuid" for="cc_player">绑定玩家 UUID * (逗号分隔)</label>
+                        <input data-i18n-placeholder="code.placeholder_player_uuid" id="cc_player"
+                               placeholder="a80ab41d-df4d-3f98-991d-99fd5f96d418, ..."
+                               type="text">
+                        <div class="text-sm text-muted mt-8" data-i18n="code.uuid_hint">标准 UUID 格式:
+                            xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx，多个用逗号分隔
+                        </div>
                     </div>
                 </div>
             </div>
@@ -543,35 +695,46 @@
             <div id="cc_global_limit_section" style="display:none">
                 <div class="form-row">
                     <div class="form-group" style="flex:0 0 160px">
-                        <label for="cc_gl_mode" data-i18n="code.label_select_mode">选择模式 *</label>
+                        <label data-i18n="code.label_select_mode" for="cc_gl_mode">选择模式 *</label>
                         <select id="cc_gl_mode" onchange="updateGlMode()">
-                            <option value="tag" data-i18n="code.mode_tag">按 Tag</option>
-                            <option value="scoreboard" data-i18n="code.mode_scoreboard">按计分板</option>
-                            <option value="manual" data-i18n="code.mode_manual">手动输入</option>
+                            <option data-i18n="code.mode_tag" value="tag">按 Tag</option>
+                            <option data-i18n="code.mode_scoreboard" value="scoreboard">按计分板</option>
+                            <option data-i18n="code.mode_manual" value="manual">手动输入</option>
                         </select>
                     </div>
                     <div class="form-group" id="cc_gl_tag_group">
-                        <label for="cc_gl_tag" data-i18n="code.label_tag">Tag 名称 *</label>
-                        <input type="text" id="cc_gl_tag" data-i18n-placeholder="code.placeholder_tag" placeholder="如 vip, winner">
+                        <label data-i18n="code.label_tag" for="cc_gl_tag">Tag 名称 *</label>
+                        <input data-i18n-placeholder="code.placeholder_tag" id="cc_gl_tag" placeholder="如 vip, winner"
+                               type="text">
                     </div>
                     <div class="form-group" id="cc_gl_scoreboard_group" style="display:none">
-                        <label for="cc_gl_scoreboard" data-i18n="code.label_scoreboard">计分板目标 *</label>
-                        <select id="cc_gl_scoreboard"><option value="" data-i18n="code.scoreboard_loading">加载中...</option></select>
+                        <label data-i18n="code.label_scoreboard" for="cc_gl_scoreboard">计分板目标 *</label>
+                        <select id="cc_gl_scoreboard">
+                            <option data-i18n="code.scoreboard_loading" value="">加载中...</option>
+                        </select>
                     </div>
                     <div class="form-group" id="cc_gl_player_group" style="display:none">
-                        <label for="cc_gl_player" data-i18n="code.label_manual_uuid">玩家 UUID * (逗号分隔)</label>
-                        <input type="text" id="cc_gl_player" data-i18n-placeholder="code.placeholder_player_uuid" placeholder="UUID1, UUID2, ...">
+                        <label data-i18n="code.label_manual_uuid" for="cc_gl_player">玩家 UUID * (逗号分隔)</label>
+                        <input data-i18n-placeholder="code.placeholder_player_uuid" id="cc_gl_player"
+                               placeholder="UUID1, UUID2, ..."
+                               type="text">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="cc_gl_limit" data-i18n="code.label_limit">选取数量 (limit) *</label>
-                        <input type="number" id="cc_gl_limit" data-i18n-placeholder="code.placeholder_limit" placeholder="正数=取前N个, 负数=取后N个" value="10">
-                        <div class="text-sm text-muted mt-8" data-i18n="code.limit_hint">Tag 模式: 按在线玩家顺序取。计分板模式: 正数=分数最高 N 人, 负数=分数最低 N 人。</div>
+                        <label data-i18n="code.label_limit" for="cc_gl_limit">选取数量 (limit) *</label>
+                        <input data-i18n-placeholder="code.placeholder_limit" id="cc_gl_limit"
+                               placeholder="正数=取前N个, 负数=取后N个"
+                               type="number" value="10">
+                        <div class="text-sm text-muted mt-8" data-i18n="code.limit_hint">Tag 模式: 按在线玩家顺序取。计分板模式:
+                            正数=分数最高 N 人, 负数=分数最低 N 人。
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="cc_gl_count" data-i18n="code.label_max_redeem">最大兑换次数 (留空=选中人数)</label>
-                        <input type="number" id="cc_gl_count" data-i18n-placeholder="code.placeholder_max_redeem" placeholder="默认等于选中人数" value="">
+                        <label data-i18n="code.label_max_redeem" for="cc_gl_count">最大兑换次数 (留空=选中人数)</label>
+                        <input data-i18n-placeholder="code.placeholder_max_redeem" id="cc_gl_count"
+                               placeholder="默认等于选中人数"
+                               type="number" value="">
                     </div>
                 </div>
             </div>
@@ -579,16 +742,26 @@
             <div id="cc_timed_section" style="display:none">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="cc_start" data-i18n="code.label_start_time">开始时间 (毫秒时间戳) *</label>
-                        <input type="number" id="cc_start" data-i18n-placeholder="code.placeholder_start_time" placeholder="0 表示立即生效" value="0" oninput="updateTsPreview('cc_start','cc_start_preview')">
+                        <label data-i18n="code.label_start_time" for="cc_start">开始时间 (毫秒时间戳) *</label>
+                        <input data-i18n-placeholder="code.placeholder_start_time" id="cc_start"
+                               oninput="updateTsPreview('cc_start','cc_start_preview')"
+                               placeholder="0 表示立即生效" type="number"
+                               value="0">
                         <div class="text-sm text-muted mt-8" id="cc_start_preview"></div>
-                        <div class="text-sm text-muted" data-i18n="code.time_hint_start">示例: 1700000000000 = 2023-11-14 22:13:20。填 0 表示立即开始。</div>
+                        <div class="text-sm text-muted" data-i18n="code.time_hint_start">示例: 1700000000000 =
+                            2023-11-14 22:13:20。填 0 表示立即开始。
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="cc_end" data-i18n="code.label_end_time">结束时间 (毫秒时间戳) *</label>
-                        <input type="number" id="cc_end" data-i18n-placeholder="code.placeholder_end_time" placeholder="0 表示永不过期" value="0" oninput="updateTsPreview('cc_end','cc_end_preview')">
+                        <label data-i18n="code.label_end_time" for="cc_end">结束时间 (毫秒时间戳) *</label>
+                        <input data-i18n-placeholder="code.placeholder_end_time" id="cc_end"
+                               oninput="updateTsPreview('cc_end','cc_end_preview')"
+                               placeholder="0 表示永不过期" type="number"
+                               value="0">
                         <div class="text-sm text-muted mt-8" id="cc_end_preview"></div>
-                        <div class="text-sm text-muted" data-i18n="code.time_hint_end">示例: 1700100000000 = 2023-11-15 02:00:00。填 0 表示永不过期。</div>
+                        <div class="text-sm text-muted" data-i18n="code.time_hint_end">示例: 1700100000000 = 2023-11-15
+                            02:00:00。填 0 表示永不过期。
+                        </div>
                     </div>
                 </div>
             </div>
@@ -596,460 +769,595 @@
             <div id="cc_cycle_section" style="display:none">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="cc_cy_start" data-i18n="code.label_cy_start">开始时间 (毫秒时间戳) *</label>
-                        <input type="number" id="cc_cy_start" data-i18n-placeholder="code.placeholder_cy_start" placeholder="0 表示立即" value="0" oninput="updateTsPreview('cc_cy_start','cc_cy_start_preview')">
+                        <label data-i18n="code.label_cy_start" for="cc_cy_start">开始时间 (毫秒时间戳) *</label>
+                        <input data-i18n-placeholder="code.placeholder_cy_start" id="cc_cy_start"
+                               oninput="updateTsPreview('cc_cy_start','cc_cy_start_preview')"
+                               placeholder="0 表示立即" type="number"
+                               value="0">
                         <div class="text-sm text-muted mt-8" id="cc_cy_start_preview"></div>
-                        <div class="text-sm text-muted" data-i18n="code.cy_start_hint">填 0 表示从当前时间开始计算周期。</div>
+                        <div class="text-sm text-muted" data-i18n="code.cy_start_hint">填 0
+                            表示从当前时间开始计算周期。
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="cc_cy_interval" data-i18n="code.label_interval">周期 (秒) *</label>
-                        <input type="number" id="cc_cy_interval" data-i18n-placeholder="code.placeholder_interval" placeholder="如 86400 = 1天" value="">
-                        <div class="text-sm text-muted mt-8" data-i18n="code.interval_hint">常用: 3600=1小时, 86400=1天, 604800=1周。必须大于 0。</div>
+                        <label data-i18n="code.label_interval" for="cc_cy_interval">周期 (秒) *</label>
+                        <input data-i18n-placeholder="code.placeholder_interval" id="cc_cy_interval"
+                               placeholder="如 86400 = 1天"
+                               type="number" value="">
+                        <div class="text-sm text-muted mt-8" data-i18n="code.interval_hint">常用: 3600=1小时, 86400=1天,
+                            604800=1周。必须大于 0。
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="mt-16">
-                <button class="btn btn-primary" id="cc_submit" onclick="submitCreateCode()" data-i18n="code.btn_submit">创建兑换码</button>
+                <button class="btn btn-primary" data-i18n="code.btn_submit" id="cc_submit" onclick="submitCreateCode()">
+                    创建兑换码
+                </button>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-const langData = {};
-let currentLang = 'zh';
+    const langData = {};
+    let currentLang = 'zh';
 
-function langFileName(lang) {
-    return lang === 'en' ? 'en_us.json' : lang + '_cn.json';
-}
+    function langFileName(lang) {
+        return lang === 'en' ? 'en_us.json' : lang + '_cn.json';
+    }
 
-function loadLang(lang) {
-    return fetch('/lang/' + langFileName(lang))
-        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-        .then(data => { langData[lang] = data; })
-        .catch(() => {
-            if (lang !== 'en') {
-                return fetch('/lang/en_us.json').then(r => r.json()).then(data => { langData[lang] = data; });
+    function loadLang(lang) {
+        return fetch('/lang/' + langFileName(lang))
+            .then(r => {
+                if (!r.ok) throw new Error();
+                return r.json();
+            })
+            .then(data => {
+                langData[lang] = data;
+            })
+            .catch(() => {
+                if (lang !== 'en') {
+                    return fetch('/lang/en_us.json').then(r => r.json()).then(data => {
+                        langData[lang] = data;
+                    });
+                }
+            });
+    }
+
+    function t(key) {
+        return (langData[currentLang] && langData[currentLang][key]) || (langData['en'] && langData['en'][key]) || key;
+    }
+
+    function applyI18n(root) {
+        (root || document).querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            const val = t(key);
+            if (val !== key) {
+                if (el.tagName === 'TITLE') {
+                    document.title = val;
+                } else {
+                    el.textContent = val;
+                }
             }
         });
-}
-
-function t(key) {
-    return (langData[currentLang] && langData[currentLang][key]) || (langData['en'] && langData['en'][key]) || key;
-}
-
-function applyI18n(root) {
-    (root || document).querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        const val = t(key);
-        if (val !== key) {
-            if (el.tagName === 'TITLE') { document.title = val; }
-            else { el.textContent = val; }
-        }
-    });
-    (root || document).querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.getAttribute('data-i18n-placeholder');
-        const val = t(key);
-        if (val !== key) el.placeholder = val;
-    });
-}
-
-function updateLanguage(lang) {
-    currentLang = lang;
-    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en-US';
-    applyI18n();
-
-    document.getElementById('langBtn_zh').classList.toggle('active', lang === 'zh');
-    document.getElementById('langBtn_en').classList.toggle('active', lang === 'en');
-    document.body.classList.remove('i18n-loading');
-
-    const activePage = document.querySelector('.sidebar-menu li a.active');
-    if (activePage) {
-        const page = activePage.dataset.page;
-        pageTitle.textContent = t('sidebar.' + page.replace('-', '_')) || page;
-        navigateTo(page);
+        (root || document).querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            const val = t(key);
+            if (val !== key) el.placeholder = val;
+        });
     }
-}
 
-function switchLang(lang) {
-    localStorage.setItem('user_lang', lang);
-    updateLanguage(lang);
-}
+    function updateLanguage(lang) {
+        currentLang = lang;
+        document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en-US';
+        applyI18n();
 
-(function initI18n() {
-    const saved = localStorage.getItem('user_lang');
-    const browserLang = (navigator.language || '').toLowerCase();
-    const lang = saved || (browserLang.startsWith('zh') ? 'zh' : 'en');
-    Promise.all([loadLang('zh'), loadLang('en')]).then(() => { updateLanguage(lang); });
-})();
+        document.getElementById('langBtn_zh').classList.toggle('active', lang === 'zh');
+        document.getElementById('langBtn_en').classList.toggle('active', lang === 'en');
+        document.body.classList.remove('i18n-loading');
 
-function getToken() {
-    return localStorage.getItem('admin_token');
-}
-
-function clearToken() {
-    localStorage.removeItem('admin_token');
-}
-
-function apiRequest(url, options) {
-    options = options || {};
-    options.headers = options.headers || {};
-    options.headers['X-Admin-Token'] = getToken();
-    if (options.body && typeof options.body === 'object') {
-        options.headers['Content-Type'] = 'application/json';
-        options.body = JSON.stringify(options.body);
-    }
-    return fetch(url, options).then(res => {
-        if (res.status === 401) {
-            showTips(t('error.unauthorized'), 'error');
-            setTimeout(() => { window.location.href = '/index.html'; }, 1200);
-            return Promise.reject(new Error('Unauthorized'));
+        const activePage = document.querySelector('.sidebar-menu li a.active');
+        if (activePage) {
+            const page = activePage.dataset.page;
+            pageTitle.textContent = t('sidebar.' + page.replace('-', '_')) || page;
+            navigateTo(page);
         }
-        return res.json();
+    }
+
+    function switchLang(lang) {
+        localStorage.setItem('user_lang', lang);
+        updateLanguage(lang);
+    }
+
+    (function initI18n() {
+        const saved = localStorage.getItem('user_lang');
+        const browserLang = (navigator.language || '').toLowerCase();
+        const lang = saved || (browserLang.startsWith('zh') ? 'zh' : 'en');
+        Promise.all([loadLang('zh'), loadLang('en')]).then(() => {
+            updateLanguage(lang);
+        });
+    })();
+
+    function getToken() {
+        return localStorage.getItem('admin_token');
+    }
+
+    function clearToken() {
+        localStorage.removeItem('admin_token');
+    }
+
+    function apiRequest(url, options) {
+        options = options || {};
+        options.headers = options.headers || {};
+        options.headers['X-Admin-Token'] = getToken();
+        if (options.body && typeof options.body === 'object') {
+            options.headers['Content-Type'] = 'application/json';
+            options.body = JSON.stringify(options.body);
+        }
+        return fetch(url, options).then(res => {
+            if (res.status === 401) {
+                showTips(t('error.unauthorized'), 'error');
+                setTimeout(() => {
+                    window.location.href = '/index.html';
+                }, 1200);
+                return Promise.reject(new Error('Unauthorized'));
+            }
+            return res.json();
+        });
+    }
+
+    // /api/codes 会话级缓存：仪表盘饼图与兑换码列表页共用，避免重复请求同一接口
+    // 缓存的是 Promise，既复用已成功的数据，也能合并并发请求（不会重复发起网络请求）
+    let _codesCache = null;
+    // 订阅者列表：每次成功拉取到 /api/codes 数据后逐个回调，使仪表盘饼图能随数据就绪可靠重绘
+    const _codesListeners = [];
+    // 最近一次成功拉取的数据：供新订阅者在订阅时立即绘制（命中缓存时无需等待下一次拉取）
+    let _latestCodes = null;
+
+    function getCodesCached(force) {
+        if (force) _codesCache = null;
+        if (!_codesCache) {
+            _codesCache = apiRequest('/api/codes').then(data => {
+                if (data && data.success) notifyCodes(data.data);
+                return data;
+            }).catch(err => {
+                _codesCache = null; // 请求失败时清除缓存，允许下次重试
+                throw err;
+            });
+        }
+        return _codesCache;
+    }
+
+    // 订阅 /api/codes 数据更新，返回取消订阅函数
+    function onCodesUpdate(fn) {
+        _codesListeners.push(fn);
+        return () => {
+            const i = _codesListeners.indexOf(fn);
+            if (i >= 0) _codesListeners.splice(i, 1);
+        };
+    }
+
+    function notifyCodes(codes) {
+        _latestCodes = codes;
+        _codesListeners.forEach(fn => {
+            try {
+                fn(codes);
+            } catch (e) {
+            }
+        });
+    }
+
+    // 写操作（创建/删除兑换码）成功后调用，使缓存失效以便下次获取最新数据
+    function invalidateCodesCache() {
+        _codesCache = null;
+    }
+
+    // 仪表盘饼图对 /api/codes 数据更新的取消订阅函数（每次重渲染仪表盘时重置）
+    let _codesPieUnsub = null;
+
+    let tipsTimer = null;
+
+    function showTips(msg, type) {
+        const div = document.getElementById('adminTips');
+        const p = document.getElementById('adminTipsMsg');
+        div.className = type || 'info';
+        p.textContent = msg;
+        div.style.display = 'block';
+        if (tipsTimer) clearTimeout(tipsTimer);
+        tipsTimer = setTimeout(() => {
+            div.style.display = 'none';
+        }, 4000);
+    }
+
+    function copyText(text) {
+        navigator.clipboard.writeText(text).then(() => showTips(t('common.copy') + text, 'success'));
+    }
+
+    function escHtml(s) {
+        if (s == null) return '';
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function escJsStr(s) {
+        if (s == null) return '';
+        return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+    }
+
+    const typeBadge = {
+        'ONCE': 'badge-gray',
+        'PERMANENT': 'badge-green',
+        'PERSONAL': 'badge-blue',
+        'GLOBAL_UNLIMITED': 'badge-yellow',
+        'GLOBAL_LIMIT': 'badge-yellow',
+        'TIMED': 'badge-red',
+        'CYCLE': 'badge-red'
+    };
+
+    (function checkAuth() {
+        const token = getToken();
+        if (!token) {
+            window.location.replace('/index.html');
+            return;
+        }
+        fetch('/api/verify', {headers: {'X-Admin-Token': token}})
+            .then(res => {
+                if (!res.ok) {
+                    clearToken();
+                    window.location.replace('/index.html');
+                }
+            })
+            .catch(() => {
+                window.location.replace('/index.html');
+            });
+    })();
+
+    function logout() {
+        apiRequest('/api/logout', {method: 'POST'})
+            .catch(() => {
+            })
+            .finally(() => {
+                clearToken();
+                window.location.href = '/index.html';
+            });
+    }
+
+    const contentArea = document.getElementById('contentArea');
+    const pageTitle = document.getElementById('pageTitle');
+    const menuLinks = document.querySelectorAll('.sidebar-menu li a');
+
+    menuLinks.forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const page = this.dataset.page;
+            menuLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            const key = 'sidebar.' + page.replace('-', '_');
+            pageTitle.textContent = t(key) || page;
+            navigateTo(page);
+        });
     });
-}
 
-let tipsTimer = null;
-function showTips(msg, type) {
-    const div = document.getElementById('adminTips');
-    const p = document.getElementById('adminTipsMsg');
-    div.className = type || 'info';
-    p.textContent = msg;
-    div.style.display = 'block';
-    if (tipsTimer) clearTimeout(tipsTimer);
-    tipsTimer = setTimeout(() => { div.style.display = 'none'; }, 4000);
-}
+    function navigateTo(page) {
+        switch (page) {
+            case 'dashboard':
+                renderDashboard();
+                break;
+            case 'codes':
+                renderCodes();
+                break;
+            case 'create-code':
+                renderCreateCode();
+                break;
+            case 'logs':
+                renderLogs(0);
+                break;
+            case 'players':
+                renderPlayers();
+                break;
+            case 'settings':
+                renderSettings();
+                break;
+            case 'reload':
+                renderReload();
+                break;
+        }
+    }
 
-function copyText(text) {
-    navigator.clipboard.writeText(text).then(() => showTips(t('common.copy') + text, 'success'));
-}
-
-function escHtml(s) {
-    if (s == null) return '';
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
-function escJsStr(s) {
-    if (s == null) return '';
-    return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-}
-
-const typeBadge = {
-    'ONCE': 'badge-gray',
-    'PERMANENT': 'badge-green',
-    'PERSONAL': 'badge-blue',
-    'GLOBAL_UNLIMITED': 'badge-yellow',
-    'GLOBAL_LIMIT': 'badge-yellow',
-    'TIMED': 'badge-red',
-    'CYCLE': 'badge-red'
-};
-
-(function checkAuth() {
-    const token = getToken();
-    if (!token) { window.location.replace('/index.html'); return; }
-    fetch('/api/verify', { headers: { 'X-Admin-Token': token } })
-        .then(res => { if (!res.ok) { clearToken(); window.location.replace('/index.html'); } })
-        .catch(() => { window.location.replace('/index.html'); });
-})();
-
-function logout() {
-    apiRequest('/api/logout', { method: 'POST' })
-        .catch(() => {})
-        .finally(() => { clearToken(); window.location.href = '/index.html'; });
-}
-
-const contentArea = document.getElementById('contentArea');
-const pageTitle = document.getElementById('pageTitle');
-const menuLinks = document.querySelectorAll('.sidebar-menu li a');
-
-menuLinks.forEach(link => {
-    link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const page = this.dataset.page;
+    function switchPage(page) {
         menuLinks.forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
+        const target = document.querySelector(`.sidebar-menu li a[data-page="${page}"]`);
+        if (target) target.classList.add('active');
         const key = 'sidebar.' + page.replace('-', '_');
         pageTitle.textContent = t(key) || page;
         navigateTo(page);
-    });
-});
-
-function navigateTo(page) {
-    switch(page) {
-        case 'dashboard': renderDashboard(); break;
-        case 'codes': renderCodes(); break;
-        case 'create-code': renderCreateCode(); break;
-        case 'logs': renderLogs(0); break;
-        case 'players': renderPlayers(); break;
-        case 'settings': renderSettings(); break;
-        case 'reload': renderReload(); break;
     }
-}
 
-function switchPage(page) {
-    menuLinks.forEach(l => l.classList.remove('active'));
-    const target = document.querySelector(`.sidebar-menu li a[data-page="${page}"]`);
-    if (target) target.classList.add('active');
-    const key = 'sidebar.' + page.replace('-', '_');
-    pageTitle.textContent = t(key) || page;
-    navigateTo(page);
-}
+    function renderDashboard() {
+        contentArea.innerHTML = '<div class="stat-grid" id="statGrid"><div class="empty-state">' + t('code.loading') + '</div></div>' +
+            '<div class="grid" style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px">' +
+            '<div class="card"><div class="card-title">' + t('dashboard.trend_title') + '</div><canvas id="trendChart" width="600" height="220" style="width:100%;height:auto"></canvas></div>' +
+            '<div class="card"><div class="card-title">' + t('dashboard.status_title') + '</div><div id="statusPie" style="display:flex;justify-content:center;align-items:center;min-height:180px">' + t('code.loading') + '</div></div>' +
+            '</div>' +
+            '<div class="card" style="margin-bottom:16px"><div class="card-title">' + t('dashboard.quick_actions') + '</div><div class="card-body"><button class="btn btn-primary" onclick="exportCSV()">' + t('dashboard.export_csv') + '</button></div></div>' +
+            '<div class="card"><div class="card-title">' + t('dashboard.recent_activity') + '</div><div class="card-body" id="recentLogs">' + t('code.loading') + '</div></div>';
 
-function renderDashboard() {
-    contentArea.innerHTML = '<div class="stat-grid" id="statGrid"><div class="empty-state">' + t('code.loading') + '</div></div>' +
-        '<div class="grid" style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px">' +
-        '<div class="card"><div class="card-title">' + t('dashboard.trend_title') + '</div><canvas id="trendChart" width="600" height="220" style="width:100%;height:auto"></canvas></div>' +
-        '<div class="card"><div class="card-title">' + t('dashboard.status_title') + '</div><div id="statusPie" style="display:flex;justify-content:center;align-items:center;min-height:180px">' + t('code.loading') + '</div></div>' +
-        '</div>' +
-        '<div class="card" style="margin-bottom:16px"><div class="card-title">' + t('dashboard.quick_actions') + '</div><div class="card-body"><button class="btn btn-primary" onclick="exportCSV()">' + t('dashboard.export_csv') + '</button></div></div>' +
-        '<div class="card"><div class="card-title">' + t('dashboard.recent_activity') + '</div><div class="card-body" id="recentLogs">' + t('code.loading') + '</div></div>';
+        apiRequest('/api/status').then(data => {
+            if (!data.success) return;
+            const d = data.data;
+            document.getElementById('statGrid').innerHTML =
+                statCard(t('dashboard.online_players'), d.onlinePlayers, 'green') +
+                statCard(t('dashboard.total_codes'), d.totalCodes, 'blue') +
+                statCard(t('dashboard.storage_type'), d.datastoreType, '') +
+                statCard(t('dashboard.mod_version'), d.modVersion, '') +
+                statCard(t('dashboard.mc_version'), d.mcVersion, '');
+        }).catch(() => {
+        });
 
-    apiRequest('/api/status').then(data => {
-        if (!data.success) return;
-        const d = data.data;
-        document.getElementById('statGrid').innerHTML =
-            statCard(t('dashboard.online_players'), d.onlinePlayers, 'green') +
-            statCard(t('dashboard.total_codes'), d.totalCodes, 'blue') +
-            statCard(t('dashboard.storage_type'), d.datastoreType, '') +
-            statCard(t('dashboard.mod_version'), d.modVersion, '') +
-            statCard(t('dashboard.mc_version'), d.mcVersion, '');
-    }).catch(() => {});
+        // 加载趋势图
+        apiRequest('/api/stats/daily').then(data => {
+            if (!data.success) return;
+            drawCanvasChart(data.data);
+        }).catch(() => {
+        });
 
-    // 加载趋势图
-    apiRequest('/api/stats/daily').then(data => {
-        if (!data.success) return;
-        drawCanvasChart(data.data);
-    }).catch(() => {});
+        // 加载状态饼图：订阅 /api/codes 数据更新，数据就绪且饼图容器仍在页面中时重绘，
+        // 避免数据返回时仪表盘已被切换/重渲染导致单次回调落空、饼图空白
+        if (_codesPieUnsub) _codesPieUnsub();
+        _codesPieUnsub = onCodesUpdate(codes => {
+            if (document.getElementById('statusPie')) drawStatusPie(codes);
+        });
+        if (_latestCodes && document.getElementById('statusPie')) drawStatusPie(_latestCodes); // 命中缓存时立即绘制
+        getCodesCached();
 
-    // 加载状态饼图
-    apiRequest('/api/codes').then(data => {
-        if (!data.success) return;
-        drawStatusPie(data.data);
-    }).catch(() => {});
-
-    apiRequest('/api/logs?offset=0&limit=10').then(data => {
-        if (!data.success) return;
-        const logs = data.data;
-        if (logs.length === 0) {
-            document.getElementById('recentLogs').innerHTML = '<div class="empty-state">' + t('logs.empty') + '</div>';
-            return;
-        }
-        let html = '<table><thead><tr><th>' + t('table.time') + '</th><th>' + t('table.type') + '</th><th>' + t('table.executor') + '</th><th>' + t('table.details') + '</th></tr></thead><tbody>';
-        for (const log of logs) {
-            html += `<tr>
+        apiRequest('/api/logs?offset=0&limit=10').then(data => {
+            if (!data.success) return;
+            const logs = data.data;
+            if (logs.length === 0) {
+                document.getElementById('recentLogs').innerHTML = '<div class="empty-state">' + t('logs.empty') + '</div>';
+                return;
+            }
+            let html = '<table><thead><tr><th>' + t('table.time') + '</th><th>' + t('table.type') + '</th><th>' + t('table.executor') + '</th><th>' + t('table.details') + '</th></tr></thead><tbody>';
+            for (const log of logs) {
+                html += `<tr>
                 <td class="text-sm">${escHtml(log.time)}</td>
                 <td>${logTypeBadge(log.type)}</td>
                 <td>${renderExecutor(log)}</td>
                 <td class="text-sm text-muted">${formatDetails(log.details)}</td>
             </tr>`;
+            }
+            html += '</tbody></table>';
+            document.getElementById('recentLogs').innerHTML = html;
+        }).catch(() => {
+        });
+    }
+
+    let _trendData = null;
+
+    function drawCanvasChart(data) {
+        _trendData = data;
+        const cvs = document.getElementById('trendChart');
+        if (!cvs) return;
+        const ctx = cvs.getContext('2d');
+
+        // 高清适配：按设备像素比放大 canvas  backing store，避免高分屏拉伸模糊
+        const dpr = window.devicePixelRatio || 1;
+        const cssWidth = cvs.clientWidth || 600;
+        const cssHeight = Math.round(cssWidth * 220 / 600); // 保持固有宽高比
+        cvs.width = Math.round(cssWidth * dpr);
+        cvs.height = Math.round(cssHeight * dpr);
+        cvs.style.height = cssHeight + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+        const padding = 40;
+        const width = cssWidth - padding * 2;
+        const height = cssHeight - padding * 2;
+        const maxVal = Math.max(...data.map(d => d.count), 10);
+
+        // 网格线
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (i / 4) * height;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(cssWidth - padding, y);
+            ctx.stroke();
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(Math.round(maxVal * (1 - i / 4)), padding - 6, y + 4);
         }
-        html += '</tbody></table>';
-        document.getElementById('recentLogs').innerHTML = html;
-    }).catch(() => {});
-}
 
-let _trendData = null;
-
-function drawCanvasChart(data) {
-    _trendData = data;
-    const cvs = document.getElementById('trendChart');
-    if (!cvs) return;
-    const ctx = cvs.getContext('2d');
-
-    // 高清适配：按设备像素比放大 canvas  backing store，避免高分屏拉伸模糊
-    const dpr = window.devicePixelRatio || 1;
-    const cssWidth = cvs.clientWidth || 600;
-    const cssHeight = Math.round(cssWidth * 220 / 600); // 保持固有宽高比
-    cvs.width = Math.round(cssWidth * dpr);
-    cvs.height = Math.round(cssHeight * dpr);
-    cvs.style.height = cssHeight + 'px';
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, cssWidth, cssHeight);
-
-    const padding = 40;
-    const width = cssWidth - padding * 2;
-    const height = cssHeight - padding * 2;
-    const maxVal = Math.max(...data.map(d => d.count), 10);
-
-    // 网格线
-    ctx.strokeStyle = '#e5e7eb';
-    ctx.lineWidth = 1;
-    for (let i = 0; i <= 4; i++) {
-        const y = padding + (i / 4) * height;
-        ctx.beginPath();
-        ctx.moveTo(padding, y);
-        ctx.lineTo(cssWidth - padding, y);
-        ctx.stroke();
+        // X 轴标签
+        ctx.textAlign = 'center';
         ctx.fillStyle = '#6b7280';
-        ctx.font = '11px sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(Math.round(maxVal * (1 - i / 4)), padding - 6, y + 4);
-    }
+        data.forEach((pt, i) => {
+            const x = padding + (i / Math.max(data.length - 1, 1)) * width;
+            ctx.fillText(pt.date, x, cssHeight - padding + 16);
+        });
 
-    // X 轴标签
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#6b7280';
-    data.forEach((pt, i) => {
-        const x = padding + (i / Math.max(data.length - 1, 1)) * width;
-        ctx.fillText(pt.date, x, cssHeight - padding + 16);
-    });
-
-    // 折线
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    data.forEach((pt, i) => {
-        const x = padding + (i / Math.max(data.length - 1, 1)) * width;
-        const y = cssHeight - padding - (pt.count / maxVal) * height;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-
-    // 数据点
-    data.forEach((pt, i) => {
-        const x = padding + (i / Math.max(data.length - 1, 1)) * width;
-        const y = cssHeight - padding - (pt.count / maxVal) * height;
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#3b82f6';
-        ctx.fill();
-        ctx.strokeStyle = '#fff';
+        // 折线
+        ctx.strokeStyle = '#3b82f6';
         ctx.lineWidth = 2;
+        ctx.beginPath();
+        data.forEach((pt, i) => {
+            const x = padding + (i / Math.max(data.length - 1, 1)) * width;
+            const y = cssHeight - padding - (pt.count / maxVal) * height;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
         ctx.stroke();
+
+        // 数据点
+        data.forEach((pt, i) => {
+            const x = padding + (i / Math.max(data.length - 1, 1)) * width;
+            const y = cssHeight - padding - (pt.count / maxVal) * height;
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#3b82f6';
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        });
+    }
+
+    // 窗口缩放时按新尺寸重绘趋势图，保持清晰
+    let _trendResizeTimer = null;
+    window.addEventListener('resize', () => {
+        if (!_trendData || !document.getElementById('trendChart')) return;
+        clearTimeout(_trendResizeTimer);
+        _trendResizeTimer = setTimeout(() => drawCanvasChart(_trendData), 150);
     });
-}
 
-// 窗口缩放时按新尺寸重绘趋势图，保持清晰
-let _trendResizeTimer = null;
-window.addEventListener('resize', () => {
-    if (!_trendData || !document.getElementById('trendChart')) return;
-    clearTimeout(_trendResizeTimer);
-    _trendResizeTimer = setTimeout(() => drawCanvasChart(_trendData), 150);
-});
+    function drawStatusPie(codes) {
+        const container = document.getElementById('statusPie');
+        if (!container) return;
 
-function drawStatusPie(codes) {
-    const container = document.getElementById('statusPie');
-    if (!container) return;
+        let unused = 0, used = 0, expired = 0;
+        const now = Date.now();
+        for (const c of codes) {
+            if (c.endTime && c.endTime > 0 && c.endTime < now) {
+                expired++;
+            } else if (c.totalUses > 0) {
+                used++;
+            } else {
+                unused++;
+            }
+        }
+        const total = codes.length || 1;
 
-    let unused = 0, used = 0, expired = 0;
-    const now = Date.now();
-    for (const c of codes) {
-        if (c.endTime && c.endTime > 0 && c.endTime < now) { expired++; }
-        else if (c.totalUses > 0) { used++; }
-        else { unused++; }
-    }
-    const total = codes.length || 1;
+        const r = 70, cx = 90, cy = 90, strokeW = 24;
+        const segments = [
+            {label: t('dashboard.status_unused'), count: unused, color: '#10b981'},
+            {label: t('dashboard.status_used'), count: used, color: '#3b82f6'},
+            {label: t('dashboard.status_expired'), count: expired, color: '#ef4444'}
+        ];
 
-    const r = 70, cx = 90, cy = 90, strokeW = 24;
-    const circumference = 2 * Math.PI * r;
-    const segments = [
-        { label: t('dashboard.status_unused'), count: unused, color: '#10b981' },
-        { label: t('dashboard.status_used'), count: used, color: '#3b82f6' },
-        { label: t('dashboard.status_expired'), count: expired, color: '#ef4444' }
-    ];
+        // 用显式弧线路径逐段绘制，避免负 stroke-dashoffset 堆叠在部分浏览器下渲染异常（只画出最后一段）
+        const pointAt = (deg) => {
+            const rad = deg * Math.PI / 180;
+            return [cx + r * Math.sin(rad), cy - r * Math.cos(rad)];
+        };
+        let circles = '';
+        let angle = 0;
+        for (const seg of segments) {
+            if (seg.count <= 0) continue;
+            const sweep = seg.count / total * 360;
+            if (sweep >= 359.999) {
+                // 单一分类占满整环时，弧线路径无法描述完整 360 度，改用整圆
+                circles += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="${strokeW}"/>`;
+            } else {
+                const [x0, y0] = pointAt(angle);
+                const [x1, y1] = pointAt(angle + sweep);
+                const largeArc = sweep > 180 ? 1 : 0;
+                // 路径坐标用带空格的字符串字面量拼接：构建期 JS 压缩会删除模板串中 ${x} 相邻的空格，
+                // 导致坐标粘连（如 M 9020 A 70700）使弧线画出可视区外、环形图空白；字符串字面量内与 + 两侧的空格不会被压缩
+                const pathData = 'M ' + x0 + ' ' + y0 + ' A ' + r + ' ' + r + ' 0 ' + largeArc + ' 1 ' + x1 + ' ' + y1;
+                circles += `<path d="${pathData}" fill="none" stroke="${seg.color}" stroke-width="${strokeW}"/>`;
+            }
+            angle += sweep;
+        }
 
-    let offset = 0;
-    let circles = '';
-    for (const seg of segments) {
-        const ratio = seg.count / total;
-        const dash = ratio * circumference;
-        circles += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="${strokeW}" stroke-dasharray="${dash} ${circumference - dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
-        offset += dash;
-    }
+        let legend = '';
+        for (const seg of segments) {
+            legend += `<div style="display:flex;align-items:center;gap:6px;margin:4px 0"><span style="width:10px;height:10px;border-radius:2px;background:${seg.color};display:inline-block"></span><span style="font-size:12px;color:#6b7280">${seg.label}: ${seg.count}</span></div>`;
+        }
 
-    let legend = '';
-    for (const seg of segments) {
-        legend += `<div style="display:flex;align-items:center;gap:6px;margin:4px 0"><span style="width:10px;height:10px;border-radius:2px;background:${seg.color};display:inline-block"></span><span style="font-size:12px;color:#6b7280">${seg.label}: ${seg.count}</span></div>`;
-    }
-
-    container.innerHTML = `<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center">
+        container.innerHTML = `<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center">
         <svg width="180" height="180" viewBox="0 0 180 180">${circles}
         <text x="${cx}" y="${cy}" text-anchor="middle" dy="5" font-size="20" font-weight="700" fill="#1f2937">${codes.length}</text>
         </svg>
         <div>${legend}</div>
     </div>`;
-}
+    }
 
-function exportCSV() {
-    const token = getToken();
-    fetch('/api/export', { headers: { 'X-Admin-Token': token } })
-        .then(res => {
-            if (res.status === 401) { clearToken(); window.location.href = '/index.html'; return; }
-            return res.blob();
-        })
-        .then(blob => {
-            if (!blob) return;
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'redemption_codes.csv';
-            a.click();
-            window.URL.revokeObjectURL(url);
-        });
-}
+    function exportCSV() {
+        const token = getToken();
+        fetch('/api/export', {headers: {'X-Admin-Token': token}})
+            .then(res => {
+                if (res.status === 401) {
+                    clearToken();
+                    window.location.href = '/index.html';
+                    return;
+                }
+                return res.blob();
+            })
+            .then(blob => {
+                if (!blob) return;
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'redemption_codes.csv';
+                a.click();
+                window.URL.revokeObjectURL(url);
+            });
+    }
 
-function statCard(label, value, color) {
-    return `<div class="stat-card">
+    function statCard(label, value, color) {
+        return `<div class="stat-card">
         <div class="stat-label">${escHtml(label)}</div>
         <div class="stat-value ${color}">${escHtml(value)}</div>
     </div>`;
-}
+    }
 
-function logTypeBadge(type) {
-    const cls = type === 'GENERATE' ? 'badge-green' : type === 'DELETE' ? 'badge-red' : type === 'REDEEM' ? 'badge-blue' : 'badge-gray';
-    return `<span class="badge ${cls}">${escHtml(type)}</span>`;
-}
+    function logTypeBadge(type) {
+        const cls = type === 'GENERATE' ? 'badge-green' : type === 'DELETE' ? 'badge-red' : type === 'REDEEM' ? 'badge-blue' : 'badge-gray';
+        return `<span class="badge ${cls}">${escHtml(type)}</span>`;
+    }
 
-function formatExecutor(name) {
-    if (!name) return '';
-    const systemExecutors = ['WebAdmin', 'Server', 'console', 'Rcon'];
-    if (systemExecutors.includes(name)) return `[${name}]`;
-    return name;
-}
+    function formatExecutor(name) {
+        if (!name) return '';
+        const systemExecutors = ['WebAdmin', 'Server', 'console', 'Rcon'];
+        if (systemExecutors.includes(name)) return `[${name}]`;
+        return name;
+    }
 
-let execIdCounter = 0;
-function renderExecutor(log) {
-    const name = log.executor || '';
-    const uuid = (log.details && (log.details.player_uuid || log.details.executor_uuid)) || '';
-    if (!uuid) return escHtml(formatExecutor(name));
-    const id = 'exec_' + (++execIdCounter);
-    return `<span class="clickable" id="${id}" data-name="${escHtml(formatExecutor(name))}" data-uuid="${escJsStr(uuid)}" onclick="toggleExec('${id}')">${escHtml(name)}</span>`;
-}
+    let execIdCounter = 0;
 
-function toggleExec(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const showingUuid = el.dataset.showing === 'uuid';
-    el.textContent = showingUuid ? el.dataset.name : el.dataset.uuid;
-    el.dataset.showing = showingUuid ? 'name' : 'uuid';
-}
+    function renderExecutor(log) {
+        const name = log.executor || '';
+        const uuid = (log.details && (log.details.player_uuid || log.details.executor_uuid)) || '';
+        if (!uuid) return escHtml(formatExecutor(name));
+        const id = 'exec_' + (++execIdCounter);
+        return `<span class="clickable" id="${id}" data-name="${escHtml(formatExecutor(name))}" data-uuid="${escJsStr(uuid)}" onclick="toggleExec('${id}')">${escHtml(name)}</span>`;
+    }
 
-function formatDetails(details) {
-    if (!details) return '';
-    return Object.entries(details).map(([k,v]) => `${escHtml(k)}=${escHtml(v)}`).join(', ');
-}
+    function toggleExec(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const showingUuid = el.dataset.showing === 'uuid';
+        el.textContent = showingUuid ? el.dataset.name : el.dataset.uuid;
+        el.dataset.showing = showingUuid ? 'name' : 'uuid';
+    }
 
-function renderCodes() {
-    contentArea.innerHTML = '<div class="card"><div class="flex-between mb-8">' +
-        '<div class="card-title" style="margin-bottom:0;border:none;padding:0">' + t('code.all_codes') + '</div>' +
-        '<div style="display:flex;gap:8px">' +
-        '<button class="btn btn-outline btn-sm" onclick="renderCodes()">↻ ' + t('common.refresh') + '</button>' +
-        '<button class="btn btn-primary btn-sm" onclick="switchPage(\'create-code\')">+ ' + t('common.create') + '</button></div></div>' +
-        '<div id="codesTable">' + t('code.loading') + '</div></div>';
+    function formatDetails(details) {
+        if (!details) return '';
+        return Object.entries(details).map(([k, v]) => `${escHtml(k)}=${escHtml(v)}`).join(', ');
+    }
 
-    apiRequest('/api/codes').then(data => {
-        if (!data.success) return;
-        const codes = data.data;
-        if (codes.length === 0) {
-            document.getElementById('codesTable').innerHTML = '<div class="empty-state">' + t('code.empty') + '</div>';
-            return;
-        }
-        let html = '<table><thead><tr><th>' + t('table.code') + '</th><th>' + t('table.type') + '</th><th>' + t('table.reward') + '</th><th>' + t('table.uses') + '</th><th>' + t('table.actions') + '</th></tr></thead><tbody>';
-        for (const c of codes) {
-            const reward = c.reward.length > 30 ? c.reward.substring(0, 30) + '...' : c.reward;
-            html += `<tr>
+    function renderCodes(force) {
+        contentArea.innerHTML = '<div class="card"><div class="flex-between mb-8">' +
+            '<div class="card-title" style="margin-bottom:0;border:none;padding:0">' + t('code.all_codes') + '</div>' +
+            '<div style="display:flex;gap:8px">' +
+            '<button class="btn btn-outline btn-sm" onclick="renderCodes(true)">↻ ' + t('common.refresh') + '</button>' +
+            '<button class="btn btn-primary btn-sm" onclick="switchPage(\'create-code\')">+ ' + t('common.create') + '</button></div></div>' +
+            '<div id="codesTable">' + t('code.loading') + '</div></div>';
+
+        getCodesCached(force).then(data => {
+            if (!data.success) return;
+            const codes = data.data;
+            if (codes.length === 0) {
+                document.getElementById('codesTable').innerHTML = '<div class="empty-state">' + t('code.empty') + '</div>';
+                return;
+            }
+            let html = '<table><thead><tr><th>' + t('table.code') + '</th><th>' + t('table.type') + '</th><th>' + t('table.reward') + '</th><th>' + t('table.uses') + '</th><th>' + t('table.actions') + '</th></tr></thead><tbody>';
+            for (const c of codes) {
+                const reward = c.reward.length > 30 ? c.reward.substring(0, 30) + '...' : c.reward;
+                html += `<tr>
                 <td class="mono clickable" onclick="showCodeDetail('${escJsStr(c.code)}')">${escHtml(c.code)}</td>
                 <td><span class="badge ${typeBadge[c.type] || 'badge-gray'}">${escHtml(c.type)}</span></td>
                 <td class="text-sm" title="${escHtml(c.reward)}">${escHtml(reward)}</td>
@@ -1059,304 +1367,370 @@ function renderCodes() {
                     <button class="btn btn-danger btn-sm" onclick="deleteCode('${escJsStr(c.code)}')">${t('common.delete')}</button>
                 </td>
             </tr>`;
-        }
-        html += '</tbody></table>';
-        document.getElementById('codesTable').innerHTML = html;
-    }).catch(() => {});
-}
+            }
+            html += '</tbody></table>';
+            document.getElementById('codesTable').innerHTML = html;
+        }).catch(() => {
+        });
+    }
 
-function showCodeDetail(code) {
-    apiRequest('/api/codes/' + encodeURIComponent(code)).then(data => {
-        if (!data.success) { showTips(data.message || t('error.get_failed'), 'error'); return; }
-        const d = data.data;
-        let html = '<div class="card-body">';
-        html += `<p><strong>${t('code.detail_code')}</strong> <span class="mono clickable" onclick="copyText('${escJsStr(d.code)}')">${escHtml(d.code)}</span></p>`;
-        html += `<p><strong>${t('code.detail_type')}</strong> <span class="badge ${typeBadge[d.type] || 'badge-gray'}">${escHtml(d.type)}</span></p>`;
-        html += `<p><strong>${t('code.detail_reward')}</strong> <span class="mono">${escHtml(d.reward)}</span></p>`;
-        if (d.player) html += `<p><strong>${t('code.detail_player')}</strong> <span class="mono text-sm">${escHtml(d.player)}</span></p>`;
-        if (d.count > 0) html += `<p><strong>${t('code.detail_max_uses')}</strong> ${d.count}</p>`;
-        if (d.startTimeStr) html += `<p><strong>${t('code.detail_start')}</strong> ${escHtml(d.startTimeStr)}</p>`;
-        if (d.endTimeStr) html += `<p><strong>${t('code.detail_end')}</strong> ${escHtml(d.endTimeStr)}</p>`;
-        if (d.interval) html += `<p><strong>${t('code.detail_interval')}</strong> ${Math.round(d.interval/1000)}${t('code.detail_interval_unit')}</p>`;
+    function showCodeDetail(code) {
+        apiRequest('/api/codes/' + encodeURIComponent(code)).then(data => {
+            if (!data.success) {
+                showTips(data.message || t('error.get_failed'), 'error');
+                return;
+            }
+            const d = data.data;
+            let html = '<div class="card-body">';
+            html += `<p><strong>${t('code.detail_code')}</strong> <span class="mono clickable" onclick="copyText('${escJsStr(d.code)}')">${escHtml(d.code)}</span></p>`;
+            html += `<p><strong>${t('code.detail_type')}</strong> <span class="badge ${typeBadge[d.type] || 'badge-gray'}">${escHtml(d.type)}</span></p>`;
+            html += `<p><strong>${t('code.detail_reward')}</strong> <span class="mono">${escHtml(d.reward)}</span></p>`;
+            if (d.player) html += `<p><strong>${t('code.detail_player')}</strong> <span class="mono text-sm">${escHtml(d.player)}</span></p>`;
+            if (d.count > 0) html += `<p><strong>${t('code.detail_max_uses')}</strong> ${d.count}</p>`;
+            if (d.startTimeStr) html += `<p><strong>${t('code.detail_start')}</strong> ${escHtml(d.startTimeStr)}</p>`;
+            if (d.endTimeStr) html += `<p><strong>${t('code.detail_end')}</strong> ${escHtml(d.endTimeStr)}</p>`;
+            if (d.interval) html += `<p><strong>${t('code.detail_interval')}</strong> ${Math.round(d.interval / 1000)}${t('code.detail_interval_unit')}</p>`;
 
-        if (d.usedBy && d.usedBy.length > 0) {
-            html += '<hr style="margin:12px 0;border:none;border-top:1px solid var(--border)">';
-            html += '<p><strong>' + t('code.detail_used_by') + '</strong></p>';
-            html += '<table><thead><tr><th>' + t('code.detail_used_by_header_uuid') + '</th><th>' + t('code.detail_used_by_header_times') + '</th><th>' + t('code.detail_used_by_header_last') + '</th></tr></thead><tbody>';
-            for (const u of d.usedBy) {
-                const lastTs = u.timestamps.length > 0 ? u.timestamps[u.timestamps.length - 1] : '-';
-                html += `<tr>
+            if (d.usedBy && d.usedBy.length > 0) {
+                html += '<hr style="margin:12px 0;border:none;border-top:1px solid var(--border)">';
+                html += '<p><strong>' + t('code.detail_used_by') + '</strong></p>';
+                html += '<table><thead><tr><th>' + t('code.detail_used_by_header_uuid') + '</th><th>' + t('code.detail_used_by_header_times') + '</th><th>' + t('code.detail_used_by_header_last') + '</th></tr></thead><tbody>';
+                for (const u of d.usedBy) {
+                    const lastTs = u.timestamps.length > 0 ? u.timestamps[u.timestamps.length - 1] : '-';
+                    html += `<tr>
                     <td class="mono clickable text-sm" onclick="copyText('${escJsStr(u.uuid)}')">${escHtml(u.uuid)}</td>
                     <td>${u.times}</td>
                     <td class="text-sm">${escHtml(lastTs)}</td>
                 </tr>`;
-            }
-            html += '</tbody></table>';
-        } else {
-            html += '<p class="text-muted mt-8">' + t('code.detail_no_records') + '</p>';
-        }
-        html += '</div>';
-
-        document.getElementById('modalTitle').textContent = t('code.detail_title') + d.code;
-        document.getElementById('modalBody').innerHTML = html;
-        document.getElementById('detailModal').classList.add('show');
-    }).catch(() => {});
-}
-
-function closeModal() {
-    document.getElementById('detailModal').classList.remove('show');
-}
-
-function deleteCode(code) {
-    if (!confirm(t('code.confirm_delete') + code + t('code.confirm_delete_suffix'))) return;
-    apiRequest('/api/codes/' + encodeURIComponent(code), { method: 'DELETE' }).then(data => {
-        if (data.success) {
-            showTips(t('code.deleted') + code, 'success');
-            renderCodes();
-        } else {
-            showTips(data.message || t('error.delete_failed'), 'error');
-        }
-    }).catch(() => {});
-}
-
-function renderCreateCode() {
-    const tpl = document.getElementById('tpl-create-code');
-    contentArea.innerHTML = '';
-    const clone = tpl.content.cloneNode(true);
-    contentArea.appendChild(clone);
-    applyI18n(contentArea);
-
-    document.getElementById('cc_type').addEventListener('change', updateCreateForm);
-    updateCreateForm();
-
-    apiRequest('/api/scoreboards').then(function(data) {
-        if (!data.success) return;
-        const sel = document.getElementById('cc_gl_scoreboard');
-        if (!sel) return;
-        sel.innerHTML = '<option value="">' + t('code.select_scoreboard') + '</option>';
-        for (let i = 0; i < data.data.length; i++) {
-            const obj = data.data[i];
-            const opt = document.createElement('option');
-            opt.value = obj.name;
-            opt.textContent = obj.displayName + ' (' + obj.name + ')';
-            sel.appendChild(opt);
-        }
-    }).catch(function() {});
-}
-
-function updateCreateForm() {
-    const type = document.getElementById('cc_type').value;
-    const show = (id, v) => { const el = document.getElementById(id); if (el) el.style.display = v ? '' : 'none'; };
-    show('cc_personal_section', type === 'PERSONAL');
-    show('cc_global_limit_section', type === 'GLOBAL_LIMIT');
-    show('cc_timed_section', type === 'TIMED');
-    show('cc_cycle_section', type === 'CYCLE');
-}
-
-function updateGlMode() {
-    const mode = document.getElementById('cc_gl_mode').value;
-    const show = (id, v) => { const el = document.getElementById(id); if (el) el.style.display = v ? '' : 'none'; };
-    show('cc_gl_tag_group', mode === 'tag');
-    show('cc_gl_scoreboard_group', mode === 'scoreboard');
-    show('cc_gl_player_group', mode === 'manual');
-}
-
-function updateTsPreview(inputId, previewId) {
-    const val = parseInt(document.getElementById(inputId).value);
-    const el = document.getElementById(previewId);
-    if (!el) return;
-    if (!val || val <= 0) { el.textContent = ''; return; }
-    if (String(val).length < 12) {
-        el.textContent = t('ts_hint.seconds');
-        el.style.color = 'var(--warning)';
-        return;
-    }
-    const d = new Date(val);
-    if (isNaN(d.getTime())) { el.textContent = t('ts_hint.invalid'); el.style.color = 'var(--danger)'; return; }
-    el.textContent = d.toLocaleString(currentLang === 'zh' ? 'zh-CN' : 'en-US');
-    el.style.color = 'var(--text-muted)';
-}
-
-const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-
-function validateUuids(str) {
-    return str.split(',').map(s => s.trim()).filter(Boolean).every(u => UUID_RE.test(u));
-}
-
-function submitCreateCode() {
-    const type = document.getElementById('cc_type').value;
-    const reward = document.getElementById('cc_reward').value.trim();
-    const code = document.getElementById('cc_code').value.trim();
-
-    if (!reward) { showTips(t('error.reward_empty'), 'error'); return; }
-    if (!/^(item@|exp@|permissions@).+/i.test(reward)) {
-        showTips(t('error.reward_format'), 'error'); return;
-    }
-
-    const body = { type, reward, code };
-
-    if (type === 'PERSONAL') {
-        const player = document.getElementById('cc_player').value.trim();
-        if (!player) { showTips(t('error.personal_no_uuid'), 'error'); return; }
-        if (!validateUuids(player)) { showTips(t('error.uuid_format'), 'error'); return; }
-        body.player = player;
-    }
-
-    if (type === 'GLOBAL_LIMIT') {
-        const mode = document.getElementById('cc_gl_mode').value;
-        const limit = parseInt(document.getElementById('cc_gl_limit').value);
-        if (!limit || limit === 0) { showTips(t('error.limit_zero'), 'error'); return; }
-        body.selectMode = mode;
-        body.limit = limit;
-
-        if (mode === 'tag') {
-            const tag = document.getElementById('cc_gl_tag').value.trim();
-            if (!tag) { showTips(t('error.tag_empty'), 'error'); return; }
-            body.tag = tag;
-        } else if (mode === 'scoreboard') {
-            const sb = document.getElementById('cc_gl_scoreboard').value;
-            if (!sb) { showTips(t('error.scoreboard_empty'), 'error'); return; }
-            body.scoreboard = sb;
-        } else {
-            const player = document.getElementById('cc_gl_player').value.trim();
-            if (!player) { showTips(t('error.manual_no_uuid'), 'error'); return; }
-            if (!validateUuids(player)) { showTips(t('error.uuid_format'), 'error'); return; }
-            body.player = player;
-        }
-
-        const countVal = document.getElementById('cc_gl_count').value.trim();
-        if (countVal !== '') {
-            const count = parseInt(countVal);
-            if (isNaN(count) || count === 0) { showTips(t('error.count_zero'), 'error'); return; }
-            body.count = count;
-        }
-    }
-
-    if (type === 'TIMED') {
-        const startTime = parseInt(document.getElementById('cc_start').value) || 0;
-        const endTime = parseInt(document.getElementById('cc_end').value) || 0;
-        if (startTime > 0 && String(startTime).length < 12) {
-            showTips(t('error.start_ts_short'), 'error'); return;
-        }
-        if (endTime > 0 && String(endTime).length < 12) {
-            showTips(t('error.end_ts_short'), 'error'); return;
-        }
-        if (startTime > 0 && endTime > 0 && startTime >= endTime) {
-            showTips(t('error.start_after_end'), 'error'); return;
-        }
-        body.startTime = startTime;
-        body.endTime = endTime;
-    }
-
-    if (type === 'CYCLE') {
-        const startTime = parseInt(document.getElementById('cc_cy_start').value) || 0;
-        const interval = parseInt(document.getElementById('cc_cy_interval').value);
-        if (startTime > 0 && String(startTime).length < 12) {
-            showTips(t('error.ts_short'), 'error'); return;
-        }
-        if (!interval || interval <= 0) { showTips(t('error.interval_zero'), 'error'); return; }
-        body.startTime = startTime;
-        body.interval = interval * 1000;
-    }
-
-    const btn = document.getElementById('cc_submit');
-    btn.disabled = true; btn.textContent = t('code.btn_submitting');
-
-    apiRequest('/api/codes', { method: 'POST', body })
-        .then(data => {
-            if (data.success) {
-                showTips(t('code.created') + data.code, 'success');
-                renderCreateCode();
+                }
+                html += '</tbody></table>';
             } else {
-                showTips(data.message || t('error.create_failed'), 'error');
+                html += '<p class="text-muted mt-8">' + t('code.detail_no_records') + '</p>';
             }
-        })
-        .catch(() => { showTips(t('error.request_failed'), 'error'); })
-        .finally(() => { btn.disabled = false; btn.textContent = t('code.btn_submit'); });
-}
+            html += '</div>';
 
-let logOffset = 0;
-const logPageSize = 30;
+            document.getElementById('modalTitle').textContent = t('code.detail_title') + d.code;
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('detailModal').classList.add('show');
+        }).catch(() => {
+        });
+    }
 
-function renderLogs(offset) {
-    logOffset = offset;
-    contentArea.innerHTML = '<div class="card"><div class="flex-between"><div class="card-title" style="margin-bottom:0;border:none;padding:0">' + t('logs.title') + '</div>' +
-        '<button class="btn btn-outline btn-sm" onclick="renderLogs(0)">↻ ' + t('common.refresh') + '</button></div>' +
-        '<div id="logsBody" style="margin-top:14px">' + t('code.loading') + '</div></div>';
+    function closeModal() {
+        document.getElementById('detailModal').classList.remove('show');
+    }
 
-    apiRequest(`/api/logs?offset=${offset}&limit=${logPageSize}`).then(data => {
-        if (!data.success) return;
-        const logs = data.data;
-        if (logs.length === 0 && offset === 0) {
-            document.getElementById('logsBody').innerHTML = '<div class="empty-state">' + t('logs.empty') + '</div>';
+    function deleteCode(code) {
+        if (!confirm(t('code.confirm_delete') + code + t('code.confirm_delete_suffix'))) return;
+        apiRequest('/api/codes/' + encodeURIComponent(code), {method: 'DELETE'}).then(data => {
+            if (data.success) {
+                showTips(t('code.deleted') + code, 'success');
+                invalidateCodesCache();
+                renderCodes();
+            } else {
+                showTips(data.message || t('error.delete_failed'), 'error');
+            }
+        }).catch(() => {
+        });
+    }
+
+    function renderCreateCode() {
+        const tpl = document.getElementById('tpl-create-code');
+        contentArea.innerHTML = '';
+        const clone = tpl.content.cloneNode(true);
+        contentArea.appendChild(clone);
+        applyI18n(contentArea);
+
+        document.getElementById('cc_type').addEventListener('change', updateCreateForm);
+        updateCreateForm();
+
+        apiRequest('/api/scoreboards').then(function (data) {
+            if (!data.success) return;
+            const sel = document.getElementById('cc_gl_scoreboard');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">' + t('code.select_scoreboard') + '</option>';
+            for (let i = 0; i < data.data.length; i++) {
+                const obj = data.data[i];
+                const opt = document.createElement('option');
+                opt.value = obj.name;
+                opt.textContent = obj.displayName + ' (' + obj.name + ')';
+                sel.appendChild(opt);
+            }
+        }).catch(function () {
+        });
+    }
+
+    function updateCreateForm() {
+        const type = document.getElementById('cc_type').value;
+        const show = (id, v) => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = v ? '' : 'none';
+        };
+        show('cc_personal_section', type === 'PERSONAL');
+        show('cc_global_limit_section', type === 'GLOBAL_LIMIT');
+        show('cc_timed_section', type === 'TIMED');
+        show('cc_cycle_section', type === 'CYCLE');
+    }
+
+    function updateGlMode() {
+        const mode = document.getElementById('cc_gl_mode').value;
+        const show = (id, v) => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = v ? '' : 'none';
+        };
+        show('cc_gl_tag_group', mode === 'tag');
+        show('cc_gl_scoreboard_group', mode === 'scoreboard');
+        show('cc_gl_player_group', mode === 'manual');
+    }
+
+    function updateTsPreview(inputId, previewId) {
+        const val = parseInt(document.getElementById(inputId).value);
+        const el = document.getElementById(previewId);
+        if (!el) return;
+        if (!val || val <= 0) {
+            el.textContent = '';
+            return;
+        }
+        if (String(val).length < 12) {
+            el.textContent = t('ts_hint.seconds');
+            el.style.color = 'var(--warning)';
+            return;
+        }
+        const d = new Date(val);
+        if (isNaN(d.getTime())) {
+            el.textContent = t('ts_hint.invalid');
+            el.style.color = 'var(--danger)';
+            return;
+        }
+        el.textContent = d.toLocaleString(currentLang === 'zh' ? 'zh-CN' : 'en-US');
+        el.style.color = 'var(--text-muted)';
+    }
+
+    const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+    function validateUuids(str) {
+        return str.split(',').map(s => s.trim()).filter(Boolean).every(u => UUID_RE.test(u));
+    }
+
+    function submitCreateCode() {
+        const type = document.getElementById('cc_type').value;
+        const reward = document.getElementById('cc_reward').value.trim();
+        const code = document.getElementById('cc_code').value.trim();
+
+        if (!reward) {
+            showTips(t('error.reward_empty'), 'error');
+            return;
+        }
+        if (!/^(item@|exp@|permissions@).+/i.test(reward)) {
+            showTips(t('error.reward_format'), 'error');
             return;
         }
 
-        let html = '<table><thead><tr><th>' + t('table.time') + '</th><th>' + t('table.type') + '</th><th>' + t('table.executor') + '</th><th>' + t('table.details') + '</th></tr></thead><tbody>';
-        for (const log of logs) {
-            html += `<tr>
+        const body = {type, reward, code};
+
+        if (type === 'PERSONAL') {
+            const player = document.getElementById('cc_player').value.trim();
+            if (!player) {
+                showTips(t('error.personal_no_uuid'), 'error');
+                return;
+            }
+            if (!validateUuids(player)) {
+                showTips(t('error.uuid_format'), 'error');
+                return;
+            }
+            body.player = player;
+        }
+
+        if (type === 'GLOBAL_LIMIT') {
+            const mode = document.getElementById('cc_gl_mode').value;
+            const limit = parseInt(document.getElementById('cc_gl_limit').value);
+            if (!limit || limit === 0) {
+                showTips(t('error.limit_zero'), 'error');
+                return;
+            }
+            body.selectMode = mode;
+            body.limit = limit;
+
+            if (mode === 'tag') {
+                const tag = document.getElementById('cc_gl_tag').value.trim();
+                if (!tag) {
+                    showTips(t('error.tag_empty'), 'error');
+                    return;
+                }
+                body.tag = tag;
+            } else if (mode === 'scoreboard') {
+                const sb = document.getElementById('cc_gl_scoreboard').value;
+                if (!sb) {
+                    showTips(t('error.scoreboard_empty'), 'error');
+                    return;
+                }
+                body.scoreboard = sb;
+            } else {
+                const player = document.getElementById('cc_gl_player').value.trim();
+                if (!player) {
+                    showTips(t('error.manual_no_uuid'), 'error');
+                    return;
+                }
+                if (!validateUuids(player)) {
+                    showTips(t('error.uuid_format'), 'error');
+                    return;
+                }
+                body.player = player;
+            }
+
+            const countVal = document.getElementById('cc_gl_count').value.trim();
+            if (countVal !== '') {
+                const count = parseInt(countVal);
+                if (isNaN(count) || count === 0) {
+                    showTips(t('error.count_zero'), 'error');
+                    return;
+                }
+                body.count = count;
+            }
+        }
+
+        if (type === 'TIMED') {
+            const startTime = parseInt(document.getElementById('cc_start').value) || 0;
+            const endTime = parseInt(document.getElementById('cc_end').value) || 0;
+            if (startTime > 0 && String(startTime).length < 12) {
+                showTips(t('error.start_ts_short'), 'error');
+                return;
+            }
+            if (endTime > 0 && String(endTime).length < 12) {
+                showTips(t('error.end_ts_short'), 'error');
+                return;
+            }
+            if (startTime > 0 && endTime > 0 && startTime >= endTime) {
+                showTips(t('error.start_after_end'), 'error');
+                return;
+            }
+            body.startTime = startTime;
+            body.endTime = endTime;
+        }
+
+        if (type === 'CYCLE') {
+            const startTime = parseInt(document.getElementById('cc_cy_start').value) || 0;
+            const interval = parseInt(document.getElementById('cc_cy_interval').value);
+            if (startTime > 0 && String(startTime).length < 12) {
+                showTips(t('error.ts_short'), 'error');
+                return;
+            }
+            if (!interval || interval <= 0) {
+                showTips(t('error.interval_zero'), 'error');
+                return;
+            }
+            body.startTime = startTime;
+            body.interval = interval * 1000;
+        }
+
+        const btn = document.getElementById('cc_submit');
+        btn.disabled = true;
+        btn.textContent = t('code.btn_submitting');
+
+        apiRequest('/api/codes', {method: 'POST', body})
+            .then(data => {
+                if (data.success) {
+                    showTips(t('code.created') + data.code, 'success');
+                    invalidateCodesCache();
+                    renderCreateCode();
+                } else {
+                    showTips(data.message || t('error.create_failed'), 'error');
+                }
+            })
+            .catch(() => {
+                showTips(t('error.request_failed'), 'error');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = t('code.btn_submit');
+            });
+    }
+
+    let logOffset = 0;
+    const logPageSize = 30;
+
+    function renderLogs(offset) {
+        logOffset = offset;
+        contentArea.innerHTML = '<div class="card"><div class="flex-between"><div class="card-title" style="margin-bottom:0;border:none;padding:0">' + t('logs.title') + '</div>' +
+            '<button class="btn btn-outline btn-sm" onclick="renderLogs(0)">↻ ' + t('common.refresh') + '</button></div>' +
+            '<div id="logsBody" style="margin-top:14px">' + t('code.loading') + '</div></div>';
+
+        apiRequest(`/api/logs?offset=${offset}&limit=${logPageSize}`).then(data => {
+            if (!data.success) return;
+            const logs = data.data;
+            if (logs.length === 0 && offset === 0) {
+                document.getElementById('logsBody').innerHTML = '<div class="empty-state">' + t('logs.empty') + '</div>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>' + t('table.time') + '</th><th>' + t('table.type') + '</th><th>' + t('table.executor') + '</th><th>' + t('table.details') + '</th></tr></thead><tbody>';
+            for (const log of logs) {
+                html += `<tr>
                 <td class="text-sm">${escHtml(log.time)}</td>
                 <td>${logTypeBadge(log.type)}</td>
                 <td>${renderExecutor(log)}</td>
                 <td class="text-sm text-muted">${formatDetails(log.details)}</td>
             </tr>`;
-        }
-        html += '</tbody></table>';
-        const pageNum = Math.floor(offset / logPageSize) + 1;
-        html += `<div class="pagination">
+            }
+            html += '</tbody></table>';
+            const pageNum = Math.floor(offset / logPageSize) + 1;
+            html += `<div class="pagination">
             <button ${offset === 0 ? 'disabled' : ''} onclick="renderLogs(${Math.max(0, offset - logPageSize)})">${t('logs.prev')}</button>
             <span>${t('logs.page')} ${pageNum} ${currentLang === 'zh' ? '页' : ''}</span>
             <button ${logs.length < logPageSize ? 'disabled' : ''} onclick="renderLogs(${offset + logPageSize})">${t('logs.next')}</button>
         </div>`;
-        document.getElementById('logsBody').innerHTML = html;
-    }).catch(() => {});
-}
+            document.getElementById('logsBody').innerHTML = html;
+        }).catch(() => {
+        });
+    }
 
-function renderPlayers() {
-    contentArea.innerHTML = '<div class="card"><div class="card-title">' + t('players.title') + '</div><div id="playersBody">' + t('code.loading') + '</div></div>';
+    function renderPlayers() {
+        contentArea.innerHTML = '<div class="card"><div class="card-title">' + t('players.title') + '</div><div id="playersBody">' + t('code.loading') + '</div></div>';
 
-    apiRequest('/api/players').then(data => {
-        if (!data.success) return;
-        const players = data.data;
-        if (players.length === 0) {
-            document.getElementById('playersBody').innerHTML = '<div class="empty-state">' + t('players.empty') + '</div>';
-            return;
-        }
+        apiRequest('/api/players').then(data => {
+            if (!data.success) return;
+            const players = data.data;
+            if (players.length === 0) {
+                document.getElementById('playersBody').innerHTML = '<div class="empty-state">' + t('players.empty') + '</div>';
+                return;
+            }
 
-        let html = '<table><thead><tr><th>' + t('table.player_name') + '</th><th>' + t('table.uuid') + '</th><th>' + t('table.ping') + '</th></tr></thead><tbody>';
-        for (const p of players) {
-            html += `<tr>
+            let html = '<table><thead><tr><th>' + t('table.player_name') + '</th><th>' + t('table.uuid') + '</th><th>' + t('table.ping') + '</th></tr></thead><tbody>';
+            for (const p of players) {
+                html += `<tr>
                 <td><strong>${escHtml(p.name)}</strong></td>
                 <td class="mono clickable text-sm" onclick="copyText('${escJsStr(p.uuid)}')">${escHtml(p.uuid)}</td>
                 <td>${escHtml(p.ping)} ms</td>
             </tr>`;
-        }
-        html += '</tbody></table>';
-        document.getElementById('playersBody').innerHTML = html;
-    }).catch(() => {});
-}
+            }
+            html += '</tbody></table>';
+            document.getElementById('playersBody').innerHTML = html;
+        }).catch(() => {
+        });
+    }
 
-function renderSettings() {
-    contentArea.innerHTML = '<div class="card"><div class="card-title">' + t('settings.title') + '</div><div class="card-body" id="configBody">' + t('code.loading') + '</div></div>';
+    function renderSettings() {
+        contentArea.innerHTML = '<div class="card"><div class="card-title">' + t('settings.title') + '</div><div class="card-body" id="configBody">' + t('code.loading') + '</div></div>';
 
-    apiRequest('/api/config').then(data => {
-        if (!data.success) return;
-        const cfg = data.data;
-        let html = '<table><thead><tr><th>' + t('table.config_key') + '</th><th>' + t('table.value') + '</th></tr></thead><tbody>';
-        for (const [k, v] of Object.entries(cfg)) {
-            html += `<tr>
+        apiRequest('/api/config').then(data => {
+            if (!data.success) return;
+            const cfg = data.data;
+            let html = '<table><thead><tr><th>' + t('table.config_key') + '</th><th>' + t('table.value') + '</th></tr></thead><tbody>';
+            for (const [k, v] of Object.entries(cfg)) {
+                html += `<tr>
                 <td class="mono">${escHtml(k)}</td>
                 <td>${escHtml(String(v))}</td>
             </tr>`;
-        }
-        html += '</tbody></table>';
-        html += '<p class="text-sm text-muted mt-16">' + t('settings.hint') + '</p>';
-        document.getElementById('configBody').innerHTML = html;
-    }).catch(() => {});
-}
+            }
+            html += '</tbody></table>';
+            html += '<p class="text-sm text-muted mt-16">' + t('settings.hint') + '</p>';
+            document.getElementById('configBody').innerHTML = html;
+        }).catch(() => {
+        });
+    }
 
-function renderReload() {
-    contentArea.innerHTML = `<div class="card">
+    function renderReload() {
+        contentArea.innerHTML = `<div class="card">
         <div class="card-title">${t('reload.title')}</div>
         <div class="card-body">
             <p>${t('reload.desc')}</p>
@@ -1366,31 +1740,39 @@ function renderReload() {
             </div>
         </div>
     </div>`;
-}
+    }
 
-function doReload() {
-    const btn = document.getElementById('reloadBtn');
-    btn.disabled = true; btn.textContent = t('reload.btn_reloading');
+    function doReload() {
+        const btn = document.getElementById('reloadBtn');
+        btn.disabled = true;
+        btn.textContent = t('reload.btn_reloading');
 
-    apiRequest('/api/reload', { method: 'POST' })
-        .then(data => {
-            if (data.success) {
-                showTips(t('reload.success'), 'success');
-                clearToken();
-                setTimeout(() => { window.location.href = '/index.html'; }, 1500);
-            } else {
-                showTips(data.message || t('error.reload_failed'), 'error');
-            }
-        })
-        .catch(() => { showTips(t('error.request_failed'), 'error'); })
-        .finally(() => { btn.disabled = false; btn.textContent = t('reload.btn'); });
-}
+        apiRequest('/api/reload', {method: 'POST'})
+            .then(data => {
+                if (data.success) {
+                    showTips(t('reload.success'), 'success');
+                    clearToken();
+                    setTimeout(() => {
+                        window.location.href = '/index.html';
+                    }, 1500);
+                } else {
+                    showTips(data.message || t('error.reload_failed'), 'error');
+                }
+            })
+            .catch(() => {
+                showTips(t('error.request_failed'), 'error');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = t('reload.btn');
+            });
+    }
 
-document.getElementById('detailModal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-});
+    document.getElementById('detailModal').addEventListener('click', function (e) {
+        if (e.target === this) closeModal();
+    });
 
-renderDashboard();
+    renderDashboard();
 </script>
 </body>
 </html>

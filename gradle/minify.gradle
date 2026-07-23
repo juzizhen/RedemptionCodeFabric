@@ -1,0 +1,210 @@
+// ===================== 面板资源压缩（词法分析，保证语义不变） =====================
+// 原朴素正则会连同字符串/模板串里的空格一起删除（如 SVG path 的 "M ${x} ${y}" 被压成 "M ${x}${y}"），
+// 这里改用字符级状态机：字符串/模板串/正则/注释原样保留，只压缩代码区域的空白与注释。
+// 通过 build.gradle 中 apply from: 'gradle/minify.gradle' 引入。
+
+// 判断字符是否为标识符/数字字符（决定压缩空白时是否需要保留一个空格以防 token 粘连）
+static def isJsWordChar(String ch) {
+    if (ch == null || ch.isEmpty()) return false
+    char x = ch.charAt(0)
+    Character.isLetterOrDigit(x) || x == (char) '_' || x == (char) '$'
+}
+
+def minifyJs(String src) {
+    // 这些关键字后面可以紧跟正则字面量（如 return /re/），此时 '/' 不是除号
+    Set jsRegexKeywords = ['return', 'typeof', 'instanceof', 'in', 'of', 'new', 'delete', 'void', 'do', 'else', 'case', 'throw', 'yield', 'await'] as Set
+    StringBuilder out = new StringBuilder()
+    int n = src.length(), i = 0
+    String lastSig = ''   // 上一个有意义的代码字符，用于区分除号与正则字面量
+    char lastOut = (char) 0
+
+    // 追加原文片段，并同步维护 lastOut / lastSig
+    Closure appendRaw = { String s ->
+        out.append(s)
+        if (!s.isEmpty()) {
+            lastOut = s.charAt(s.length() - 1)
+            String t = s.trim()
+            if (!t.isEmpty()) lastSig = t.substring(t.length() - 1)
+        }
+    }
+    // 压缩空白：仅当两侧都是标识符/数字字符时保留一个空格
+    Closure appendSpace = { ->
+        if (out.length() > 0 && isJsWordChar(String.valueOf(lastOut))) {
+            int j = i
+            while (j < n && Character.isWhitespace(src.charAt(j))) j++
+            if (j < n && isJsWordChar(String.valueOf(src.charAt(j)))) out.append(' ')
+        }
+    }
+
+    while (i < n) {
+        char c = src.charAt(i)
+        char nx = (i + 1 < n) ? src.charAt(i + 1) : (char) 0
+
+        if (Character.isWhitespace(c)) {
+            appendSpace()
+            i++
+            continue
+        }
+
+        // 行注释
+        if (c == (char) '/' && nx == (char) '/') {
+            i += 2
+            while (i < n && src.charAt(i) != (char) '\n') i++
+            continue
+        }
+        // 块注释
+        if (c == (char) '/' && nx == (char) '*') {
+            i += 2
+            while (i + 1 < n && !(src.charAt(i) == (char) '*' && src.charAt(i + 1) == (char) '/')) i++
+            i = Math.min(n, i + 2)
+            continue
+        }
+
+        // 字符串（单引号/双引号），原样保留
+        if (c == (char) '"' || c == (char) "'") {
+            char q = c
+            int j = i + 1
+            while (j < n) {
+                char sc = src.charAt(j)
+                if (sc == (char) '\\') { j += 2; continue }
+                if (sc == q) { j++; break }
+                j++
+            }
+            appendRaw(src.substring(i, Math.min(n, j)))
+            i = j
+            continue
+        }
+
+        // 模板字符串，原样保留；${} 内的表达式递归压缩
+        if (c == (char) '`') {
+            StringBuilder tpl = new StringBuilder('`')
+            int j = i + 1
+            while (j < n) {
+                char tc = src.charAt(j)
+                if (tc == (char) '\\') {
+                    tpl.append(src.charAt(j))
+                    if (j + 1 < n) tpl.append(src.charAt(j + 1))
+                    j += 2
+                    continue
+                }
+                if (tc == (char) '`') { tpl.append('`'); j++; break }
+                if (tc == (char) '$' && j + 1 < n && src.charAt(j + 1) == (char) '{') {
+                    int depth = 1
+                    int k = j + 2
+                    while (k < n && depth > 0) {
+                        char ec = src.charAt(k)
+                        if (ec == (char) '{') depth++
+                        else if (ec == (char) '}') depth--
+                        if (depth == 0) break
+                        k++
+                    }
+                    tpl.append('${').append(minifyJs(src.substring(j + 2, k))).append('}')
+                    j = k + 1
+                    continue
+                }
+                tpl.append(tc)
+                j++
+            }
+            appendRaw(tpl.toString())
+            i = j
+            continue
+        }
+
+        // 正则字面量（依据上一个有意义字符判断，避免把除号误当正则）
+        boolean wordOrClose = isJsWordChar(lastSig) || lastSig == ')' || lastSig == ']' || lastSig == '.'
+        boolean canBeRegex = !wordOrClose || jsRegexKeywords.contains(lastSig)
+        if (c == (char) '/' && canBeRegex) {
+            int j = i + 1
+            boolean inClass = false, valid = false
+            while (j < n) {
+                char rc = src.charAt(j)
+                if (rc == (char) '\\') { j += 2; continue }
+                if (rc == (char) '[') inClass = true
+                else if (rc == (char) ']') inClass = false
+                else if (rc == (char) '/' && !inClass) { valid = true; j++; break }
+                else if (rc == (char) '\n') break
+                j++
+            }
+            if (valid) {
+                while (j < n && Character.isLowerCase(src.charAt(j))) j++
+                appendRaw(src.substring(i, j))
+                i = j
+                continue
+            }
+        }
+
+        out.append(c)
+        lastOut = c
+        if (!Character.isWhitespace(c)) lastSig = String.valueOf(c)
+        i++
+    }
+    return out.toString().trim()
+}
+
+static def minifyCss(String src) {
+    StringBuilder out = new StringBuilder()
+    int n = src.length(), i = 0
+    while (i < n) {
+        char c = src.charAt(i)
+        char nx = (i + 1 < n) ? src.charAt(i + 1) : (char) 0
+        // 注释
+        if (c == (char) '/' && nx == (char) '*') {
+            i += 2
+            while (i + 1 < n && !(src.charAt(i) == (char) '*' && src.charAt(i + 1) == (char) '/')) i++
+            i = Math.min(n, i + 2)
+            continue
+        }
+        // 字符串原样保留
+        if (c == (char) '"' || c == (char) "'") {
+            char q = c
+            int j = i + 1
+            while (j < n) {
+                char sc = src.charAt(j)
+                if (sc == (char) '\\') { j += 2; continue }
+                if (sc == q) { j++; break }
+                j++
+            }
+            out.append(src.substring(i, Math.min(n, j)))
+            i = j
+            continue
+        }
+        // 空白折叠为单个空格
+        if (Character.isWhitespace(c)) {
+            if (out.length() > 0 && out.charAt(out.length() - 1) != (char) ' ') out.append(' ')
+            i++
+            continue
+        }
+        // 结构符号两侧空格去除
+        if (c ==~ /[{}:;,>~+()]/) {
+            if (out.length() > 0 && out.charAt(out.length() - 1) == (char) ' ') out.setLength(out.length() - 1)
+            out.append(c)
+            i++
+            while (i < n && Character.isWhitespace(src.charAt(i))) i++
+            continue
+        }
+        out.append(c)
+        i++
+    }
+    return out.toString().trim()
+}
+
+// 压缩面板资源：仅压缩内联 <style>/<script>（词法分析，保证字符串/模板串语义不变），HTML 标记保持原样
+processResources {
+    doLast {
+        fileTree("$buildDir/resources/main/assets/redemptioncodefabric/web").matching {
+            include '**/*.html'
+        }.forEach { file ->
+            def content = file.text
+
+            content = content.replaceAll(/(?is)(<style[^>]*>)(.*?)(<\/style>)/) { match, startTag, cssBlock, endTag ->
+                startTag + minifyCss(cssBlock) + endTag
+            }
+
+            content = content.replaceAll(/(?is)(<script(?![^>]*\bsrc\b)[^>]*>)(.*?)(<\/script>)/) { match, startTag, jsBlock, endTag ->
+                startTag + minifyJs(jsBlock) + endTag
+            }
+
+            file.text = content
+        }
+    }
+}

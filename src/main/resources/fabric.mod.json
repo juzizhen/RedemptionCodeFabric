@@ -1,31 +1,31 @@
 {
-	"schemaVersion": 1,
-	"id": "redemptioncodefabric",
-	"version": "${version}",
-	"name": "RedemptionCodeFabric",
-	"description": "This is a redemption code mod that only requires server installation.",
-	"authors": [
-		"juzizhen"
-	],
-	"contact": {
-		"homepage": "https://github.com/juzizhen/RedemptionCodeFabric",
-		"sources": "https://github.com/juzizhen/RedemptionCodeFabric"
-	},
-	"license": "GPL-3.0",
-	"icon": "assets/redemptioncodefabric/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-          "com.juzizhen.redemptioncodefabric.RedemptionCodeFabric"
-		],
-		"client": [
-          "com.juzizhen.redemptioncodefabric.RedemptionCodeFabricClient"
-		]
-	},
-	"depends": {
-		"fabricloader": ">=0.18.4",
-		"minecraft": "~1.20.1",
-		"java": ">=17",
-		"fabric-api": "*"
-	}
+  "schemaVersion": 1,
+  "id": "redemptioncodefabric",
+  "version": "${version}",
+  "name": "RedemptionCodeFabric",
+  "description": "This is a redemption code mod that only requires server installation.",
+  "authors": [
+    "juzizhen"
+  ],
+  "contact": {
+    "homepage": "https://github.com/juzizhen/RedemptionCodeFabric",
+    "sources": "https://github.com/juzizhen/RedemptionCodeFabric"
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/redemptioncodefabric/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.juzizhen.redemptioncodefabric.RedemptionCodeFabric"
+    ],
+    "client": [
+      "com.juzizhen.redemptioncodefabric.RedemptionCodeFabricClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "fabric-api": "*"
+  }
 }

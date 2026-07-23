@@ -30,6 +30,7 @@
   "redemptioncodefabric.message.info_used_by_entry": " - %s",
   "redemptioncodefabric.message.info_footer": "---------------------------",
   "redemptioncodefabric.message.config_reloaded": "配置已重新加载！",
+  "redemptioncodefabric.message.not_ready": "系统正在初始化或重载中，请稍后再试。",
   "redemptioncodefabric.message.info_player_group": "指定给一个 %s 人的玩家组。",
   "redemptioncodefabric.message.limit_cannot_be_zero": "限制数量不能为零。",
   "redemptioncodefabric.message.invalid_date_format": "无效的日期格式。请使用 yyyy-MM-dd_HH-mm-ss，或使用 0-0-0_0-0-0 代表当前时间。",

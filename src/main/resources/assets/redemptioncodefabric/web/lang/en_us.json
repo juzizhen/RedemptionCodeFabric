@@ -14,12 +14,10 @@
   "login.alert_wrong": "Incorrect username or password",
   "login.alert_network": "Network error, please try again",
   "login.forgot_msg": "Password is stored in the server config file. Open config/redemptioncodefabric/redemptioncodefabric.properties, check or modify the \"web.password\" field and restart the server.",
-
   "admin.title": "Admin Panel - RedemptionCodeFabric",
   "admin.panel": "Admin Panel",
   "admin.admin": "Admin",
   "admin.logout": "Logout",
-
   "sidebar.overview": "Overview",
   "sidebar.dashboard": "Dashboard",
   "sidebar.code_mgmt": "Code Management",
@@ -31,7 +29,6 @@
   "sidebar.players": "Online Players",
   "sidebar.settings": "Configuration",
   "sidebar.reload": "Reload Config",
-
   "dashboard.online_players": "Online Players",
   "dashboard.total_codes": "Total Codes",
   "dashboard.storage_type": "Storage Type",
@@ -45,7 +42,6 @@
   "dashboard.status_unused": "Unused",
   "dashboard.status_used": "Used",
   "dashboard.status_expired": "Expired",
-
   "table.time": "Time",
   "table.type": "Type",
   "table.executor": "Executor",
@@ -59,7 +55,6 @@
   "table.ping": "Ping",
   "table.config_key": "Config Key",
   "table.value": "Value",
-
   "code.type_once": "ONCE (One-time)",
   "code.type_permanent": "PERMANENT (Permanent)",
   "code.type_personal": "PERSONAL (Personal)",
@@ -127,26 +122,21 @@
   "code.select_scoreboard": "-- Select Scoreboard --",
   "code.scoreboard_loading": "Loading...",
   "code.loading": "Loading...",
-
   "logs.title": "Operation Logs",
   "logs.empty": "No operation records",
   "logs.page": "Page",
   "logs.prev": "Previous",
   "logs.next": "Next",
-
   "players.title": "Online Players",
   "players.empty": "No players online",
-
   "settings.title": "Current Configuration",
   "settings.hint": "To modify config, edit server's config/redemptioncodefabric/redemptioncodefabric.properties file, then use \"Reload Config\".",
-
   "reload.title": "Reload Config",
   "reload.desc": "Click the button to re-read the server config file and reload all services (SQL, Redis, Web server, etc.).",
   "reload.warning": "Note: Reloading will invalidate all logged-in Web Tokens. You will need to log in again.",
   "reload.btn": "Reload Config",
   "reload.btn_reloading": "Reloading...",
   "reload.success": "Config reloaded, redirecting to login...",
-
   "common.refresh": "Refresh",
   "common.create": "Create",
   "common.detail": "Detail",
@@ -155,7 +145,6 @@
   "common.close": "Close",
   "common.confirm": "Confirm",
   "common.cancel": "Cancel",
-
   "error.unauthorized": "Session expired, please log in again",
   "error.request_failed": "Request failed",
   "error.delete_failed": "Delete failed",
@@ -176,7 +165,6 @@
   "error.start_after_end": "Start time must be earlier than end time",
   "error.ts_short": "Timestamp too short, millisecond should be 13 digits",
   "error.interval_zero": "Interval must be greater than 0 seconds",
-
   "ts_hint.seconds": "Looks like a second-level timestamp, millisecond should be 13 digits",
   "ts_hint.invalid": "Invalid timestamp"
 }

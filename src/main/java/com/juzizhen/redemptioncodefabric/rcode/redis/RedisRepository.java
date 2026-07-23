@@ -15,14 +15,15 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 /**
- * Redis-backed implementation of {@link IDataRepository}.
- * Falls back to {@link FileRepository} when Redis is unavailable.
+ * 基于 Redis 的 {@link IDataRepository} 实现。
+ * 当 Redis 不可用时回退到 {@link FileRepository}。
  */
 public class RedisRepository implements IDataRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("RedemptionCodeFabric-Redis");
     private static final Gson GSON = new Gson();
-    private static final Type USED_BY_TYPE = new TypeToken<Map<String, List<Long>>>() {}.getType();
+    private static final Type USED_BY_TYPE = new TypeToken<Map<String, List<Long>>>() {
+    }.getType();
 
     private static final String KEY_PREFIX = "rcode:code:";
     private static final String KEY_CODE_INDEX = "rcode:codes";
@@ -113,7 +114,7 @@ public class RedisRepository implements IDataRepository {
             Map<String, CodeData> result = new HashMap<>();
 
             for (String key : codeKeys) {
-                // key format: rcode:code:{code}
+                // key 格式：rcode:code:{code}
                 String code = key.substring(KEY_PREFIX.length());
                 Map<String, String> hash = jedis.hgetAll(key);
                 if (hash != null && !hash.isEmpty()) {
@@ -138,7 +139,7 @@ public class RedisRepository implements IDataRepository {
         }
 
         try (Jedis jedis = RedisManager.getInstance().getResource()) {
-            // Use pipeline for batch efficiency
+            // 使用 pipeline 提升批量写入效率
             var pipeline = jedis.pipelined();
             for (CodeData cd : codes.values()) {
                 String key = KEY_PREFIX + cd.getCode();
@@ -212,7 +213,7 @@ public class RedisRepository implements IDataRepository {
             long total = jedis.llen(KEY_OPERATION_LOG);
             if (total == 0 || offset >= total) return new ArrayList<>();
 
-            // List is chronological (rpush), we want newest first — reverse the indices
+            // 列表按时间正序存储（rpush），需最新在前——反转索引
             int fromIndex = Math.min(offset, (int) total);
             int toIndex = Math.min(fromIndex + limit, (int) total);
             long start = total - toIndex;
@@ -221,7 +222,8 @@ public class RedisRepository implements IDataRepository {
             Collections.reverse(jsonList);
 
             List<OperationLogEntry> result = new ArrayList<>();
-            Type detailsType = new TypeToken<Map<String, String>>() {}.getType();
+            Type detailsType = new TypeToken<Map<String, String>>() {
+            }.getType();
             for (String json : jsonList) {
                 try {
                     com.google.gson.JsonObject obj = GSON.fromJson(json, com.google.gson.JsonObject.class);

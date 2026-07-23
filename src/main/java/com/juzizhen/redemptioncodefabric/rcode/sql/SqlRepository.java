@@ -26,8 +26,10 @@ import java.util.concurrent.CompletableFuture;
 public class SqlRepository implements IDataRepository {
 
     private static final Gson GSON = new Gson();
-    private static final Type USED_BY_TYPE = new TypeToken<Map<String, List<Long>>>() {}.getType();
-    private static final Type DETAILS_TYPE = new TypeToken<Map<String, String>>() {}.getType();
+    private static final Type USED_BY_TYPE = new TypeToken<Map<String, List<Long>>>() {
+    }.getType();
+    private static final Type DETAILS_TYPE = new TypeToken<Map<String, String>>() {
+    }.getType();
 
     private final SqlManager sqlManager;
 
@@ -44,9 +46,9 @@ public class SqlRepository implements IDataRepository {
                 try {
                     conn = sqlManager.getConnectionPool().getConnection();
                     String sql = """
-                        SELECT code, type, reward, player, count, start_time, end_time, code_interval, used_by
-                        FROM redemption_codes
-                        """;
+                            SELECT code, type, reward, player, count, start_time, end_time, code_interval, used_by
+                            FROM redemption_codes
+                            """;
 
                     try (PreparedStatement stmt = conn.prepareStatement(sql);
                          ResultSet rs = stmt.executeQuery()) {
@@ -88,15 +90,15 @@ public class SqlRepository implements IDataRepository {
                     String usedByJson = GSON.toJson(codeData.getUsedBy());
 
                     String sql = """
-                        INSERT INTO redemption_codes
-                        (code, type, reward, player, count, start_time, end_time, code_interval, used_by)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        ON DUPLICATE KEY UPDATE
-                        type = VALUES(type), reward = VALUES(reward), player = VALUES(player),
-                        count = VALUES(count), start_time = VALUES(start_time),
-                        end_time = VALUES(end_time), code_interval = VALUES(code_interval),
-                        used_by = VALUES(used_by)
-                        """;
+                            INSERT INTO redemption_codes
+                            (code, type, reward, player, count, start_time, end_time, code_interval, used_by)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            ON DUPLICATE KEY UPDATE
+                            type = VALUES(type), reward = VALUES(reward), player = VALUES(player),
+                            count = VALUES(count), start_time = VALUES(start_time),
+                            end_time = VALUES(end_time), code_interval = VALUES(code_interval),
+                            used_by = VALUES(used_by)
+                            """;
 
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setString(1, codeData.getCode());
@@ -143,7 +145,7 @@ public class SqlRepository implements IDataRepository {
 
         // 添加使用记录
         usedBy.forEach((uuid, timestamps) ->
-            timestamps.forEach(ts -> codeData.addUsedBy(uuid, ts))
+                timestamps.forEach(ts -> codeData.addUsedBy(uuid, ts))
         );
 
         return codeData;
@@ -200,9 +202,9 @@ public class SqlRepository implements IDataRepository {
                     conn = sqlManager.getConnectionPool().getConnection();
                     String detailsJson = GSON.toJson(logEntry.getDetails());
                     String sql = """
-                        INSERT INTO operation_logs (timestamp, operation_type, executor, details)
-                        VALUES (?, ?, ?, ?)
-                        """;
+                            INSERT INTO operation_logs (timestamp, operation_type, executor, details)
+                            VALUES (?, ?, ?, ?)
+                            """;
 
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setLong(1, logEntry.getTimestamp());
@@ -233,11 +235,11 @@ public class SqlRepository implements IDataRepository {
                 try {
                     conn = sqlManager.getConnectionPool().getConnection();
                     String sql = """
-                        SELECT timestamp, operation_type, executor, details
-                        FROM operation_logs
-                        ORDER BY timestamp DESC
-                        LIMIT ? OFFSET ?
-                        """;
+                            SELECT timestamp, operation_type, executor, details
+                            FROM operation_logs
+                            ORDER BY timestamp DESC
+                            LIMIT ? OFFSET ?
+                            """;
 
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setInt(1, limit);

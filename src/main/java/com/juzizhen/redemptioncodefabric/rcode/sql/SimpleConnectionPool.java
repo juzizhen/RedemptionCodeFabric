@@ -56,37 +56,10 @@ public class SimpleConnectionPool {
     private static final long DEFAULT_VALIDATION_TIMEOUT_MS = 5_000;    // 5s
     private static final long MAINTENANCE_INTERVAL_MS = 30_000;         // 30s
     private static final long SHUTDOWN_WAIT_MS = 30_000;               // 30s
-
-    private static class PoolEntry {
-        final Connection connection;
-        final long createdAt;
-        volatile long lastUsedAt;
-        volatile long lastValidatedAt;
-        volatile long checkedOutAt;
-
-        PoolEntry(Connection connection) {
-            this.connection = connection;
-            long now = System.currentTimeMillis();
-            this.createdAt = now;
-            this.lastUsedAt = now;
-            this.lastValidatedAt = now;
-            this.checkedOutAt = 0;
-        }
-
-        boolean isAlive() {
-            try {
-                return !connection.isClosed();
-            } catch (SQLException e) {
-                return false;
-            }
-        }
-    }
-
     // 连接信息
     private final String jdbcUrl;
     private final String user;
     private final String password;
-
     // 池配置
     private final int maxPoolSize;
     private final int minIdle;
@@ -97,12 +70,10 @@ public class SimpleConnectionPool {
     private final long keepaliveTime;
     private final int validationTimeoutSec;
     private final String connectionInitSql;
-
     // 池状态
     private final AtomicInteger totalConnections = new AtomicInteger(0);
     private final ConcurrentLinkedQueue<PoolEntry> idleQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentHashMap<Connection, PoolEntry> allEntries = new ConcurrentHashMap<>();
-
     // 后台维护调度器
     private final ScheduledExecutorService maintenanceScheduler;
     private volatile boolean isShutdown = false;
@@ -550,5 +521,30 @@ public class SimpleConnectionPool {
         }
 
         LOGGER.info("Connection pool shut down complete.");
+    }
+
+    private static class PoolEntry {
+        final Connection connection;
+        final long createdAt;
+        volatile long lastUsedAt;
+        volatile long lastValidatedAt;
+        volatile long checkedOutAt;
+
+        PoolEntry(Connection connection) {
+            this.connection = connection;
+            long now = System.currentTimeMillis();
+            this.createdAt = now;
+            this.lastUsedAt = now;
+            this.lastValidatedAt = now;
+            this.checkedOutAt = 0;
+        }
+
+        boolean isAlive() {
+            try {
+                return !connection.isClosed();
+            } catch (SQLException e) {
+                return false;
+            }
+        }
     }
 }

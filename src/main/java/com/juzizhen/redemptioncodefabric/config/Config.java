@@ -18,6 +18,23 @@ public class Config {
         load();
     }
 
+    public static String getString(String key, String defaultValue) {
+        return properties.getProperty(key, defaultValue);
+    }
+
+    public static int getInt(String key, int defaultValue) {
+        try {
+            return Integer.parseInt(properties.getProperty(key, String.valueOf(defaultValue)));
+        } catch (NumberFormatException e) {
+            RedemptionCodeFabric.LOGGER.warn("Invalid number format for key '{}'. Using default value '{}'.", key, defaultValue);
+            return defaultValue;
+        }
+    }
+
+    public static boolean getBoolean(String key, boolean defaultValue) {
+        return Boolean.parseBoolean(properties.getProperty(key, String.valueOf(defaultValue)));
+    }
+
     private void load() {
         try {
             if (!CONFIG_FILE.getParentFile().exists()) {
@@ -54,9 +71,12 @@ public class Config {
      */
     private void saveOrganized() throws IOException {
         try (BufferedWriter w = new BufferedWriter(new FileWriter(CONFIG_FILE))) {
-            w.write("# ============================================================"); w.newLine();
-            w.write("#  RedemptionCodeFabric Configuration"); w.newLine();
-            w.write("# ============================================================"); w.newLine();
+            w.write("# ============================================================");
+            w.newLine();
+            w.write("#  RedemptionCodeFabric Configuration");
+            w.newLine();
+            w.write("# ============================================================");
+            w.newLine();
 
             // ── Datastore ──
             section(w, "Datastore", "Storage backend: file / sql / redis");
@@ -137,7 +157,7 @@ public class Config {
 
     private boolean ensureAllKeysExist() {
         boolean updated = false;
-        // The datastore.type from the old dataStoragePattern
+        // 从旧的 dataStoragePattern 迁移 datastore.type
         // 0 -> file, 1 -> sql, 2 -> redis
         String dataStoragePattern = properties.getProperty("dataStoragePattern");
         if (dataStoragePattern != null) {
@@ -258,23 +278,5 @@ public class Config {
 
     public int getRedisDatabase() {
         return getInt("redis.database", 0);
-    }
-
-
-    public static String getString(String key, String defaultValue) {
-        return properties.getProperty(key, defaultValue);
-    }
-
-    public static int getInt(String key, int defaultValue) {
-        try {
-            return Integer.parseInt(properties.getProperty(key, String.valueOf(defaultValue)));
-        } catch (NumberFormatException e) {
-            RedemptionCodeFabric.LOGGER.warn("Invalid number format for key '{}'. Using default value '{}'.", key, defaultValue);
-            return defaultValue;
-        }
-    }
-
-    public static boolean getBoolean(String key, boolean defaultValue) {
-        return Boolean.parseBoolean(properties.getProperty(key, String.valueOf(defaultValue)));
     }
 }
