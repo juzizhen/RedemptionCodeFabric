@@ -59,6 +59,8 @@ jar {
 }
 
 shadowJar {
+    destinationDirectory = layout.buildDirectory.dir("tmp/shadowJar")
+
     configurations.add(project.configurations.shadowBundle)
 
     minimize {
