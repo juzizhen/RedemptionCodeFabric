@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.juzizhen.redemptioncodefabric.RedemptionCodeFabric;
 import com.juzizhen.redemptioncodefabric.async.AsyncIoManager;
+import com.juzizhen.redemptioncodefabric.config.Config;
 import com.juzizhen.redemptioncodefabric.rcode.model.CodeData;
 import com.juzizhen.redemptioncodefabric.rcode.model.CodeType;
 import com.juzizhen.redemptioncodefabric.rcode.model.OperationLogEntry;
@@ -32,9 +33,14 @@ public class SqlRepository implements IDataRepository {
     }.getType();
 
     private final SqlManager sqlManager;
+    private final SqlWriteBatcher batcher;
 
     public SqlRepository(SqlManager sqlManager) {
         this.sqlManager = sqlManager;
+        long intervalMs = Config.getInt("pool.batchInterval", 5000);
+        int maxSize = Config.getInt("pool.batchMaxSize", 50);
+        this.batcher = new SqlWriteBatcher(sqlManager.getConnectionPool(), intervalMs, maxSize);
+        sqlManager.addShutdownCallback(batcher::shutdown);
     }
 
     @Override
@@ -82,47 +88,38 @@ public class SqlRepository implements IDataRepository {
 
     @Override
     public void saveCode(CodeData codeData) {
-        try {
-            CompletableFuture.runAsync(() -> {
-                Connection conn = null;
-                try {
-                    conn = sqlManager.getConnectionPool().getConnection();
-                    String usedByJson = GSON.toJson(codeData.getUsedBy());
-
-                    String sql = """
-                            INSERT INTO redemption_codes
-                            (code, type, reward, player, count, start_time, end_time, code_interval, used_by)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            ON DUPLICATE KEY UPDATE
-                            type = VALUES(type), reward = VALUES(reward), player = VALUES(player),
-                            count = VALUES(count), start_time = VALUES(start_time),
-                            end_time = VALUES(end_time), code_interval = VALUES(code_interval),
-                            used_by = VALUES(used_by)
-                            """;
-
-                    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                        stmt.setString(1, codeData.getCode());
-                        stmt.setString(2, codeData.getType().name());
-                        stmt.setString(3, codeData.getReward());
-                        stmt.setString(4, codeData.getPlayer());
-                        stmt.setInt(5, codeData.getCount());
-                        stmt.setLong(6, codeData.getStartTime());
-                        stmt.setLong(7, codeData.getEndTime());
-                        stmt.setLong(8, codeData.getInterval());
-                        stmt.setString(9, usedByJson);
-                        stmt.executeUpdate();
-                    }
-                } catch (SQLException e) {
-                    RedemptionCodeFabric.LOGGER.error("Failed to save code to SQL: {}", codeData.getCode(), e);
-                } finally {
-                    if (conn != null) {
-                        sqlManager.getConnectionPool().releaseConnection(conn);
-                    }
+        CompletableFuture.runAsync(() -> {
+            Connection conn = null;
+            try {
+                conn = sqlManager.getConnectionPool().getConnection();
+                String sql = """
+                        INSERT INTO redemption_codes (code, type, reward, player, count, start_time, end_time, code_interval, used_by)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON DUPLICATE KEY UPDATE type = VALUES(type), reward = VALUES(reward), player = VALUES(player),
+                        count = VALUES(count), start_time = VALUES(start_time), end_time = VALUES(end_time),
+                        code_interval = VALUES(code_interval), used_by = VALUES(used_by)
+                        """;
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setString(1, codeData.getCode());
+                    stmt.setString(2, codeData.getType().name());
+                    stmt.setString(3, codeData.getReward());
+                    stmt.setString(4, codeData.getPlayer());
+                    stmt.setInt(5, codeData.getCount());
+                    stmt.setLong(6, codeData.getStartTime());
+                    stmt.setLong(7, codeData.getEndTime());
+                    stmt.setLong(8, codeData.getInterval());
+                    stmt.setString(9, GSON.toJson(codeData.getUsedBy(), USED_BY_TYPE));
+                    stmt.executeUpdate();
                 }
-            }, AsyncIoManager.getIoExecutor()).join();
-        } catch (Exception e) {
-            RedemptionCodeFabric.LOGGER.error("Failed to save code", e);
-        }
+            } catch (SQLException e) {
+                RedemptionCodeFabric.LOGGER.error("Failed to save code '{}' to SQL", codeData.getCode(), e);
+                throw new RuntimeException("SQL save failed for code: " + codeData.getCode(), e);
+            } finally {
+                if (conn != null) {
+                    sqlManager.getConnectionPool().releaseConnection(conn);
+                }
+            }
+        }, AsyncIoManager.getIoExecutor()).join();
     }
 
     /**
@@ -169,61 +166,62 @@ public class SqlRepository implements IDataRepository {
 
     @Override
     public void removeCode(String code) {
+        CompletableFuture.runAsync(() -> {
+            Connection conn = null;
+            try {
+                conn = sqlManager.getConnectionPool().getConnection();
+                try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM redemption_codes WHERE code = ?")) {
+                    stmt.setString(1, code);
+                    stmt.executeUpdate();
+                }
+            } catch (SQLException e) {
+                RedemptionCodeFabric.LOGGER.error("Failed to remove code '{}' from SQL", code, e);
+                throw new RuntimeException("SQL remove failed for code: " + code, e);
+            } finally {
+                if (conn != null) {
+                    sqlManager.getConnectionPool().releaseConnection(conn);
+                }
+            }
+        }, AsyncIoManager.getIoExecutor()).join();
+    }
+
+    @Override
+    public CodeData loadCode(String code) {
         try {
-            CompletableFuture.runAsync(() -> {
+            return CompletableFuture.supplyAsync(() -> {
                 Connection conn = null;
                 try {
                     conn = sqlManager.getConnectionPool().getConnection();
-                    String sql = "DELETE FROM redemption_codes WHERE code = ?";
-
+                    String sql = """
+                            SELECT code, type, reward, player, count, start_time, end_time, code_interval, used_by
+                            FROM redemption_codes WHERE code = ?
+                            """;
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setString(1, code);
-                        stmt.executeUpdate();
+                        try (ResultSet rs = stmt.executeQuery()) {
+                            if (rs.next()) {
+                                return mapRowToCodeData(rs);
+                            }
+                        }
                     }
                 } catch (SQLException e) {
-                    RedemptionCodeFabric.LOGGER.error("Failed to remove code from SQL: {}", code, e);
+                    RedemptionCodeFabric.LOGGER.error("Failed to load code '{}' from SQL", code, e);
                 } finally {
                     if (conn != null) {
                         sqlManager.getConnectionPool().releaseConnection(conn);
                     }
                 }
+                return null;
             }, AsyncIoManager.getIoExecutor()).join();
         } catch (Exception e) {
-            RedemptionCodeFabric.LOGGER.error("Failed to remove code", e);
+            RedemptionCodeFabric.LOGGER.error("Failed to load code '{}'", code, e);
+            return null;
         }
     }
 
     @Override
     public void appendOperationLog(OperationLogEntry logEntry) {
-        try {
-            CompletableFuture.runAsync(() -> {
-                Connection conn = null;
-                try {
-                    conn = sqlManager.getConnectionPool().getConnection();
-                    String detailsJson = GSON.toJson(logEntry.getDetails());
-                    String sql = """
-                            INSERT INTO operation_logs (timestamp, operation_type, executor, details)
-                            VALUES (?, ?, ?, ?)
-                            """;
-
-                    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                        stmt.setLong(1, logEntry.getTimestamp());
-                        stmt.setString(2, logEntry.getOperationType());
-                        stmt.setString(3, logEntry.getExecutor());
-                        stmt.setString(4, detailsJson);
-                        stmt.executeUpdate();
-                    }
-                } catch (SQLException e) {
-                    RedemptionCodeFabric.LOGGER.error("Failed to append operation log to SQL", e);
-                } finally {
-                    if (conn != null) {
-                        sqlManager.getConnectionPool().releaseConnection(conn);
-                    }
-                }
-            }, AsyncIoManager.getIoExecutor()).join();
-        } catch (Exception e) {
-            RedemptionCodeFabric.LOGGER.error("Failed to append operation log", e);
-        }
+        batcher.enqueueLog(logEntry);
     }
 
     @Override

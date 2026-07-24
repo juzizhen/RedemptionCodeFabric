@@ -19,6 +19,15 @@ public interface IDataRepository {
 
     void removeCode(String code);
 
+    /**
+     * 从数据源按主键查询单个兑换码。
+     * 用于兑换路径的 DB 校验：确认该码在数据源中确实存在且状态合法。
+     *
+     * @param code 兑换码字符串
+     * @return 对应的 CodeData，不存在时返回 null
+     */
+    CodeData loadCode(String code);
+
     void appendOperationLog(OperationLogEntry logEntry);
 
     /**

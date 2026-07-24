@@ -19,8 +19,8 @@ public class RedisManager {
 
     private static RedisManager instance;
 
-    private JedisPool jedisPool;
-    private boolean connected = false;
+    private volatile JedisPool jedisPool;
+    private volatile boolean connected = false;
 
     private RedisManager() {
     }

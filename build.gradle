@@ -92,22 +92,38 @@ shadowJar {
     exclude 'google/**'
     exclude '**/*.proto'
 
-    mergeServiceFiles()
-
-    def licenseNames = ['LICENSE', 'LICENSE.txt', 'LICENSE.md', 'NOTICE', 'NOTICE.txt', 'NOTICE.md']
-    licenseNames.each { fileName ->
-        append("META-INF/${fileName}")
-    }
-
-    eachFile { file ->
-        if (file.path == 'LICENSE') {
-            file.path = 'META-INF/LICENSE_MySQL'
-        } else if (file.path == 'LICENSE.txt' || file.path == 'LICENSE.md') {
-            file.path = 'META-INF/LICENSE_ThirdParty'
-        } else if (file.path == 'NOTICE' || file.path == 'NOTICE.txt' || file.path == 'NOTICE.md') {
-            file.path = 'META-INF/NOTICE_ThirdParty'
+    // 许可证清理：移除所有依赖（MySQL Connector/J、Commons Pool、Gson、SLF4J 等）带入的
+    // LICENSE / NOTICE / DEPENDENCIES 文件，仅保留以下三项：
+    //   - LICENSE_redemptioncodefabric ：项目自身许可（根目录，由 processResources 重命名注入）
+    //   - META-INF/LICENSE             ：本仓库手工维护的精简版第三方许可全文（licenses/ 目录注入）
+    //   - META-INF/NOTICE              ：本仓库手工维护的版权归属声明（licenses/ 目录注入）
+    // 注意：Gradle 中不含斜杠的 exclude 模式（如 'LICENSE'）会按文件名在任意目录匹配，
+    //       会误删 META-INF/LICENSE，故改用 eachFile 按精确相对路径过滤。
+    def keptLicensePaths = [
+            'LICENSE_redemptioncodefabric',
+            'META-INF/LICENSE',
+            'META-INF/NOTICE'
+    ] as Set
+    eachFile { fcd ->
+        if (fcd.directory) {
+            return
+        }
+        def path = fcd.relativePath.pathString
+        if (keptLicensePaths.contains(path)) {
+            return
+        }
+        def name = fcd.name
+        if (name.startsWith('LICENSE') || name.startsWith('NOTICE') || name == 'DEPENDENCIES') {
+            fcd.exclude()
         }
     }
+
+    // 注入本仓库手工维护的精简版第三方许可与版权声明（licenses/ 目录）。
+    from(project.file('licenses')) {
+        into 'META-INF'
+    }
+
+    mergeServiceFiles()
 }
 
 remapJar {

@@ -215,6 +215,7 @@ When using the SQL backend, a Simple connection pool provides production-grade c
 | Acquisition timeout | Waits up to `connectionTimeout` ms when the pool is full |
 | Graceful shutdown | Stops maintenance, drains idle, waits for in-use, then force-closes |
 | Init SQL | Executes `connectionInitSql` on every new connection |
+| Write batching | Coalesces multiple writes into a single transaction, flushed every `batchInterval` ms or when `batchMaxSize` is reached |
 
 All pool parameters are configurable in the properties file under the `pool.*` namespace.
 
@@ -272,6 +273,8 @@ pool.leakDetectionThreshold=60000
 pool.keepaliveTime=300000
 pool.validationTimeout=5000
 pool.connectionInitSql=
+pool.batchInterval=5000
+pool.batchMaxSize=50
 ```
 
 ## Dependencies

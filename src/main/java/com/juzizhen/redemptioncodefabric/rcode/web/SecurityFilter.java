@@ -29,11 +29,14 @@ public class SecurityFilter extends Filter {
     private static final int TOKEN_TTL_SECONDS = 1800; // 30 分钟
     // ── 内存降级：限流 ──
     private static final ConcurrentHashMap<String, RateBucket> memoryRateBuckets = new ConcurrentHashMap<>();
+    /** M4: 上次清理过期限流桶的时间戳，避免每次请求都遍历 */
+    private static volatile long lastRateCleanup = 0;
     // ── 独立 Redis 连接池（web.redis.* 配置） ──
     private static volatile JedisPool webRedisPool = null;
-    // ── 内存降级：单 Token ──
-    private static volatile String memoryActiveToken = null;
-    private static volatile long memoryTokenExpireAt = 0;
+
+    // ── M1: 内存降级单 Token（不可变对象，原子引用交换） ──
+    private record TokenSession(String token, long expireAt) {}
+    private static volatile TokenSession memorySession = null;
 
     /**
      * 初始化 Web 安全层专用 Redis 连接池。
@@ -108,8 +111,7 @@ public class SecurityFilter extends Filter {
                 LOGGER.warn("Redis setex failed for token, falling back to memory.", e);
             }
         }
-        memoryActiveToken = token;
-        memoryTokenExpireAt = System.currentTimeMillis() + TOKEN_TTL_SECONDS * 1000L;
+        memorySession = new TokenSession(token, System.currentTimeMillis() + TOKEN_TTL_SECONDS * 1000L);
     }
 
     /**
@@ -124,8 +126,7 @@ public class SecurityFilter extends Filter {
                 LOGGER.warn("Redis del failed for token, falling back to memory.", e);
             }
         }
-        memoryActiveToken = null;
-        memoryTokenExpireAt = 0;
+        memorySession = null;
     }
 
     /**
@@ -205,6 +206,13 @@ public class SecurityFilter extends Filter {
 
     private boolean checkMemoryRateLimit(String key, int maxLimit, int expireSeconds) {
         long now = System.currentTimeMillis();
+
+        // M4: 惰性清理过期限流桶（最多每 60 秒一次），防止不同 IP 累积导致内存泄漏
+        if (now - lastRateCleanup > 60_000) {
+            lastRateCleanup = now;
+            memoryRateBuckets.entrySet().removeIf(e -> now - e.getValue().windowStart > 120_000);
+        }
+
         RateBucket bucket = memoryRateBuckets.computeIfAbsent(key, k -> new RateBucket());
         synchronized (bucket) {
             if (now - bucket.windowStart > expireSeconds * 1000L) {
@@ -228,21 +236,28 @@ public class SecurityFilter extends Filter {
                 LOGGER.warn("Redis token validation failed, falling back to memory.", e);
             }
         }
-        // 内存降级
-        if (memoryActiveToken != null && memoryActiveToken.equals(token)) {
-            if (System.currentTimeMillis() < memoryTokenExpireAt) {
-                memoryTokenExpireAt = System.currentTimeMillis() + TOKEN_TTL_SECONDS * 1000L;
+        // 内存降级：原子读取 TokenSession，避免 token/expiry 撕裂读
+        TokenSession session = memorySession;
+        if (session != null && session.token().equals(token)) {
+            if (System.currentTimeMillis() < session.expireAt()) {
+                memorySession = new TokenSession(token, System.currentTimeMillis() + TOKEN_TTL_SECONDS * 1000L);
                 return true;
             }
-            memoryActiveToken = null; // 过期清除
+            memorySession = null; // 过期清除
         }
         return false;
     }
 
+    /**
+     * H6: 获取客户端 IP。仅在 web.trustProxy=true 时信任 X-Forwarded-For，
+     * 防止直连客户端伪造 XFF 绕过限流。
+     */
     private String getClientIp(HttpExchange exchange) {
-        String xff = exchange.getRequestHeaders().getFirst("X-Forwarded-For");
-        if (xff != null && !xff.isEmpty()) {
-            return xff.split(",")[0].trim();
+        if (Config.getBoolean("web.trustProxy", false)) {
+            String xff = exchange.getRequestHeaders().getFirst("X-Forwarded-For");
+            if (xff != null && !xff.isEmpty()) {
+                return xff.split(",")[0].trim();
+            }
         }
         return exchange.getRemoteAddress().getAddress().getHostAddress();
     }

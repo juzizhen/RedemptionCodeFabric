@@ -12,7 +12,9 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.*;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -37,7 +39,7 @@ public class FileRepository implements IDataRepository {
     }
 
     @Override
-    public Map<String, CodeData> loadAllCodes() {
+    public synchronized Map<String, CodeData> loadAllCodes() {
         if (CODE_FILE.exists()) {
             try (FileReader reader = new FileReader(CODE_FILE)) {
                 Type type = new TypeToken<Map<String, CodeData>>() {
@@ -52,9 +54,14 @@ public class FileRepository implements IDataRepository {
     }
 
     @Override
-    public void saveAllCodes(Map<String, CodeData> codes) {
-        try (FileWriter writer = new FileWriter(CODE_FILE)) {
-            GSON.toJson(codes, writer);
+    public synchronized void saveAllCodes(Map<String, CodeData> codes) {
+        // C5: 写临时文件后原子替换，防止并发读到半写文件
+        try {
+            Path tempFile = Files.createTempFile(CODE_DIR.toPath(), "codes_", ".tmp");
+            try (BufferedWriter writer = Files.newBufferedWriter(tempFile)) {
+                GSON.toJson(codes, writer);
+            }
+            Files.move(tempFile, CODE_FILE.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
             RedemptionCodeFabric.LOGGER.error("Failed to save codes", e);
         }
@@ -70,6 +77,11 @@ public class FileRepository implements IDataRepository {
         updateCodes(codes -> codes.remove(code));
     }
 
+    @Override
+    public CodeData loadCode(String code) {
+        return loadAllCodes().get(code);
+    }
+
     /**
      * 原子更新兑换码文件的辅助方法：读取当前数据、应用修改后写回。
      *
@@ -82,7 +94,7 @@ public class FileRepository implements IDataRepository {
     }
 
     @Override
-    public void appendOperationLog(OperationLogEntry logEntry) {
+    public synchronized void appendOperationLog(OperationLogEntry logEntry) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE, true))) {
             writer.write(LOG_GSON.toJson(logEntry));
             writer.newLine();
@@ -92,7 +104,7 @@ public class FileRepository implements IDataRepository {
     }
 
     @Override
-    public List<OperationLogEntry> getOperationLog(int offset, int limit) {
+    public synchronized List<OperationLogEntry> getOperationLog(int offset, int limit) {
         List<OperationLogEntry> all = new ArrayList<>();
         if (!LOG_FILE.exists()) return all;
         try (JsonReader reader = new JsonReader(new FileReader(LOG_FILE))) {

@@ -39,6 +39,17 @@ public class RedisRepository implements IDataRepository {
         return !RedisManager.getInstance().isConnected();
     }
 
+    /**
+     * M8: 获取 Jedis 实例，null 时抛出明确异常（isConnected 与 getResource 之间存在竞态窗口）。
+     */
+    private Jedis getJedis() {
+        Jedis jedis = RedisManager.getInstance().getResource();
+        if (jedis == null) {
+            throw new IllegalStateException("Redis connection lost between check and acquire");
+        }
+        return jedis;
+    }
+
     private String serializeUsedBy(Map<String, List<Long>> usedBy) {
         if (usedBy == null || usedBy.isEmpty()) return "{}";
         return GSON.toJson(usedBy);
@@ -109,7 +120,7 @@ public class RedisRepository implements IDataRepository {
             return fileFallback.loadAllCodes();
         }
 
-        try (Jedis jedis = RedisManager.getInstance().getResource()) {
+        try (Jedis jedis = getJedis()) {
             Set<String> codeKeys = jedis.smembers(KEY_CODE_INDEX);
             Map<String, CodeData> result = new HashMap<>();
 
@@ -138,7 +149,7 @@ public class RedisRepository implements IDataRepository {
             return;
         }
 
-        try (Jedis jedis = RedisManager.getInstance().getResource()) {
+        try (Jedis jedis = getJedis()) {
             // 使用 pipeline 提升批量写入效率
             var pipeline = jedis.pipelined();
             for (CodeData cd : codes.values()) {
@@ -160,7 +171,7 @@ public class RedisRepository implements IDataRepository {
             return;
         }
 
-        try (Jedis jedis = RedisManager.getInstance().getResource()) {
+        try (Jedis jedis = getJedis()) {
             String key = KEY_PREFIX + codeData.getCode();
             jedis.hmset(key, toHash(codeData));
             jedis.sadd(KEY_CODE_INDEX, key);
@@ -177,7 +188,7 @@ public class RedisRepository implements IDataRepository {
             return;
         }
 
-        try (Jedis jedis = RedisManager.getInstance().getResource()) {
+        try (Jedis jedis = getJedis()) {
             String key = KEY_PREFIX + code;
             jedis.del(key);
             jedis.srem(KEY_CODE_INDEX, key);
@@ -188,15 +199,37 @@ public class RedisRepository implements IDataRepository {
     }
 
     @Override
+    public CodeData loadCode(String code) {
+        if (isRedisUnavailable()) {
+            return fileFallback.loadCode(code);
+        }
+
+        try (Jedis jedis = getJedis()) {
+            String key = KEY_PREFIX + code;
+            Map<String, String> hash = jedis.hgetAll(key);
+            if (hash != null && !hash.isEmpty()) {
+                return fromHash(code, hash);
+            }
+            return null;
+        } catch (Exception e) {
+            LOGGER.error("Failed to load code '{}' from Redis, falling back to file.", code, e);
+            return fileFallback.loadCode(code);
+        }
+    }
+
+    @Override
     public void appendOperationLog(OperationLogEntry logEntry) {
         if (isRedisUnavailable()) {
             fileFallback.appendOperationLog(logEntry);
             return;
         }
 
-        try (Jedis jedis = RedisManager.getInstance().getResource()) {
+        try (Jedis jedis = getJedis()) {
             String json = GSON.toJson(logEntry);
             jedis.rpush(KEY_OPERATION_LOG, json);
+            // M5: 裁剪日志列表，仅保留最近 log.max.entries 条
+            int maxEntries = com.juzizhen.redemptioncodefabric.config.Config.getInt("log.max.entries", 20000);
+            jedis.ltrim(KEY_OPERATION_LOG, -maxEntries, -1);
         } catch (Exception e) {
             LOGGER.error("Failed to write operation log to Redis, falling back to file.", e);
             fileFallback.appendOperationLog(logEntry);
@@ -209,7 +242,7 @@ public class RedisRepository implements IDataRepository {
             return fileFallback.getOperationLog(offset, limit);
         }
 
-        try (Jedis jedis = RedisManager.getInstance().getResource()) {
+        try (Jedis jedis = getJedis()) {
             long total = jedis.llen(KEY_OPERATION_LOG);
             if (total == 0 || offset >= total) return new ArrayList<>();
 

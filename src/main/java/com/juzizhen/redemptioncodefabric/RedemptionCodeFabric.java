@@ -15,15 +15,16 @@ import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RedemptionCodeFabric implements ModInitializer {
     public static final String MOD_ID = "redemptioncodefabric";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static final Identifier MOD_PRESENCE_CHANNEL = new Identifier(MOD_ID, "presence");
-    private static final Set<UUID> playersWithMod = new HashSet<>();
+    // L2: 线程安全 Set，JOIN/DISCONNECT 事件与 hasMod() 查询可能并发
+    private static final Set<UUID> playersWithMod = ConcurrentHashMap.newKeySet();
     public static volatile CodeManager codeManager;
     public static Config config;
     private static MinecraftServer serverInstance;
@@ -46,7 +47,11 @@ public class RedemptionCodeFabric implements ModInitializer {
         if (serverInstance != null) {
             // 先使旧 CodeManager 失效：异步重载期间主线程继续运行，
             // 防止命令/Web 请求访问已被关闭的旧连接池；待资源就绪后在回调中重建。
+            CodeManager oldManager = codeManager;
             codeManager = null;
+            if (oldManager != null) {
+                oldManager.shutdown();
+            }
             AsyncIoManager.reloadAsync(config, serverInstance, () -> {
                 codeManager = new CodeManager();
                 LOGGER.info("Configuration reloaded and applied immediately to CodeManager.");
@@ -88,6 +93,10 @@ public class RedemptionCodeFabric implements ModInitializer {
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            // 先停止缓存同步，再关闭 I/O 资源
+            if (codeManager != null) {
+                codeManager.shutdown();
+            }
             // 通过 AsyncIoManager 统一关闭所有 I/O 资源（含 Web 服务器）
             AsyncIoManager.shutdown();
             serverInstance = null;

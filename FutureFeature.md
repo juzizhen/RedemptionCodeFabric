@@ -4,17 +4,17 @@
 
 经过架构评估与优化（参见 function-1.md 排查清单），当前版本已落实以下核心保障：
 
-| 模块 | 状态 | 实现方式 |
-|------|------|----------|
-| 线程安全 | 已完成 | HTTP 读操作通过 `CompletableFuture` + `server.execute()` 投递到 MC 主线程；写操作（addCode/deleteCode）同理；CodeManager 使用 ConcurrentHashMap |
-| 生命周期管理 | 已完成 | `SERVER_STOPPING` 事件触发 `AsyncIoManager.shutdown()`，按依赖链逆序关闭：WebServer -> SQL Pool -> Redis Pool -> IO Executor |
-| JDBC 连接池 | 已完成 | 对标 HikariCP：弹性池大小、借出验证（isValid）、maxLifetime 淘汰、空闲驱逐、泄漏检测、keepalive 心跳、优雅关闭 |
-| Redis 线程安全 | 已完成 | JedisPool + try-with-resources，每次请求独立获取/归还连接 |
-| 并发防重领 | 已完成 | 兑换逻辑仅运行在 MC 主线程（命令系统），天然串行无竞态 |
-| HTTP 线程池 | 已完成 | `AsyncIoManager.getIoExecutor()` 固定 4 线程池，HttpServer 非单线程模式 |
-| 安全防护 | 已完成 | SecurityFilter：Token 鉴权（滑动 TTL 30min）、登录限流（5次/分钟）、API 限流（20次/秒）、安全响应头注入 |
-| SQL 注入防护 | 已完成 | 全部使用 PreparedStatement 参数绑定 |
-| 依赖隔离 | 已完成 | shadow relocate：mysql、jedis、commons-pool2、gson、slf4j 均重定位到 `com.juzizhen.redemptioncodefabric.rcode.shadow.*` |
+| 模块           | 状态   | 实现方式                                                                                                                                        |
+|----------------|--------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| 线程安全       | 已完成 | HTTP 读操作通过 `CompletableFuture` + `server.execute()` 投递到 MC 主线程；写操作（addCode/deleteCode）同理；CodeManager 使用 ConcurrentHashMap |
+| 生命周期管理   | 已完成 | `SERVER_STOPPING` 事件触发 `AsyncIoManager.shutdown()`，按依赖链逆序关闭：WebServer -> SQL Pool -> Redis Pool -> IO Executor                    |
+| JDBC 连接池    | 已完成 | 对标 HikariCP：弹性池大小、借出验证（isValid）、maxLifetime 淘汰、空闲驱逐、泄漏检测、keepalive 心跳、优雅关闭                                  |
+| Redis 线程安全 | 已完成 | JedisPool + try-with-resources，每次请求独立获取/归还连接                                                                                       |
+| 并发防重领     | 已完成 | 兑换逻辑仅运行在 MC 主线程（命令系统），天然串行无竞态                                                                                          |
+| HTTP 线程池    | 已完成 | `AsyncIoManager.getIoExecutor()` 固定 4 线程池，HttpServer 非单线程模式                                                                         |
+| 安全防护       | 已完成 | SecurityFilter：Token 鉴权（滑动 TTL 30min）、登录限流（5次/分钟）、API 限流（20次/秒）、安全响应头注入                                         |
+| SQL 注入防护   | 已完成 | 全部使用 PreparedStatement 参数绑定                                                                                                             |
+| 依赖隔离       | 已完成 | shadow relocate：mysql、jedis、commons-pool2、gson、slf4j 均重定位到 `com.juzizhen.redemptioncodefabric.rcode.shadow.*`                         |
 
 ## 二、计划中：Web 安全层去 Jedis 化（原生 RESP 实现）
 

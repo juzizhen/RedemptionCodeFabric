@@ -459,8 +459,10 @@ public class SimpleConnectionPool {
     }
 
     private void closeAndRemove(PoolEntry entry, String reason) {
-        allEntries.remove(entry.connection);
-        totalConnections.decrementAndGet();
+        // M7: 仅当 allEntries 中确实存在该连接时才递减计数，防止并发路径重复调用导致计数下溢
+        if (allEntries.remove(entry.connection) != null) {
+            totalConnections.decrementAndGet();
+        }
         closeQuietly(entry.connection);
         LOGGER.debug("Connection removed: {} ({})", reason, getPoolStats());
     }

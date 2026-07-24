@@ -1,0 +1,30 @@
+RedemptionCodeFabric
+Copyright (C) 2024-2026 juzizhen
+
+This product bundles and redistributes the following third-party libraries
+(relocated under com.juzizhen.redemptioncodefabric.rcode.shadow).
+
+Primary bundled libraries:
+
+MySQL Connector/J
+Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+License: GNU GPL v2 with the Universal FOSS Exception.
+
+Jedis
+Copyright (c) 2011 Jonathan Leibiusky.
+License: MIT.
+
+Transitive dependencies of Jedis (bundled together with Jedis):
+
+Apache Commons Pool 2 - Copyright 2001-2024 The Apache Software Foundation.
+  This product includes software developed at
+  The Apache Software Foundation (https://www.apache.org/). Apache License 2.0.
+Google Gson - Copyright Google Inc. Apache License 2.0.
+Google Protocol Buffers - Copyright 2008 Google Inc. BSD 3-Clause License.
+SLF4J API - Copyright (c) 2004-2023 QOS.ch Sarl (Switzerland). MIT.
+JSON-java - Copyright (c) 2002 JSON.org. MIT.
+Google Error Prone Annotations - Copyright 2015 The Error Prone Authors.
+  Apache License 2.0.
+
+See the LICENSE file in this directory for the full text of each
+applicable open-source license.

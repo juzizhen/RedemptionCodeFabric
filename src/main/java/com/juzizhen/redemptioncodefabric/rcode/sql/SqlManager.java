@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 轻量级 SQL 管理器，基于原生 JDBC 和 {@link SimpleConnectionPool}。
@@ -24,9 +26,10 @@ public class SqlManager {
 
     private static SqlManager instance;
 
-    private SimpleConnectionPool connectionPool;
-    private boolean connected = false;
+    private volatile SimpleConnectionPool connectionPool;
+    private volatile boolean connected = false;
     private MinecraftServer cachedServer;
+    private final List<Runnable> shutdownCallbacks = new ArrayList<>();
 
     private SqlManager() {
     }
@@ -167,11 +170,26 @@ public class SqlManager {
     }
 
     /**
-     * 关闭 SQL 连接池。
+     * 注册关闭前回调（如批处理器刷新），在连接池关闭之前执行。
+     */
+    public void addShutdownCallback(Runnable callback) {
+        shutdownCallbacks.add(callback);
+    }
+
+    /**
+     * 关闭 SQL 连接池。先执行所有关闭前回调（刷新待写入数据），再关闭连接池。
      */
     public void shutdown() {
         if (connectionPool != null) {
             LOGGER.info("Shutting down SQL Manager...");
+            for (Runnable callback : shutdownCallbacks) {
+                try {
+                    callback.run();
+                } catch (Exception e) {
+                    LOGGER.warn("Shutdown callback failed", e);
+                }
+            }
+            shutdownCallbacks.clear();
             closePool();
             connected = false;
             LOGGER.info("SQL Manager shut down.");

@@ -48,7 +48,7 @@ public final class AsyncIoManager {
     /**
      * 记录当前 Web 服务器实际监听的端口（-1 表示未运行）
      */
-    private static int activeWebPort = -1;
+    private static volatile int activeWebPort = -1;
     private static volatile boolean reloading = false;
 
     private AsyncIoManager() {

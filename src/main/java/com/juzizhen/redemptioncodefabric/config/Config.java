@@ -12,7 +12,8 @@ public class Config {
 
     private static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir();
     private static final File CONFIG_FILE = CONFIG_DIR.resolve(RedemptionCodeFabric.MOD_ID).resolve("redemptioncodefabric.properties").toFile();
-    private static final Properties properties = new Properties();
+    /** H4: volatile 引用，reload 时原子交换整个 Properties 对象，避免 clear+load 窗口期读到空值 */
+    private static volatile Properties properties = new Properties();
 
     public Config() {
         load();
@@ -40,12 +41,14 @@ public class Config {
             if (!CONFIG_FILE.getParentFile().exists()) {
                 RedemptionCodeFabric.LOGGER.info("Creating config directory: {}", CONFIG_FILE.getParentFile().mkdirs());
             }
-            properties.clear();
+            // H4: 加载到新对象，完成后原子交换引用，避免 clear+load 窗口期
+            Properties newProps = new Properties();
             if (CONFIG_FILE.exists()) {
                 try (FileInputStream fis = new FileInputStream(CONFIG_FILE)) {
-                    properties.load(fis);
+                    newProps.load(fis);
                 }
             }
+            properties = newProps;
             if (ensureAllKeysExist()) {
                 saveOrganized();
             }
@@ -98,6 +101,7 @@ public class Config {
             prop(w, "web.password");
             prop(w, "web.adminPath");
             prop(w, "web.sendUrlToOP");
+            prop(w, "web.trustProxy");
             prop(w, "web.redis.enabled");
             prop(w, "web.redis.host");
             prop(w, "web.redis.port");
@@ -134,6 +138,14 @@ public class Config {
             prop(w, "pool.keepaliveTime");
             prop(w, "pool.validationTimeout");
             prop(w, "pool.connectionInitSql");
+            prop(w, "pool.batchInterval");
+            prop(w, "pool.batchMaxSize");
+
+            // ── Cache ──
+            section(w, "Cache",
+                    "Interval (ms) for syncing redemption codes from datastore to memory",
+                    "In a cluster, this picks up changes made by other servers");
+            prop(w, "cache.syncInterval");
 
             w.newLine();
         }
@@ -188,6 +200,7 @@ public class Config {
             updated |= maybeSetDefault("web.password", Utils.generateRandomString(16));
         }
         updated |= maybeSetDefault("web.sendUrlToOP", "true");
+        updated |= maybeSetDefault("web.trustProxy", "false");
         updated |= maybeSetDefault("web.redis.enabled", "false");
         updated |= maybeSetDefault("web.redis.host", "localhost");
         updated |= maybeSetDefault("web.redis.port", "6379");
@@ -223,6 +236,10 @@ public class Config {
         updated |= maybeSetDefault("pool.keepaliveTime", "300000");
         updated |= maybeSetDefault("pool.validationTimeout", "5000");
         updated |= maybeSetDefault("pool.connectionInitSql", "");
+        updated |= maybeSetDefault("pool.batchInterval", "5000");
+        updated |= maybeSetDefault("pool.batchMaxSize", "50");
+
+        updated |= maybeSetDefault("cache.syncInterval", "10000");
 
         return updated;
     }

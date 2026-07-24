@@ -116,6 +116,12 @@ public class RCodeCommand {
         }
         String code = context.getNodes().stream().anyMatch(n -> n.getNode().getName().equals("code")) ? StringArgumentType.getString(context, "code") : Utils.generateRandomString(16);
 
+        // L11: 兑换码长度校验（SQL 列 VARCHAR(255)）
+        if (code.length() > 255) {
+            MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.code_too_long");
+            return 0;
+        }
+
         CodeType type = CodeType.valueOf(context.getNodes().get(2).getNode().getName().toUpperCase());
 
         String rewardStr;
@@ -230,9 +236,12 @@ public class RCodeCommand {
                 }
             }
 
-            if (!allowedPlayerUuids.isEmpty()) {
-                owner = String.join(",", allowedPlayerUuids);
+            // H10: 匹配 0 个玩家时拒绝创建，防止生成永久不可用的码
+            if (allowedPlayerUuids.isEmpty()) {
+                MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.no_players_matched");
+                return 0;
             }
+            owner = String.join(",", allowedPlayerUuids);
             count = allowedPlayerUuids.size();
         } else if (type == CodeType.TIMED) {
             String startTimeStr = StringArgumentType.getString(context, "start_time");
@@ -302,6 +311,11 @@ public class RCodeCommand {
     private static int executeRedeem(CommandContext<ServerCommandSource> context) {
         if (RedemptionCodeFabric.codeManager == null) {
             MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.not_ready");
+            return 0;
+        }
+        // C8: 兑换码仅玩家可用，拒绝控制台/命令方块
+        if (context.getSource().getPlayer() == null) {
+            MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.code_invalid_or_nonexistent");
             return 0;
         }
         Text result = RedemptionCodeFabric.codeManager.redeemCode(context.getSource(), StringArgumentType.getString(context, "code"));

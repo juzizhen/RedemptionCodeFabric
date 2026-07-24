@@ -3,7 +3,6 @@ package com.juzizhen.redemptioncodefabric.rcode.web;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.juzizhen.redemptioncodefabric.RedemptionCodeFabric;
-import com.juzizhen.redemptioncodefabric.async.AsyncIoManager;
 import com.juzizhen.redemptioncodefabric.config.Config;
 import com.juzizhen.redemptioncodefabric.rcode.manager.CodeManager;
 import com.juzizhen.redemptioncodefabric.rcode.model.CodeData;
@@ -30,18 +29,26 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 基于 JDK 原生 {@link HttpServer} 的轻量级 Web 服务器，
- * 所有 I/O 操作通过 {@link AsyncIoManager#getIoExecutor()} 异步执行。
+ * 基于 JDK 原生 {@link HttpServer} 的轻量级 Web 服务器。
+ * <p>
+ * C1: HTTP 请求处理使用独立线程池（RCF-HTTP-Worker），与 SQL/Redis I/O 线程池隔离，
+ * 避免 HTTP 处理器阻塞等待 MC 主线程时占满 I/O 池导致死锁。
  */
 public class WebServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("RedemptionCodeFabric-Web");
     private static final Gson GSON = new Gson();
-    private static WebServer instance;
+    /** H9: 请求体最大读取字节数（1 MB） */
+    private static final int MAX_BODY_BYTES = 1024 * 1024;
+
     private HttpServer server;
+    /** C1: 独立 HTTP 处理线程池，与 AsyncIoManager 的 I/O 池分离 */
+    private ExecutorService httpExecutor;
 
     private WebServer() {
     }
@@ -54,11 +61,13 @@ public class WebServer {
         return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(timestamp));
     }
 
+    // L1: Holder 模式单例，线程安全且无同步开销
+    private static class Holder {
+        static final WebServer INSTANCE = new WebServer();
+    }
+
     public static WebServer getInstance() {
-        if (instance == null) {
-            instance = new WebServer();
-        }
-        return instance;
+        return Holder.INSTANCE;
     }
 
     /**
@@ -70,8 +79,13 @@ public class WebServer {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
 
-            // 将所有请求处理委派到异步 I/O 线程池
-            server.setExecutor(AsyncIoManager.getIoExecutor());
+            // C1: 独立 HTTP 线程池，与 SQL/Redis I/O 池隔离，防止死锁
+            httpExecutor = Executors.newCachedThreadPool(r -> {
+                Thread t = new Thread(r, "RCF-HTTP-Worker");
+                t.setDaemon(true);
+                return t;
+            });
+            server.setExecutor(httpExecutor);
 
             // 初始化安全层独立 Redis 连接池（web.redis.* 配置，失败自动降级内存模式）
             SecurityFilter.initPool();
@@ -93,47 +107,47 @@ public class WebServer {
     private void registerRoutes() {
         SecurityFilter securityFilter = new SecurityFilter();
 
-        // 静态资源（HTML 页面）
-        var rootCtx = server.createContext("/", new StaticResourceHandler("/assets/redemptioncodefabric/web/index.html"));
+        // 静态资源（HTML 页面）——H5: safe() 包装防止未捕获异常静默断开连接
+        var rootCtx = server.createContext("/", safe(new StaticResourceHandler("/assets/redemptioncodefabric/web/index.html")));
         rootCtx.getFilters().add(securityFilter);
-        var indexCtx = server.createContext("/index.html", new StaticResourceHandler("/assets/redemptioncodefabric/web/index.html"));
+        var indexCtx = server.createContext("/index.html", safe(new StaticResourceHandler("/assets/redemptioncodefabric/web/index.html")));
         indexCtx.getFilters().add(securityFilter);
 
         String adminPath = Config.getString("web.adminPath", "/admin.html");
         if (!adminPath.startsWith("/")) {
             adminPath = "/" + adminPath;
         }
-        var adminCtx = server.createContext(adminPath, new StaticResourceHandler("/assets/redemptioncodefabric/web/admin.html"));
+        var adminCtx = server.createContext(adminPath, safe(new StaticResourceHandler("/assets/redemptioncodefabric/web/admin.html")));
         adminCtx.getFilters().add(securityFilter);
 
         // 语言文件
-        var langCtx = server.createContext("/lang/", new LangFileHandler());
+        var langCtx = server.createContext("/lang/", safe(new LangFileHandler()));
         langCtx.getFilters().add(securityFilter);
 
         // API 路由
-        var loginCtx = server.createContext("/api/login", new LoginHandler());
+        var loginCtx = server.createContext("/api/login", safe(new LoginHandler()));
         loginCtx.getFilters().add(securityFilter);
-        var verifyCtx = server.createContext("/api/verify", new VerifyHandler());
+        var verifyCtx = server.createContext("/api/verify", safe(new VerifyHandler()));
         verifyCtx.getFilters().add(securityFilter);
-        var logoutCtx = server.createContext("/api/logout", new LogoutHandler());
+        var logoutCtx = server.createContext("/api/logout", safe(new LogoutHandler()));
         logoutCtx.getFilters().add(securityFilter);
-        var statusCtx = server.createContext("/api/status", new StatusHandler());
+        var statusCtx = server.createContext("/api/status", safe(new StatusHandler()));
         statusCtx.getFilters().add(securityFilter);
-        var playersCtx = server.createContext("/api/players", new PlayersHandler());
+        var playersCtx = server.createContext("/api/players", safe(new PlayersHandler()));
         playersCtx.getFilters().add(securityFilter);
-        var scoreboardsCtx = server.createContext("/api/scoreboards", new ScoreboardsHandler());
+        var scoreboardsCtx = server.createContext("/api/scoreboards", safe(new ScoreboardsHandler()));
         scoreboardsCtx.getFilters().add(securityFilter);
-        var codesCtx = server.createContext("/api/codes", new CodesHandler());
+        var codesCtx = server.createContext("/api/codes", safe(new CodesHandler()));
         codesCtx.getFilters().add(securityFilter);
-        var logsCtx = server.createContext("/api/logs", new LogsHandler());
+        var logsCtx = server.createContext("/api/logs", safe(new LogsHandler()));
         logsCtx.getFilters().add(securityFilter);
-        var reloadCtx = server.createContext("/api/reload", new ReloadHandler());
+        var reloadCtx = server.createContext("/api/reload", safe(new ReloadHandler()));
         reloadCtx.getFilters().add(securityFilter);
-        var configCtx = server.createContext("/api/config", new ConfigHandler());
+        var configCtx = server.createContext("/api/config", safe(new ConfigHandler()));
         configCtx.getFilters().add(securityFilter);
-        var statsCtx = server.createContext("/api/stats/daily", new StatsDailyHandler());
+        var statsCtx = server.createContext("/api/stats/daily", safe(new StatsDailyHandler()));
         statsCtx.getFilters().add(securityFilter);
-        var exportCtx = server.createContext("/api/export", new ExportHandler());
+        var exportCtx = server.createContext("/api/export", safe(new ExportHandler()));
         exportCtx.getFilters().add(securityFilter);
     }
 
@@ -146,6 +160,10 @@ public class WebServer {
             server = null;
             LOGGER.info("Web server stopped.");
         }
+        if (httpExecutor != null) {
+            httpExecutor.shutdown();
+            httpExecutor = null;
+        }
         // 关闭安全层独立 Redis 连接池
         SecurityFilter.shutdownPool();
     }
@@ -154,16 +172,57 @@ public class WebServer {
         return RedemptionCodeFabric.getServerInstance();
     }
 
+    /**
+     * H5: 安全包装器——捕获 Handler 内所有未处理异常，返回 500 JSON。
+     * JDK HttpServer 对未捕获 RuntimeException 会静默关闭连接，前端无法得到任何响应。
+     */
+    private static HttpHandler safe(HttpHandler handler) {
+        return exchange -> {
+            try {
+                handler.handle(exchange);
+            } catch (Throwable t) {
+                LOGGER.error("Unhandled exception in HTTP handler: {}", exchange.getRequestURI(), t);
+                try {
+                    byte[] resp = "{\"success\":false,\"message\":\"Internal Server Error\"}".getBytes(StandardCharsets.UTF_8);
+                    exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
+                    exchange.sendResponseHeaders(500, resp.length);
+                    try (OutputStream os = exchange.getResponseBody()) {
+                        os.write(resp);
+                    }
+                } catch (IOException ignored) {
+                    // 响应已部分写出或连接断开，无法补救
+                }
+            }
+        };
+    }
+
     private String mask(String s) {
         if (s == null || s.isEmpty()) return "";
         if (s.length() <= 2) return "***";
         return s.charAt(0) + "*".repeat(s.length() - 2) + s.charAt(s.length() - 1);
     }
 
+    /** M14: 安全提取 int，类型不匹配时返回默认值 */
+    private static int getIntFromMap(Map<String, Object> map, String key, int defaultValue) {
+        Object val = map.get(key);
+        if (val instanceof Number n) return n.intValue();
+        return defaultValue;
+    }
+
+    /** M14: 安全提取 long，类型不匹配时返回默认值 */
+    private static long getLongFromMap(Map<String, Object> map, String key, long defaultValue) {
+        Object val = map.get(key);
+        if (val instanceof Number n) return n.longValue();
+        return defaultValue;
+    }
+
+    /** H6: 仅在 web.trustProxy=true 时信任 XFF，与 SecurityFilter 保持一致 */
     private String getClientIp(HttpExchange exchange) {
-        String forwarded = exchange.getRequestHeaders().getFirst("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isEmpty()) {
-            return forwarded.split(",")[0].trim();
+        if (Config.getBoolean("web.trustProxy", false)) {
+            String forwarded = exchange.getRequestHeaders().getFirst("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isEmpty()) {
+                return forwarded.split(",")[0].trim();
+            }
         }
         return exchange.getRemoteAddress().getAddress().getHostAddress();
     }
@@ -182,16 +241,19 @@ public class WebServer {
 
     private Map<String, Object> parseJsonBody(HttpExchange exchange) throws IOException {
         try (InputStream is = exchange.getRequestBody()) {
-            String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            String body = readBodyLimited(is);
+            if (body == null || body.isBlank()) return new HashMap<>();
             Type mapType = new TypeToken<Map<String, Object>>() {
             }.getType();
-            return GSON.fromJson(body, mapType);
+            Map<String, Object> result = GSON.fromJson(body, mapType);
+            return result != null ? result : new HashMap<>();
         }
     }
 
     private Map<String, String> parseFormBody(HttpExchange exchange) throws IOException {
         try (InputStream is = exchange.getRequestBody()) {
-            String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            String body = readBodyLimited(is);
+            if (body == null || body.isBlank()) return new HashMap<>();
             Map<String, String> params = new HashMap<>();
             for (String param : body.split("&")) {
                 String[] parts = param.split("=", 2);
@@ -202,6 +264,25 @@ public class WebServer {
             }
             return params;
         }
+    }
+
+    /**
+     * H9: 限制请求体读取大小，防止超大 POST 体耗尽堆内存。
+     *
+     * @return 请求体字符串；超过 MAX_BODY_BYTES 时返回 null
+     */
+    private String readBodyLimited(InputStream is) throws IOException {
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        byte[] buf = new byte[4096];
+        int len, total = 0;
+        while ((len = is.read(buf)) != -1) {
+            total += len;
+            if (total > MAX_BODY_BYTES) {
+                return null;
+            }
+            baos.write(buf, 0, len);
+        }
+        return baos.toString(StandardCharsets.UTF_8);
     }
 
     private void serveResource(HttpExchange exchange, String path, String contentType) throws IOException {
@@ -333,7 +414,6 @@ public class WebServer {
                     info.put("name", p.getName().getString());
                     info.put("uuid", p.getUuid().toString());
                     info.put("ping", p.pingMilliseconds);
-                    info.put("ip", p.getIp());
                     info.put("tags", new ArrayList<>(p.getCommandTags()));
                     players.add(info);
                 }
@@ -459,6 +539,12 @@ public class WebServer {
             String code = req.containsKey("code") && req.get("code") instanceof String s && !s.trim().isEmpty()
                     ? s.trim() : Utils.generateRandomString(16);
 
+            // L11: 兑换码长度校验（SQL 列 VARCHAR(255)）
+            if (code.length() > 255) {
+                sendJsonResponse(exchange, 400, Map.of("success", false, "message", "兑换码长度不能超过 255 个字符"));
+                return;
+            }
+
             if (cm.getCode(code) != null) {
                 sendJsonResponse(exchange, 400, Map.of("success", false, "message", "兑换码已存在: " + code));
                 return;
@@ -470,7 +556,7 @@ public class WebServer {
 
             if (type == CodeType.GLOBAL_LIMIT) {
                 String selectMode = req.containsKey("selectMode") ? (String) req.get("selectMode") : "manual";
-                int limit = req.containsKey("limit") ? ((Number) req.get("limit")).intValue() : 0;
+                int limit = getIntFromMap(req, "limit", 0);
                 if (limit == 0) {
                     sendJsonResponse(exchange, 400, Map.of("success", false, "message", "limit 不能为 0"));
                     return;
@@ -484,21 +570,31 @@ public class WebServer {
                         sendJsonResponse(exchange, 400, Map.of("success", false, "message", "tag 不能为空"));
                         return;
                     }
-                    List<ServerPlayerEntity> tagged = server.getPlayerManager().getPlayerList().stream()
-                            .filter(p -> p.getCommandTags().contains(tag))
-                            .toList();
-                    List<ServerPlayerEntity> picked;
-                    if (limit > 0) {
-                        picked = tagged.stream().limit(limit).toList();
-                    } else {
-                        int pos = -limit;
-                        if (tagged.size() > pos) {
-                            picked = tagged.subList(tagged.size() - pos, tagged.size());
-                        } else {
-                            picked = tagged;
+                    // H2: 玩家列表遍历投递到 MC 主线程
+                    CompletableFuture<List<String>> future = new CompletableFuture<>();
+                    server.execute(() -> {
+                        try {
+                            List<ServerPlayerEntity> tagged = server.getPlayerManager().getPlayerList().stream()
+                                    .filter(p -> p.getCommandTags().contains(tag))
+                                    .toList();
+                            List<ServerPlayerEntity> picked;
+                            if (limit > 0) {
+                                picked = tagged.stream().limit(limit).toList();
+                            } else {
+                                int pos = -limit;
+                                picked = tagged.size() > pos ? tagged.subList(tagged.size() - pos, tagged.size()) : tagged;
+                            }
+                            future.complete(picked.stream().map(p -> p.getUuid().toString()).toList());
+                        } catch (Exception e) {
+                            future.completeExceptionally(e);
                         }
+                    });
+                    try {
+                        selectedUuids = new ArrayList<>(future.get(5, TimeUnit.SECONDS));
+                    } catch (Exception e) {
+                        sendJsonResponse(exchange, 500, Map.of("success", false, "message", "获取玩家列表超时"));
+                        return;
                     }
-                    for (ServerPlayerEntity p : picked) selectedUuids.add(p.getUuid().toString());
 
                 } else if ("scoreboard".equals(selectMode)) {
                     String objName = req.containsKey("scoreboard") ? ((String) req.get("scoreboard")).trim() : "";
@@ -506,49 +602,95 @@ public class WebServer {
                         sendJsonResponse(exchange, 400, Map.of("success", false, "message", "scoreboard 不能为空"));
                         return;
                     }
-                    Scoreboard scoreboard = server.getScoreboard();
-                    ScoreboardObjective obj = scoreboard.getNullableObjective(objName);
-                    if (obj == null) {
-                        sendJsonResponse(exchange, 400, Map.of("success", false, "message", "计分板目标不存在: " + objName));
-                        return;
-                    }
-                    var comparator = Comparator.comparingInt(ScoreboardPlayerScore::getScore);
-                    if (limit > 0) comparator = comparator.reversed();
-                    List<String> playerNames = scoreboard.getAllPlayerScores(obj).stream()
-                            .sorted(comparator)
-                            .limit(Math.abs(limit))
-                            .map(ScoreboardPlayerScore::getPlayerName)
-                            .toList();
-                    UserCache userCache = server.getUserCache();
-                    if (userCache != null) {
-                        for (String name : playerNames) {
-                            userCache.findByName(name)
-                                    .ifPresent(profile -> selectedUuids.add(profile.getId().toString()));
+                    // H2: 计分板访问投递到 MC 主线程
+                    CompletableFuture<List<String>> future = new CompletableFuture<>();
+                    server.execute(() -> {
+                        try {
+                            Scoreboard scoreboard = server.getScoreboard();
+                            ScoreboardObjective obj = scoreboard.getNullableObjective(objName);
+                            if (obj == null) {
+                                future.completeExceptionally(new IllegalArgumentException("计分板目标不存在: " + objName));
+                                return;
+                            }
+                            var comparator = Comparator.comparingInt(ScoreboardPlayerScore::getScore);
+                            if (limit > 0) comparator = comparator.reversed();
+                            List<String> playerNames = scoreboard.getAllPlayerScores(obj).stream()
+                                    .sorted(comparator)
+                                    .limit(Math.abs(limit))
+                                    .map(ScoreboardPlayerScore::getPlayerName)
+                                    .toList();
+                            List<String> uuids = new ArrayList<>();
+                            UserCache userCache = server.getUserCache();
+                            if (userCache != null) {
+                                for (String name : playerNames) {
+                                    userCache.findByName(name).ifPresent(profile -> uuids.add(profile.getId().toString()));
+                                }
+                            }
+                            future.complete(uuids);
+                        } catch (Exception e) {
+                            future.completeExceptionally(e);
                         }
+                    });
+                    try {
+                        selectedUuids = new ArrayList<>(future.get(5, TimeUnit.SECONDS));
+                    } catch (java.util.concurrent.ExecutionException e) {
+                        sendJsonResponse(exchange, 400, Map.of("success", false, "message", e.getCause() != null ? e.getCause().getMessage() : "获取计分板数据失败"));
+                        return;
+                    } catch (Exception e) {
+                        sendJsonResponse(exchange, 500, Map.of("success", false, "message", "获取计分板数据超时"));
+                        return;
                     }
 
                 } else {
                     player = req.containsKey("player") ? (String) req.get("player") : null;
                 }
 
+                // H10: 匹配 0 个玩家时拒绝创建，防止生成永久不可用的码
+                if ("tag".equals(selectMode) || "scoreboard".equals(selectMode)) {
+                    if (selectedUuids.isEmpty()) {
+                        sendJsonResponse(exchange, 400, Map.of("success", false, "message", "未匹配到任何玩家，无法创建 GLOBAL_LIMIT 兑换码"));
+                        return;
+                    }
+                }
+
                 if (!selectedUuids.isEmpty()) {
                     player = String.join(",", selectedUuids);
                 }
-                count = req.containsKey("count") ? ((Number) req.get("count")).intValue() : (selectedUuids.isEmpty() ? -1 : selectedUuids.size());
+                count = getIntFromMap(req, "count", selectedUuids.isEmpty() ? -1 : selectedUuids.size());
 
             } else if (type == CodeType.PERSONAL) {
                 player = req.containsKey("player") ? (String) req.get("player") : null;
             } else if (type == CodeType.TIMED) {
-                startTime = req.containsKey("startTime") ? ((Number) req.get("startTime")).longValue() : 0;
-                endTime = req.containsKey("endTime") ? ((Number) req.get("endTime")).longValue() : 0;
+                startTime = getLongFromMap(req, "startTime", 0);
+                endTime = getLongFromMap(req, "endTime", 0);
             } else if (type == CodeType.CYCLE) {
-                startTime = req.containsKey("startTime") ? ((Number) req.get("startTime")).longValue() : 0;
-                interval = req.containsKey("interval") ? ((Number) req.get("interval")).longValue() : 0;
+                startTime = getLongFromMap(req, "startTime", 0);
+                interval = getLongFromMap(req, "interval", 0);
+                // C6: CYCLE 类型 interval 必须大于 0
+                if (interval <= 0) {
+                    sendJsonResponse(exchange, 400, Map.of("success", false, "message", "CYCLE 类型的 interval 必须大于 0"));
+                    return;
+                }
             }
 
             CodeData codeData = new CodeData(code, type, reward, player, count, startTime, endTime, interval);
-            server.execute(() -> cm.addCode(codeData, "WebAdmin"));
-            sendJsonResponse(exchange, 200, Map.of("success", true, "message", "创建成功", "code", code));
+            // H12: 等待 MC 主线程完成 addCode，确保响应反映真实结果
+            CompletableFuture<Void> addFuture = new CompletableFuture<>();
+            server.execute(() -> {
+                try {
+                    cm.addCode(codeData, "WebAdmin");
+                    addFuture.complete(null);
+                } catch (Exception e) {
+                    addFuture.completeExceptionally(e);
+                }
+            });
+            try {
+                addFuture.get(5, TimeUnit.SECONDS);
+                sendJsonResponse(exchange, 200, Map.of("success", true, "message", "创建成功", "code", code));
+            } catch (Exception e) {
+                LOGGER.error("Failed to create code '{}'", code, e);
+                sendJsonResponse(exchange, 500, Map.of("success", false, "message", "创建失败"));
+            }
         }
 
         private void handleDeleteCode(HttpExchange exchange) throws IOException {
@@ -566,8 +708,26 @@ public class WebServer {
                 sendJsonResponse(exchange, 404, Map.of("success", false, "message", "兑换码不存在: " + code));
                 return;
             }
-            server.execute(() -> cm.deleteCode(code, "WebAdmin"));
-            sendJsonResponse(exchange, 200, Map.of("success", true, "message", "删除成功"));
+            // H12: 等待 MC 主线程完成 deleteCode
+            CompletableFuture<Boolean> delFuture = new CompletableFuture<>();
+            server.execute(() -> {
+                try {
+                    delFuture.complete(cm.deleteCode(code, "WebAdmin", null));
+                } catch (Exception e) {
+                    delFuture.completeExceptionally(e);
+                }
+            });
+            try {
+                boolean deleted = delFuture.get(5, TimeUnit.SECONDS);
+                if (deleted) {
+                    sendJsonResponse(exchange, 200, Map.of("success", true, "message", "删除成功"));
+                } else {
+                    sendJsonResponse(exchange, 404, Map.of("success", false, "message", "兑换码不存在"));
+                }
+            } catch (Exception e) {
+                LOGGER.error("Failed to delete code '{}'", code, e);
+                sendJsonResponse(exchange, 500, Map.of("success", false, "message", "删除失败"));
+            }
         }
 
         private Map<String, Object> buildCodeSummary(CodeData cd) {
@@ -718,6 +878,9 @@ public class WebServer {
             cfg.put("pool.keepaliveTime", Config.getInt("pool.keepaliveTime", 300000));
             cfg.put("pool.validationTimeout", Config.getInt("pool.validationTimeout", 5000));
             cfg.put("pool.connectionInitSql", Config.getString("pool.connectionInitSql", ""));
+            cfg.put("pool.batchInterval", Config.getInt("pool.batchInterval", 5000));
+            cfg.put("pool.batchMaxSize", Config.getInt("pool.batchMaxSize", 50));
+            cfg.put("cache.syncInterval", Config.getInt("cache.syncInterval", 10000));
             sendJsonResponse(exchange, 200, Map.of("success", true, "data", cfg));
         }
     }
