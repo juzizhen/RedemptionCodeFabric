@@ -36,32 +36,29 @@ import java.util.concurrent.TimeUnit;
 /**
  * 基于 JDK 原生 {@link HttpServer} 的轻量级 Web 服务器。
  * <p>
- * C1: HTTP 请求处理使用独立线程池（RCF-HTTP-Worker），与 SQL/Redis I/O 线程池隔离，
+ * HTTP 请求处理使用独立线程池（RCF-HTTP-Worker），与 SQL/Redis I/O 线程池隔离，
  * 避免 HTTP 处理器阻塞等待 MC 主线程时占满 I/O 池导致死锁。
  */
 public class WebServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("RedemptionCodeFabric-Web");
     private static final Gson GSON = new Gson();
-    /** H9: 请求体最大读取字节数（1 MB） */
+    /** 请求体最大读取字节数（1 MB） */
     private static final int MAX_BODY_BYTES = 1024 * 1024;
 
     private HttpServer server;
-    /** C1: 独立 HTTP 处理线程池，与 AsyncIoManager 的 I/O 池分离 */
+    /** 独立 HTTP 处理线程池，与 AsyncIoManager 的 I/O 池分离 */
     private ExecutorService httpExecutor;
 
     private WebServer() {
     }
 
-    /**
-     * 线程安全的日期格式化（SimpleDateFormat 非线程安全，不能共享实例）。
-     * 每次调用创建新实例，适合低频使用场景。
-     */
+    /** 每次创建新实例：SimpleDateFormat 非线程安全，不能共享。 */
     private static String formatDate(long timestamp) {
         return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(timestamp));
     }
 
-    // L1: Holder 模式单例，线程安全且无同步开销
+    // Holder 模式单例，线程安全且无同步开销
     private static class Holder {
         static final WebServer INSTANCE = new WebServer();
     }
@@ -70,16 +67,12 @@ public class WebServer {
         return Holder.INSTANCE;
     }
 
-    /**
-     * 启动 Web 服务器。
-     *
-     * @param port 监听端口
-     */
+    /** 启动 Web 服务器。 */
     public void start(int port) {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
 
-            // C1: 独立 HTTP 线程池，与 SQL/Redis I/O 池隔离，防止死锁
+            // 独立 HTTP 线程池，与 SQL/Redis I/O 池隔离，防止死锁
             httpExecutor = Executors.newCachedThreadPool(r -> {
                 Thread t = new Thread(r, "RCF-HTTP-Worker");
                 t.setDaemon(true);
@@ -90,7 +83,6 @@ public class WebServer {
             // 初始化安全层独立 Redis 连接池（web.redis.* 配置，失败自动降级内存模式）
             SecurityFilter.initPool();
 
-            // 注册路由
             registerRoutes();
 
             server.start();
@@ -107,7 +99,7 @@ public class WebServer {
     private void registerRoutes() {
         SecurityFilter securityFilter = new SecurityFilter();
 
-        // 静态资源（HTML 页面）——H5: safe() 包装防止未捕获异常静默断开连接
+        // 静态资源（HTML 页面）——safe() 包装防止未捕获异常静默断开连接
         var rootCtx = server.createContext("/", safe(new StaticResourceHandler("/assets/redemptioncodefabric/web/index.html")));
         rootCtx.getFilters().add(securityFilter);
         var indexCtx = server.createContext("/index.html", safe(new StaticResourceHandler("/assets/redemptioncodefabric/web/index.html")));
@@ -164,7 +156,6 @@ public class WebServer {
             httpExecutor.shutdown();
             httpExecutor = null;
         }
-        // 关闭安全层独立 Redis 连接池
         SecurityFilter.shutdownPool();
     }
 
@@ -173,7 +164,7 @@ public class WebServer {
     }
 
     /**
-     * H5: 安全包装器——捕获 Handler 内所有未处理异常，返回 500 JSON。
+     * 安全包装器：捕获 Handler 内所有未处理异常并返回 500 JSON。
      * JDK HttpServer 对未捕获 RuntimeException 会静默关闭连接，前端无法得到任何响应。
      */
     private static HttpHandler safe(HttpHandler handler) {
@@ -202,21 +193,21 @@ public class WebServer {
         return s.charAt(0) + "*".repeat(s.length() - 2) + s.charAt(s.length() - 1);
     }
 
-    /** M14: 安全提取 int，类型不匹配时返回默认值 */
+    /** 安全提取 int，类型不匹配时返回默认值 */
     private static int getIntFromMap(Map<String, Object> map, String key, int defaultValue) {
         Object val = map.get(key);
         if (val instanceof Number n) return n.intValue();
         return defaultValue;
     }
 
-    /** M14: 安全提取 long，类型不匹配时返回默认值 */
+    /** 安全提取 long，类型不匹配时返回默认值 */
     private static long getLongFromMap(Map<String, Object> map, String key, long defaultValue) {
         Object val = map.get(key);
         if (val instanceof Number n) return n.longValue();
         return defaultValue;
     }
 
-    /** H6: 仅在 web.trustProxy=true 时信任 XFF，与 SecurityFilter 保持一致 */
+    /** 仅在 web.trustProxy=true 时信任 XFF，与 SecurityFilter 保持一致 */
     private String getClientIp(HttpExchange exchange) {
         if (Config.getBoolean("web.trustProxy", false)) {
             String forwarded = exchange.getRequestHeaders().getFirst("X-Forwarded-For");
@@ -267,7 +258,7 @@ public class WebServer {
     }
 
     /**
-     * H9: 限制请求体读取大小，防止超大 POST 体耗尽堆内存。
+     * 限制请求体读取大小，防止超大 POST 体耗尽堆内存。
      *
      * @return 请求体字符串；超过 MAX_BODY_BYTES 时返回 null
      */
@@ -483,7 +474,6 @@ public class WebServer {
                 return;
             }
 
-            // 检查是否是单个代码查询
             String path = exchange.getRequestURI().getPath();
             if (path.matches("/api/codes/.+")) {
                 String code = java.net.URLDecoder.decode(path.substring("/api/codes/".length()), StandardCharsets.UTF_8);
@@ -539,7 +529,7 @@ public class WebServer {
             String code = req.containsKey("code") && req.get("code") instanceof String s && !s.trim().isEmpty()
                     ? s.trim() : Utils.generateRandomString(16);
 
-            // L11: 兑换码长度校验（SQL 列 VARCHAR(255)）
+            // 兑换码长度校验（SQL 列 VARCHAR(255)）
             if (code.length() > 255) {
                 sendJsonResponse(exchange, 400, Map.of("success", false, "message", "兑换码长度不能超过 255 个字符"));
                 return;
@@ -570,7 +560,7 @@ public class WebServer {
                         sendJsonResponse(exchange, 400, Map.of("success", false, "message", "tag 不能为空"));
                         return;
                     }
-                    // H2: 玩家列表遍历投递到 MC 主线程
+                    // 玩家列表遍历投递到 MC 主线程
                     CompletableFuture<List<String>> future = new CompletableFuture<>();
                     server.execute(() -> {
                         try {
@@ -602,7 +592,7 @@ public class WebServer {
                         sendJsonResponse(exchange, 400, Map.of("success", false, "message", "scoreboard 不能为空"));
                         return;
                     }
-                    // H2: 计分板访问投递到 MC 主线程
+                    // 计分板访问投递到 MC 主线程
                     CompletableFuture<List<String>> future = new CompletableFuture<>();
                     server.execute(() -> {
                         try {
@@ -645,7 +635,7 @@ public class WebServer {
                     player = req.containsKey("player") ? (String) req.get("player") : null;
                 }
 
-                // H10: 匹配 0 个玩家时拒绝创建，防止生成永久不可用的码
+                // 匹配 0 个玩家时拒绝创建，防止生成永久不可用的码
                 if ("tag".equals(selectMode) || "scoreboard".equals(selectMode)) {
                     if (selectedUuids.isEmpty()) {
                         sendJsonResponse(exchange, 400, Map.of("success", false, "message", "未匹配到任何玩家，无法创建 GLOBAL_LIMIT 兑换码"));
@@ -666,7 +656,6 @@ public class WebServer {
             } else if (type == CodeType.CYCLE) {
                 startTime = getLongFromMap(req, "startTime", 0);
                 interval = getLongFromMap(req, "interval", 0);
-                // C6: CYCLE 类型 interval 必须大于 0
                 if (interval <= 0) {
                     sendJsonResponse(exchange, 400, Map.of("success", false, "message", "CYCLE 类型的 interval 必须大于 0"));
                     return;
@@ -674,7 +663,7 @@ public class WebServer {
             }
 
             CodeData codeData = new CodeData(code, type, reward, player, count, startTime, endTime, interval);
-            // H12: 等待 MC 主线程完成 addCode，确保响应反映真实结果
+            // 等待 MC 主线程完成 addCode，确保响应反映真实结果
             CompletableFuture<Void> addFuture = new CompletableFuture<>();
             server.execute(() -> {
                 try {
@@ -708,7 +697,7 @@ public class WebServer {
                 sendJsonResponse(exchange, 404, Map.of("success", false, "message", "兑换码不存在: " + code));
                 return;
             }
-            // H12: 等待 MC 主线程完成 deleteCode
+            // 等待 MC 主线程完成 deleteCode
             CompletableFuture<Boolean> delFuture = new CompletableFuture<>();
             server.execute(() -> {
                 try {
@@ -897,7 +886,6 @@ public class WebServer {
                 return;
             }
 
-            // 取最近 7 天的日期标签
             java.text.SimpleDateFormat dayFmt = new java.text.SimpleDateFormat("MM-dd");
             java.util.Calendar cal = java.util.Calendar.getInstance();
             cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
@@ -917,7 +905,6 @@ public class WebServer {
 
             int[] counts = new int[7];
 
-            // 从操作日志中批量读取 REDEEM 记录（最多取 5000 条）
             List<OperationLogEntry> logs = cm.getOperationLog(0, 5000);
             for (OperationLogEntry entry : logs) {
                 if (!"REDEEM".equals(entry.getOperationType())) continue;

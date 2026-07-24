@@ -40,7 +40,7 @@ public class RedisRepository implements IDataRepository {
     }
 
     /**
-     * M8: 获取 Jedis 实例，null 时抛出明确异常（isConnected 与 getResource 之间存在竞态窗口）。
+     * 获取 Jedis 实例，null 时抛出明确异常（isConnected 与 getResource 之间存在竞态窗口）。
      */
     private Jedis getJedis() {
         Jedis jedis = RedisManager.getInstance().getResource();
@@ -227,7 +227,7 @@ public class RedisRepository implements IDataRepository {
         try (Jedis jedis = getJedis()) {
             String json = GSON.toJson(logEntry);
             jedis.rpush(KEY_OPERATION_LOG, json);
-            // M5: 裁剪日志列表，仅保留最近 log.max.entries 条
+            // 裁剪日志列表，仅保留最近 log.max.entries 条，防止无限膨胀
             int maxEntries = com.juzizhen.redemptioncodefabric.config.Config.getInt("log.max.entries", 20000);
             jedis.ltrim(KEY_OPERATION_LOG, -maxEntries, -1);
         } catch (Exception e) {

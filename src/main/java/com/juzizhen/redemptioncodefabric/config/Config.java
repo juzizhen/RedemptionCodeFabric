@@ -12,7 +12,7 @@ public class Config {
 
     private static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir();
     private static final File CONFIG_FILE = CONFIG_DIR.resolve(RedemptionCodeFabric.MOD_ID).resolve("redemptioncodefabric.properties").toFile();
-    /** H4: volatile 引用，reload 时原子交换整个 Properties 对象，避免 clear+load 窗口期读到空值 */
+    /** volatile 引用，reload 时原子交换整个 Properties 对象，避免 clear+load 窗口期读到空值 */
     private static volatile Properties properties = new Properties();
 
     public Config() {
@@ -41,7 +41,7 @@ public class Config {
             if (!CONFIG_FILE.getParentFile().exists()) {
                 RedemptionCodeFabric.LOGGER.info("Creating config directory: {}", CONFIG_FILE.getParentFile().mkdirs());
             }
-            // H4: 加载到新对象，完成后原子交换引用，避免 clear+load 窗口期
+            // 加载到新对象，完成后原子交换引用，避免 clear+load 窗口期
             Properties newProps = new Properties();
             if (CONFIG_FILE.exists()) {
                 try (FileInputStream fis = new FileInputStream(CONFIG_FILE)) {
@@ -59,18 +59,6 @@ public class Config {
 
     /**
      * 以分段注释格式保存配置文件（替代 Properties.store 的无序输出）。
-     * <p>
-     * 输出效果示例：
-     * <pre>
-     * # ============================================================
-     * #  RedemptionCodeFabric Configuration
-     * # ============================================================
-     *
-     * # ── Datastore ────────────────────────────────────────
-     * # Storage backend: file / sql / redis
-     * datastore.type=file
-     * ...
-     * </pre>
      */
     private void saveOrganized() throws IOException {
         try (BufferedWriter w = new BufferedWriter(new FileWriter(CONFIG_FILE))) {

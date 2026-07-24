@@ -7,7 +7,7 @@ public class RedemptionCodeFabricClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        // 向服务器发送空数据，用于验证是否安装了该 mod
+        // 注册 presence 接收器，使服务器能检测到客户端安装了本 mod
         ClientPlayNetworking.registerGlobalReceiver(RedemptionCodeFabric.MOD_PRESENCE_CHANNEL, (client, handler, buf, responseSender) -> RedemptionCodeFabric.LOGGER.info("Connect!"));
     }
 }

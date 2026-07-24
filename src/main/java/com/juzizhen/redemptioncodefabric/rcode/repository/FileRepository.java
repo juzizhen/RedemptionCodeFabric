@@ -55,7 +55,7 @@ public class FileRepository implements IDataRepository {
 
     @Override
     public synchronized void saveAllCodes(Map<String, CodeData> codes) {
-        // C5: 写临时文件后原子替换，防止并发读到半写文件
+        // 写临时文件后原子替换，防止并发读到半写文件
         try {
             Path tempFile = Files.createTempFile(CODE_DIR.toPath(), "codes_", ".tmp");
             try (BufferedWriter writer = Files.newBufferedWriter(tempFile)) {
@@ -83,9 +83,7 @@ public class FileRepository implements IDataRepository {
     }
 
     /**
-     * 原子更新兑换码文件的辅助方法：读取当前数据、应用修改后写回。
-     *
-     * @param updater 用于修改兑换码 Map 的消费者
+     * 原子更新兑换码文件：读取当前数据、应用修改后写回。
      */
     private synchronized void updateCodes(Consumer<Map<String, CodeData>> updater) {
         Map<String, CodeData> codes = loadAllCodes();

@@ -35,7 +35,6 @@ public class RedisManager {
     /**
      * 初始化 Redis 连接池，带重试逻辑。
      *
-     * @param config 包含 Redis 连接属性的 mod 配置
      * @return 连接成功返回 true，所有重试均失败返回 false
      */
     public boolean init(Config config) {
@@ -131,9 +130,6 @@ public class RedisManager {
         jedisPool = null;
     }
 
-    /**
-     * 返回当前 Redis 连接是否处于可用状态。
-     */
     public boolean isConnected() {
         return connected && jedisPool != null && !jedisPool.isClosed();
     }

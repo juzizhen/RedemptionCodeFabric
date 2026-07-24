@@ -63,15 +63,12 @@ public class CodeManager {
     }
 
     /**
-     * 从数据源重新加载兑换码，增量同步到内存 Map。
-     * <p>
-     * 先移除数据源中已不存在的 key（其他服务器删除），再覆盖/新增全部条目。
-     * ConcurrentHashMap 的 keySet().retainAll() + putAll() 组合保证并发安全。
+     * 从数据源增量同步兑换码到内存：先 retainAll 移除已删除的 key，再 putAll 覆盖/新增。
      */
     private void syncCache() {
         try {
             Map<String, CodeData> fresh = repository.loadAllCodes();
-            // C4 防护：数据源返回空但本地有数据时，视为瞬时 I/O 错误，跳过本次同步
+            // 数据源返回空但本地有数据时，视为瞬时 I/O 错误，跳过本次同步以保护缓存
             if ((fresh == null || fresh.isEmpty()) && !codes.isEmpty()) {
                 RedemptionCodeFabric.LOGGER.warn("Cache sync returned empty while {} codes in memory, skipping to protect cache", codes.size());
                 return;
@@ -224,25 +221,20 @@ public class CodeManager {
     }
 
     /**
-     * C2 折中方案：缓存命中同步处理，未命中异步查 DB 后回主线程发奖。
-     * <p>
-     * 快路径（99% 场景）：码在本地缓存中，直接同步校验+发奖，零阻塞。
-     * 慢路径（集群/冷启动）：码不在缓存，提交 IO 线程查 DB，查到后回 MC 主线程处理，
-     * 玩家先收到"处理中"提示，结果异步推送。
+     * 缓存命中则同步处理；未命中则异步查 DB，查到后回 MC 主线程发奖。
      */
     public Text redeemCode(ServerCommandSource source, String code) {
-        // C8: 仅允许玩家兑换
         if (source.getPlayer() == null) {
             return MessageUtils.createText(source, "redemptioncodefabric.message.code_invalid_or_nonexistent");
         }
 
-        // ── 快路径：缓存命中，同步处理 ──
+        // 快路径：缓存命中，同步处理
         CodeData cached = codes.get(code);
         if (cached != null) {
             return processRedeem(source, code, cached);
         }
 
-        // ── 慢路径：缓存未命中，异步查 DB（集群中其他服务器创建的码） ──
+        // 慢路径：缓存未命中，异步查 DB（集群中其他服务器创建的码）
         ServerPlayerEntity player = source.getPlayer();
         CompletableFuture.runAsync(() -> {
             CodeData dbCode = repository.loadCode(code);
@@ -372,7 +364,6 @@ public class CodeManager {
         return null;
     }
 
-    // L9: 奖励类型前缀常量
     private static final String REWARD_PREFIX_ITEM = "item@";
     private static final String REWARD_PREFIX_EXP = "exp@";
     private static final String REWARD_PREFIX_PERMISSIONS = "permissions@";
@@ -430,7 +421,7 @@ public class CodeManager {
         } else if (lowerReward.startsWith(REWARD_PREFIX_PERMISSIONS)) {
             return MessageUtils.createText(source, "redemptioncodefabric.message.permission_reward_contact_admin");
         } else {
-            // H11: 未知奖励格式 — 记录警告并返回错误，不消耗兑换码
+            // 未知奖励格式：记录警告并返回错误，不消耗兑换码
             RedemptionCodeFabric.LOGGER.error("Unrecognized reward format for code '{}': {}", codeData.getCode(), rewardString);
             return MessageUtils.createText(source, "redemptioncodefabric.message.redeem_fail_item");
         }
@@ -438,8 +429,7 @@ public class CodeManager {
     }
 
     /**
-     * C2: 记录使用——内存立即更新，DB 落盘异步（不阻塞 MC 主线程）。
-     * 缓存已是权威读源，DB 写入为持久化保障，允许短暂延迟。
+     * 记录使用：内存立即更新，DB 异步落盘（不阻塞 MC 主线程）。
      */
     private void recordUsage(CodeData codeData, String playerUUID, long currentTime) {
         codeData.addUsedBy(playerUUID, currentTime);

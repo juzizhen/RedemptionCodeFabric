@@ -22,16 +22,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * 全局异步 I/O 调度中心。
  * <p>
- * 统一管理所有阻塞式 I/O 操作（SQL、Redis、文件），确保它们运行在独立的线程池中，
- * 绝不阻塞 Minecraft Server Thread（主线程）。
- * <p>
- * 同时统一管理 Web 服务器的生命周期（启动/停止/重载），确保 reload 时
- * web.enabled 变化能被正确响应。
- * <p>
- * 生命周期：
- * - 服务器启动时调用 {@link #init(Config, MinecraftServer)} 初始化
- * - 服务器关闭时调用 {@link #shutdown()} 清理资源
- * - reload 时自动 shutdown → 重建线程池 → init
+ * 统一管理所有阻塞式 I/O（SQL、Redis、文件）使其运行在独立线程池，绝不阻塞 Minecraft 主线程；
+ * 同时管理 Web 服务器生命周期，确保 reload 时 web.enabled 变化被正确响应。
  */
 public final class AsyncIoManager {
 
@@ -49,9 +41,21 @@ public final class AsyncIoManager {
      * 记录当前 Web 服务器实际监听的端口（-1 表示未运行）
      */
     private static volatile int activeWebPort = -1;
+    /**
+     * 是否有 reload 线程正在运行（串行化标志），与 {@link #LIFECYCLE_LOCK} 配合保证同一时刻只有一个 reload。
+     */
     private static volatile boolean reloading = false;
+    /**
+     * 最新待处理的重载请求（latest-wins）。reload 线程处理完当前请求后会领取它；
+     * 重载期间到达的多次请求会互相覆盖，最终只执行最新的一次，确保用户最后的配置一定生效。
+     */
+    private static volatile ReloadRequest pendingRequest;
 
     private AsyncIoManager() {
+    }
+
+    /** 一次重载请求的不可变快照。 */
+    private record ReloadRequest(Config config, MinecraftServer server, Runnable onReady) {
     }
 
     /**
@@ -84,9 +88,6 @@ public final class AsyncIoManager {
 
     /**
      * 初始化所有 I/O 资源（SQL 连接池、Redis 连接池、Web 服务器）。
-     *
-     * @param config 模组配置
-     * @param server Minecraft 服务器实例（用于发送警报）
      */
     public static synchronized void init(Config config, MinecraftServer server) {
         if (initialized) {
@@ -94,7 +95,7 @@ public final class AsyncIoManager {
             return;
         }
 
-        // ★ 确保线程池可用（reload / 服务器重启场景）
+        // 确保线程池可用（reload / 重启场景）
         getIoExecutor();
 
         String dsType = Config.getString("datastore.type", "file");
@@ -114,7 +115,6 @@ public final class AsyncIoManager {
             }
         }
 
-        // ★ 初始化 Web 服务器
         initWebServer();
 
         initialized = true;
@@ -122,7 +122,7 @@ public final class AsyncIoManager {
     }
 
     /**
-     * 启动 Web 服务器（如果 web.enabled=true）并向 OP 发送 URL。
+     * 启动 Web 服务器（如果 web.enabled=true）。
      */
     private static void initWebServer() {
         if (!Config.getBoolean("web.enabled", false)) {
@@ -157,11 +157,7 @@ public final class AsyncIoManager {
 
     /**
      * 向刚加入的 OP 玩家发送 Web 管理面板 URL。
-     * <p>
      * 必须在玩家 JOIN 事件中调用，因为 SERVER_STARTING 阶段没有在线玩家。
-     *
-     * @param player 刚加入的玩家
-     * @param server Minecraft 服务器实例
      */
     public static void sendWebUrlToPlayer(ServerPlayerEntity player, MinecraftServer server) {
         if (server == null) return;
@@ -189,13 +185,8 @@ public final class AsyncIoManager {
     }
 
     /**
-     * 重新加载配置（用于 /rcode reload 命令）。
-     * <p>
-     * 完整生命周期：shutdown → 重建线程池 → init。
-     * Web 服务器会在 shutdown 阶段先停止，再在 init 阶段根据新配置决定是否重启。
-     *
-     * @param config 新配置
-     * @param server Minecraft 服务器实例
+     * 重新加载配置（用于 /rcode reload 命令）：shutdown → init。
+     * Web 服务器在 shutdown 阶段停止，再在 init 阶段按新配置决定是否重启。
      */
     public static synchronized void reload(Config config, MinecraftServer server) {
         LOGGER.info("Reloading AsyncIoManager...");
@@ -204,41 +195,72 @@ public final class AsyncIoManager {
     }
 
     /**
-     * 在独立的后台守护线程上异步执行重载（shutdown → init → onReady），
-     * 使 SQL/Redis 的连接重试、连接池关闭等阻塞操作不再占用 Minecraft 主线程。
+     * 在专用后台守护线程上异步执行重载（shutdown → init → onReady），避免阻塞 Minecraft 主线程。
      * <p>
-     * 注意：不能提交到 {@link #getIoExecutor()}，因为 {@link #shutdown()} 会关闭并
-     * awaitTermination 该线程池自身，在其工作线程上调用会造成自锁。这里使用专用线程。
-     *
-     * @param config  新配置
-     * @param server  Minecraft 服务器实例
-     * @param onReady I/O 资源就绪后的回调（用于重建 CodeManager），在后台线程执行，可为 null
+     * 不能提交到 {@link #getIoExecutor()}：{@link #shutdown()} 会关闭并 awaitTermination 该线程池自身，
+     * 在其工作线程上调用会自锁，故使用专用线程。
+     * <p>
+     * 并发语义（latest-wins）：重载期间的慢速连接重试期间用户可能再次触发重载，新请求覆盖
+     * {@link #pendingRequest} 槽位，当前重载结束后由 {@link #reloadLoop()} 以最新配置再执行一次。
+     * 这样既串行化（同一时刻只有一个 reload），又保证用户最后的配置一定生效。
      */
     public static void reloadAsync(Config config, MinecraftServer server, Runnable onReady) {
+        boolean startThread;
         synchronized (LIFECYCLE_LOCK) {
-            if (reloading) {
-                LOGGER.warn("A reload is already in progress, ignoring this request.");
-                return;
-            }
+            // latest-wins：覆盖尚未处理的请求，确保用户最终的配置一定会生效
+            pendingRequest = new ReloadRequest(config, server, onReady);
+            startThread = !reloading;
             reloading = true;
         }
+        if (startThread) {
+            Thread thread = new Thread(AsyncIoManager::reloadLoop, "RCF-Reload");
+            thread.setDaemon(true);
+            thread.start();
+        } else {
+            LOGGER.info("A reload is already in progress; the latest configuration will be applied once it finishes.");
+        }
+    }
 
-        Thread thread = new Thread(() -> {
-            try {
-                LOGGER.info("Reloading AsyncIoManager asynchronously...");
-                shutdown();
-                init(config, server);
-                if (onReady != null) {
-                    onReady.run();
+    /**
+     * reload 线程主体：循环领取最新待处理请求并处理，直到没有请求为止。
+     * 领取请求与管理 {@link #reloading} 标志在 {@link #LIFECYCLE_LOCK} 内原子完成，
+     * 实际的 shutdown/init 在锁外执行。由此保证串行化、重载期间的新请求不丢失
+     * （以最新配置再执行一次），并由 finally 兜底避免丢失请求或泄漏活跃标志。
+     */
+    private static void reloadLoop() {
+        try {
+            while (true) {
+                ReloadRequest request;
+                synchronized (LIFECYCLE_LOCK) {
+                    request = pendingRequest;
+                    if (request == null) {
+                        return; // 无待处理请求，退出（finally 统一释放活跃标志）
+                    }
+                    pendingRequest = null;
                 }
-            } catch (Exception e) {
-                LOGGER.error("Asynchronous reload failed.", e);
-            } finally {
-                reloading = false;
+                try {
+                    LOGGER.info("Reloading AsyncIoManager asynchronously...");
+                    shutdown();
+                    init(request.config(), request.server());
+                    if (request.onReady() != null) {
+                        request.onReady().run();
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Asynchronous reload failed.", e);
+                }
             }
-        }, "RCF-Reload");
-        thread.setDaemon(true);
-        thread.start();
+        } finally {
+            synchronized (LIFECYCLE_LOCK) {
+                if (pendingRequest == null) {
+                    reloading = false;
+                } else {
+                    // 异常退出但仍有待处理请求：重启线程继续处理，避免请求丢失
+                    Thread thread = new Thread(AsyncIoManager::reloadLoop, "RCF-Reload");
+                    thread.setDaemon(true);
+                    thread.start();
+                }
+            }
+        }
     }
 
     /**
@@ -249,17 +271,15 @@ public final class AsyncIoManager {
     public static synchronized void shutdown() {
         LOGGER.info("Shutting down AsyncIoManager...");
 
-        // ★ 先停 Web 服务器，避免新请求进入即将关闭的线程池
+        // 先停 Web 服务器，避免新请求进入即将关闭的线程池
         WebServer.getInstance().stop();
         activeWebPort = -1;
 
-        // 关闭 SQL 连接池
         SqlManager.getInstance().shutdown();
 
-        // 关闭 Redis 连接池
         RedisManager.getInstance().shutdown();
 
-        // 关闭 I/O 线程池（不置 null，下次 getIoExecutor() 时重建）
+        // 不置 null，下次 getIoExecutor() 时重建
         ExecutorService exec = ioExecutor;
         if (exec != null) {
             exec.shutdown();

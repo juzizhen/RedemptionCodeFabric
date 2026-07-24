@@ -42,10 +42,7 @@ public class SqlManager {
     }
 
     /**
-     * 初始化 SQL 连接池（带重试逻辑）。
-     *
-     * @param config 模组配置
-     * @return 是否初始化成功
+     * 初始化 SQL 连接池（带重试逻辑），返回是否成功。
      */
     public boolean init(Config config) {
         shutdown();
@@ -98,7 +95,6 @@ public class SqlManager {
         try {
             conn = connectionPool.getConnection();
 
-            // 创建 redemption_codes 表
             String createCodesTable = """
                     CREATE TABLE IF NOT EXISTS redemption_codes (
                         code VARCHAR(255) PRIMARY KEY,
@@ -117,7 +113,6 @@ public class SqlManager {
                 stmt.execute();
             }
 
-            // 创建 operation_logs 表
             String createLogsTable = """
                     CREATE TABLE IF NOT EXISTS operation_logs (
                         id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -162,9 +157,6 @@ public class SqlManager {
         });
     }
 
-    /**
-     * 设置 MinecraftServer 引用（用于发送警报）。
-     */
     public void setServer(MinecraftServer server) {
         this.cachedServer = server;
     }
@@ -203,16 +195,10 @@ public class SqlManager {
         }
     }
 
-    /**
-     * 检查 SQL 连接是否可用。
-     */
     public boolean isConnected() {
         return connected && connectionPool != null;
     }
 
-    /**
-     * 获取连接池实例。
-     */
     public SimpleConnectionPool getConnectionPool() {
         return connectionPool;
     }

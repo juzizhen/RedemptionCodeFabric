@@ -20,10 +20,8 @@ public interface IDataRepository {
     void removeCode(String code);
 
     /**
-     * 从数据源按主键查询单个兑换码。
-     * 用于兑换路径的 DB 校验：确认该码在数据源中确实存在且状态合法。
+     * 从数据源按主键查询单个兑换码，用于兑换路径的 DB 校验。
      *
-     * @param code 兑换码字符串
      * @return 对应的 CodeData，不存在时返回 null
      */
     CodeData loadCode(String code);
@@ -32,9 +30,6 @@ public interface IDataRepository {
 
     /**
      * 获取操作日志，按时间倒序（最新在前）。
-     *
-     * @param offset 跳过的条目数
-     * @param limit  返回的最大条目数
      */
     List<OperationLogEntry> getOperationLog(int offset, int limit);
 }

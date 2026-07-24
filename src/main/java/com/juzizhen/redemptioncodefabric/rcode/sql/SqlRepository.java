@@ -140,7 +140,6 @@ public class SqlRepository implements IDataRepository {
                 rs.getLong("code_interval")
         );
 
-        // 添加使用记录
         usedBy.forEach((uuid, timestamps) ->
                 timestamps.forEach(ts -> codeData.addUsedBy(uuid, ts))
         );

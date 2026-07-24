@@ -24,10 +24,7 @@ public class Utils {
     );
 
     /**
-     * 生成指定长度的随机字符串
-     *
-     * @param length 字符串长度
-     * @return 随机字符串
+     * 生成指定长度的随机字符串。
      */
     public static String generateRandomString(int length) {
         StringBuilder sb = new StringBuilder(length);
@@ -38,10 +35,7 @@ public class Utils {
     }
 
     /**
-     * 检查端口是否可用
-     *
-     * @param port 要检测的端口
-     * @return true 表示可用，false 表示已被占用
+     * 检查端口是否可用（true 表示可用，false 表示已被占用）。
      */
     public static boolean isPortAvailable(int port) {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
@@ -53,11 +47,7 @@ public class Utils {
     }
 
     /**
-     * 从起始端口开始查找第一个可用端口
-     *
-     * @param startPort 起始端口
-     * @param maxPort   最大端口范围
-     * @return 可用端口号，如果没有找到返回 -1
+     * 从起始端口开始查找第一个可用端口，未找到返回 -1。
      */
     public static int findAvailablePort(int startPort, int maxPort) {
         for (int port = startPort; port <= maxPort; port++) {
@@ -69,11 +59,7 @@ public class Utils {
     }
 
     /**
-     * 判断玩家是否在线
-     *
-     * @param server MinecraftServer 实例
-     * @param uuid   玩家 UUID
-     * @return 如果玩家在线返回 true，否则返回 false
+     * 判断玩家是否在线。
      */
     public static boolean isPlayerOnline(MinecraftServer server, UUID uuid) {
         if (server == null || uuid == null) return false;
@@ -81,19 +67,15 @@ public class Utils {
     }
 
     /**
-     * 解析玩家引用（UUID / 玩家名 / @选择器），返回匹配的 UUID 列表。
-     * <p>
-     * 用于替代 {@code GameProfileArgumentType}，因为它不支持直接输入 UUID。
+     * 解析玩家引用（UUID / 玩家名 / @选择器），用于替代 {@code GameProfileArgumentType}（它不支持直接输入 UUID）。
      *
-     * @param input  包含玩家引用和奖励的组合字符串（如 "Steve diamond 64"）
-     * @param server 当前 MinecraftServer
-     * @return 包含两个元素的数组：[0] = 逗号分隔的 UUID 字符串，[1] = 剩余的奖励字符串
-     * @throws CommandSyntaxException 当无法解析玩家引用时抛出
+     * @param input 包含玩家引用和奖励的组合字符串（如 "Steve diamond 64"）
+     * @return 两个元素的数组：[0] = 逗号分隔的 UUID 字符串，[1] = 剩余的奖励字符串
      */
     public static String[] resolvePlayerRef(String input, MinecraftServer server) throws CommandSyntaxException {
         input = input.trim();
 
-        // --- 分支 1：实体选择器（以 @ 开头） ---
+        // 分支 1：实体选择器（以 @ 开头）
         if (input.startsWith("@")) {
             StringReader reader = new StringReader(input);
             EntitySelectorReader selectorReader = new EntitySelectorReader(reader);
@@ -109,7 +91,7 @@ public class Utils {
             return new String[]{uuids, remaining};
         }
 
-        // --- 分支 2：UUID ---
+        // 分支 2：UUID
         String firstWord;
         String rest;
         int firstSpace = input.indexOf(' ');
@@ -127,7 +109,7 @@ public class Utils {
             return new String[]{uuid, rest};
         }
 
-        // --- 分支 3：玩家名（通过 UserCache 查找 UUID） ---
+        // 分支 3：玩家名（通过 UserCache 查找 UUID）
         UserCache userCache = server.getUserCache();
         if (userCache != null) {
             Optional<com.mojang.authlib.GameProfile> profile = userCache.findByName(firstWord);

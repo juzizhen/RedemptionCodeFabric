@@ -24,11 +24,6 @@ This jar incorporates several open-source libraries. Some licenses were automati
 * License: Apache License 2.0
 * Copyright 2001-2024 The Apache Software Foundation
 
-**Google Protobuf** (Required by MySQL Connector/J)
-* Repository: https://github.com/protocolbuffers/protobuf
-* License: BSD 3-Clause License
-* Copyright 2008 Google Inc.
-
 **Google Gson** (Required by Jedis)
 * Repository: https://github.com/google/gson
 * License: Apache License 2.0
@@ -50,4 +45,4 @@ This jar incorporates several open-source libraries. Some licenses were automati
 * Copyright 2015 The Error Prone Authors.
 
 ---
-For the full text of the Apache License 2.0, MIT License, BSD 3-Clause, and GPL v2, please refer to their respective official repositories or the merged files located in the META-INF/ directory of this jar.
+For the full text of the Apache License 2.0, MIT License, and GPL v2, please refer to their respective official repositories or the merged files located in the META-INF/ directory of this jar.

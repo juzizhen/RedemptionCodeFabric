@@ -92,6 +92,17 @@ shadowJar {
     exclude 'google/**'
     exclude '**/*.proto'
 
+    // ---- jar 瘦身：剔除 MySQL Connector/J 中本项目用不到的部分 ----
+    // 本项目仅使用经典 JDBC（jdbc:mysql + DriverManager.getConnection），从不使用 X DevAPI，
+    // 故 X 协议实现及其专属依赖 Protobuf 均为死重（合计约 10MB 未压缩，占 jar 一半以上）。
+    // 注意：MySQL 驱动对 X 协议类存在少量反射/懒加载路径，剥离后必须在真实环境连库跑通增删改查再发布。
+    // 另：LocalizedErrorMessages.properties / TimeZoneMapping.properties 不可移除——
+    //     驱动 Messages 静态初始化器强制加载前者，缺失会直接 ExceptionInInitializerError 崩溃，故保留。
+    exclude 'com/mysql/cj/x/**'              // X 协议（含 X DevAPI 生成的 protobuf 消息类）
+    exclude 'com/mysql/cj/xdevapi/**'        // X DevAPI 公共 API
+    exclude 'com/mysql/cj/protocol/x/**'     // X 协议实现
+    exclude 'com/google/protobuf/**'         // Protobuf 运行时（仅 X 协议使用）
+
     // 许可证清理：移除所有依赖（MySQL Connector/J、Commons Pool、Gson、SLF4J 等）带入的
     // LICENSE / NOTICE / DEPENDENCIES 文件，仅保留以下三项：
     //   - LICENSE_redemptioncodefabric ：项目自身许可（根目录，由 processResources 重命名注入）

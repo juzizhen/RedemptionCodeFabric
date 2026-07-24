@@ -18,12 +18,8 @@ public class CodeData {
 
     /**
      * 使用记录：playerUUID -> 使用时间戳列表。
-     * <p>
-     * 线程安全设计：
-     * - 外层 ConcurrentHashMap：MC 主线程写入（addUsedBy），HTTP 线程 / 同步线程并发读取
-     * - 内层 CopyOnWriteArrayList：单玩家多次使用（CYCLE/PERMANENT），写少读多场景
-     * <p>
-     * Gson 反序列化可能产生 HashMap + ArrayList，{@link #ensureConcurrentUsedBy()} 负责惰性转换。
+     * 外层 ConcurrentHashMap、内层 CopyOnWriteArrayList 保证并发读写安全；
+     * Gson 反序列化可能产生 HashMap + ArrayList，由 {@link #ensureConcurrentUsedBy()} 惰性转换。
      */
     private volatile Map<String, List<Long>> usedBy;
 

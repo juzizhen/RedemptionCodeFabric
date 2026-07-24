@@ -27,14 +27,12 @@ public class SecurityFilter extends Filter {
 
     private static final String REDIS_KEY_TOKEN = "admin:active_token";
     private static final int TOKEN_TTL_SECONDS = 1800; // 30 分钟
-    // ── 内存降级：限流 ──
     private static final ConcurrentHashMap<String, RateBucket> memoryRateBuckets = new ConcurrentHashMap<>();
-    /** M4: 上次清理过期限流桶的时间戳，避免每次请求都遍历 */
+    /** 上次清理过期限流桶的时间戳，避免每次请求都遍历 */
     private static volatile long lastRateCleanup = 0;
-    // ── 独立 Redis 连接池（web.redis.* 配置） ──
     private static volatile JedisPool webRedisPool = null;
 
-    // ── M1: 内存降级单 Token（不可变对象，原子引用交换） ──
+    // 内存降级单 Token：不可变对象，原子引用交换
     private record TokenSession(String token, long expireAt) {}
     private static volatile TokenSession memorySession = null;
 
@@ -65,7 +63,6 @@ public class SecurityFilter extends Filter {
             String pwd = (password == null || password.isEmpty()) ? null : password;
             webRedisPool = new JedisPool(poolConfig, host, port, 3000, pwd, database);
 
-            // 验证连接
             try (Jedis jedis = webRedisPool.getResource()) {
                 String pong = jedis.ping();
                 if (!"PONG".equalsIgnoreCase(pong)) {
@@ -129,9 +126,6 @@ public class SecurityFilter extends Filter {
         memorySession = null;
     }
 
-    /**
-     * 判断 Web Redis 连接池是否可用。
-     */
     public static boolean isRedisAvailable() {
         JedisPool pool = webRedisPool;
         return pool != null && !pool.isClosed();
@@ -207,7 +201,7 @@ public class SecurityFilter extends Filter {
     private boolean checkMemoryRateLimit(String key, int maxLimit, int expireSeconds) {
         long now = System.currentTimeMillis();
 
-        // M4: 惰性清理过期限流桶（最多每 60 秒一次），防止不同 IP 累积导致内存泄漏
+        // 惰性清理过期限流桶（最多每 60 秒一次），防止不同 IP 累积导致内存泄漏
         if (now - lastRateCleanup > 60_000) {
             lastRateCleanup = now;
             memoryRateBuckets.entrySet().removeIf(e -> now - e.getValue().windowStart > 120_000);
@@ -249,7 +243,7 @@ public class SecurityFilter extends Filter {
     }
 
     /**
-     * H6: 获取客户端 IP。仅在 web.trustProxy=true 时信任 X-Forwarded-For，
+     * 获取客户端 IP。仅在 web.trustProxy=true 时信任 X-Forwarded-For，
      * 防止直连客户端伪造 XFF 绕过限流。
      */
     private String getClientIp(HttpExchange exchange) {
