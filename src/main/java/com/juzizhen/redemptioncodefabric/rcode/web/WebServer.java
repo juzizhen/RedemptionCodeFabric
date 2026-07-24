@@ -29,6 +29,8 @@ import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 基于 JDK 原生 {@link HttpServer} 的轻量级 Web 服务器，
@@ -317,8 +319,15 @@ public class WebServer {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             MinecraftServer server = getServer();
-            List<Map<String, Object>> players = new ArrayList<>();
-            if (server != null) {
+            if (server == null) {
+                sendJsonResponse(exchange, 200, Map.of("success", true, "data", List.of()));
+                return;
+            }
+
+            // 玩家列表遍历必须投递到 MC 主线程，避免 HTTP 线程并发迭代导致 ConcurrentModificationException
+            CompletableFuture<List<Map<String, Object>>> future = new CompletableFuture<>();
+            server.execute(() -> {
+                List<Map<String, Object>> players = new ArrayList<>();
                 for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
                     Map<String, Object> info = new LinkedHashMap<>();
                     info.put("name", p.getName().getString());
@@ -328,8 +337,15 @@ public class WebServer {
                     info.put("tags", new ArrayList<>(p.getCommandTags()));
                     players.add(info);
                 }
+                future.complete(players);
+            });
+
+            try {
+                List<Map<String, Object>> players = future.get(5, TimeUnit.SECONDS);
+                sendJsonResponse(exchange, 200, Map.of("success", true, "data", players));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, Map.of("success", false, "message", "获取玩家列表超时"));
             }
-            sendJsonResponse(exchange, 200, Map.of("success", true, "data", players));
         }
     }
 
@@ -337,8 +353,15 @@ public class WebServer {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             MinecraftServer server = getServer();
-            List<Map<String, String>> objectives = new ArrayList<>();
-            if (server != null) {
+            if (server == null) {
+                sendJsonResponse(exchange, 200, Map.of("success", true, "data", List.of()));
+                return;
+            }
+
+            // 计分板遍历必须投递到 MC 主线程，避免 HTTP 线程并发访问导致数据不一致
+            CompletableFuture<List<Map<String, String>>> future = new CompletableFuture<>();
+            server.execute(() -> {
+                List<Map<String, String>> objectives = new ArrayList<>();
                 var scoreboard = server.getScoreboard();
                 for (var obj : scoreboard.getObjectives()) {
                     Map<String, String> info = new LinkedHashMap<>();
@@ -346,8 +369,15 @@ public class WebServer {
                     info.put("displayName", obj.getDisplayName().getString());
                     objectives.add(info);
                 }
+                future.complete(objectives);
+            });
+
+            try {
+                List<Map<String, String>> objectives = future.get(5, TimeUnit.SECONDS);
+                sendJsonResponse(exchange, 200, Map.of("success", true, "data", objectives));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, Map.of("success", false, "message", "获取计分板数据超时"));
             }
-            sendJsonResponse(exchange, 200, Map.of("success", true, "data", objectives));
         }
     }
 

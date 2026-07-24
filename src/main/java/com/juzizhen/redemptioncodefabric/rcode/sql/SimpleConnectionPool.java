@@ -423,14 +423,14 @@ public class SimpleConnectionPool {
 
     private boolean isConnectionInvalid(PoolEntry entry) {
         try {
-            if (entry.connection.isClosed()) return false;
+            if (entry.connection.isClosed()) return true;
             boolean valid = entry.connection.isValid(Math.max(validationTimeoutSec, 1));
             if (valid) {
                 entry.lastValidatedAt = System.currentTimeMillis();
             }
-            return valid;
+            return !valid;
         } catch (SQLException e) {
-            return false;
+            return true;
         }
     }
 

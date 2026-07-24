@@ -23,6 +23,7 @@ import net.minecraft.util.Identifier;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CodeManager {
 
@@ -31,7 +32,8 @@ public class CodeManager {
 
     public CodeManager() {
         this.repository = RepositoryFactory.create();
-        this.codes = repository.loadAllCodes();
+        // ConcurrentHashMap：HTTP 线程遍历 getAllCodes() 与主线程 addCode/deleteCode 并发安全
+        this.codes = new ConcurrentHashMap<>(repository.loadAllCodes());
     }
 
     public CodeData getCode(String code) {
