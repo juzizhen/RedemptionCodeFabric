@@ -41,10 +41,10 @@ public final class AsyncIoManager {
      */
     private static volatile ReloadRequest pendingRequest;
     /**
-     * 当前 Web 管理面板完整地址（baseUrl + adminPath，已含回退端口）。
+     * 当前 Web 面板入口地址（baseUrl + "/"，已含回退端口），指向 index 入口而非 admin 路径。
      * web.enabled=false 或关闭时为 null；内置服务器主机进服时据此弹出可点击链接。
      */
-    private static volatile String activeAdminUrl;
+    private static volatile String activeWebUrl;
 
     private AsyncIoManager() {
     }
@@ -73,10 +73,10 @@ public final class AsyncIoManager {
     }
 
     /**
-     * 获取当前 Web 管理面板完整地址；web 未启用或已关闭时返回 null。
+     * 获取当前 Web 面板入口地址；web 未启用或已关闭时返回 null。
      */
-    public static String getActiveAdminUrl() {
-        return activeAdminUrl;
+    public static String getActiveWebUrl() {
+        return activeWebUrl;
     }
 
     private static ExecutorService createIoExecutor() {
@@ -150,8 +150,8 @@ public final class AsyncIoManager {
 
         String baseUrl = Config.getString("web.url", "http://localhost") + ":" + port;
         String adminPath = Config.getString("web.adminPath", "/admin.html");
-        activeAdminUrl = baseUrl + (adminPath.startsWith("/") ? adminPath : "/" + adminPath);
-        LOGGER.info("Web management panel available at: {}", baseUrl);
+        activeWebUrl = baseUrl + "/";
+        LOGGER.info("Web management panel available at: {}", activeWebUrl);
         LOGGER.info("Admin panel path: {}{}", baseUrl, adminPath);
     }
 
@@ -234,7 +234,7 @@ public final class AsyncIoManager {
 
         // 先停 Web 服务器，避免新请求进入即将关闭的线程池
         WebServer.getInstance().stop();
-        activeAdminUrl = null;
+        activeWebUrl = null;
 
         SqlManager.getInstance().shutdown();
 

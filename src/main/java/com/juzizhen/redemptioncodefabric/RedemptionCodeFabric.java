@@ -91,14 +91,14 @@ public class RedemptionCodeFabric implements ModInitializer {
         if (server.isDedicated() || !server.isHost(player.getGameProfile())) {
             return;
         }
-        String adminUrl = AsyncIoManager.getActiveAdminUrl();
-        if (adminUrl == null) {
+        String webUrl = AsyncIoManager.getActiveWebUrl();
+        if (webUrl == null) {
             return;
         }
-        Text url = Text.literal(adminUrl).setStyle(Text.empty().getStyle()
+        Text url = Text.literal(webUrl).setStyle(Text.empty().getStyle()
                 .withColor(Formatting.AQUA)
                 .withUnderline(true)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, adminUrl)));
+                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, webUrl)));
         player.sendMessage(MessageUtils.createText(player.getUuid(),
                 "redemptioncodefabric.message.web_admin_available", url), false);
     }
