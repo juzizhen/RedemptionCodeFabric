@@ -88,7 +88,6 @@ public class Config {
             prop(w, "web.user");
             prop(w, "web.password");
             prop(w, "web.adminPath");
-            prop(w, "web.sendUrlToOP");
             prop(w, "web.trustProxy");
             prop(w, "web.redis.enabled");
             prop(w, "web.redis.host");
@@ -187,7 +186,6 @@ public class Config {
         if (!properties.containsKey("web.password") || properties.getProperty("web.password").isEmpty()) {
             updated |= maybeSetDefault("web.password", Utils.generateRandomString(16));
         }
-        updated |= maybeSetDefault("web.sendUrlToOP", "true");
         updated |= maybeSetDefault("web.trustProxy", "false");
         updated |= maybeSetDefault("web.redis.enabled", "false");
         updated |= maybeSetDefault("web.redis.host", "localhost");

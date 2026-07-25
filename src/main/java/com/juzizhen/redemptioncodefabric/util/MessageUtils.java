@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import com.juzizhen.redemptioncodefabric.RedemptionCodeFabric;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
 import java.io.InputStream;
@@ -102,17 +103,63 @@ public class MessageUtils {
     public static Text createText(UUID playerUuid, String key, Object... args) {
         if (playerUuid != null && RedemptionCodeFabric.hasMod(playerUuid)) {
             return Text.translatable(key, args);
-        } else {
-            String template = getTranslation(key);
-            if (args.length == 0) {
-                return Text.literal(template);
+        }
+        String template = getTranslation(key);
+        if (args.length == 0) {
+            return Text.literal(template);
+        }
+        return formatLiteral(template, args);
+    }
+
+    /**
+     * 服务端预翻译的字面量格式化，占位符语义与客户端 {@link Text#translatable} 对齐。
+     * <p>
+     * 模板中的 {@code %s} 按顺序消费参数。若参数本身是 {@link Text}（如可点击的玩家名组件），
+     * 则作为子组件嵌入，而非经 {@link String#format} 强转 {@code toString()}——否则非 mod 客户端
+     * 会看到 {@code literal{...}[style={...}]} 这类原始对象描述。无 Text 参数时走 String.format
+     * 快路径，行为与历史实现完全一致。
+     */
+    private static Text formatLiteral(String template, Object... args) {
+        boolean hasTextArg = false;
+        for (Object arg : args) {
+            if (arg instanceof Text) {
+                hasTextArg = true;
+                break;
             }
+        }
+
+        if (!hasTextArg) {
             try {
                 return Text.literal(String.format(template, args));
             } catch (Exception e) {
-                RedemptionCodeFabric.LOGGER.warn("Failed to format message for key '{}': {}", key, e.getMessage());
+                RedemptionCodeFabric.LOGGER.warn("Failed to format message for template '{}': {}", template, e.getMessage());
                 return Text.literal(template);
             }
         }
+
+        MutableText result = Text.literal("");
+        int argIndex = 0;
+        int start = 0;
+        int placeholder;
+        while ((placeholder = template.indexOf("%s", start)) != -1) {
+            if (placeholder > start) {
+                result.append(template.substring(start, placeholder));
+            }
+            if (argIndex < args.length) {
+                Object arg = args[argIndex++];
+                if (arg instanceof Text) {
+                    result.append((Text) arg);
+                } else {
+                    result.append(String.valueOf(arg));
+                }
+            } else {
+                result.append("%s");
+            }
+            start = placeholder + 2;
+        }
+        if (start < template.length()) {
+            result.append(template.substring(start));
+        }
+        return result;
     }
 }

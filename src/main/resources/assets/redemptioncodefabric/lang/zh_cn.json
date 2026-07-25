@@ -43,8 +43,6 @@
   "redemptioncodefabric.message.info_not_used_yet": "  尚无人使用。",
   "redemptioncodefabric.message.info_copy_uuid": "复制 UUID",
   "redemptioncodefabric.message.info_usage_entry": "  - %s: %s 次",
-  "redemptioncodefabric.message.webpage_link_hover": "点击打开后台网页",
-  "redemptioncodefabric.message.webpage_prefix": "[系统] 后台网页: ",
   "redemptioncodefabric.message.sql_fallback_alert": "⚠ [RedemptionCodeFabric] SQL 连接失败！已切换到文件存储模式。请查看服务器日志了解详情。",
   "redemptioncodefabric.message.code_too_long": "兑换码长度不能超过 255 个字符。",
   "redemptioncodefabric.message.no_players_matched": "未匹配到任何玩家，无法创建 GLOBAL_LIMIT 兑换码。",

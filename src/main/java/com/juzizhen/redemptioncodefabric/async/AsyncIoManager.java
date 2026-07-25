@@ -4,14 +4,8 @@ import com.juzizhen.redemptioncodefabric.config.Config;
 import com.juzizhen.redemptioncodefabric.rcode.redis.RedisManager;
 import com.juzizhen.redemptioncodefabric.rcode.sql.SqlManager;
 import com.juzizhen.redemptioncodefabric.rcode.web.WebServer;
-import com.juzizhen.redemptioncodefabric.util.MessageUtils;
 import com.juzizhen.redemptioncodefabric.util.Utils;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,35 +147,6 @@ public final class AsyncIoManager {
         String adminPath = Config.getString("web.adminPath", "/admin.html");
         LOGGER.info("Web management panel available at: {}", baseUrl);
         LOGGER.info("Admin panel path: {}{}", baseUrl, adminPath);
-    }
-
-    /**
-     * 向刚加入的 OP 玩家发送 Web 管理面板 URL。
-     * 必须在玩家 JOIN 事件中调用，因为 SERVER_STARTING 阶段没有在线玩家。
-     */
-    public static void sendWebUrlToPlayer(ServerPlayerEntity player, MinecraftServer server) {
-        if (server == null) return;
-        if (activeWebPort < 0) return; // Web 服务器未运行
-        if (!Config.getBoolean("web.sendUrlToOP", true)) return;
-        if (!server.getPlayerManager().isOperator(player.getGameProfile())) return;
-
-        String baseUrl = Config.getString("web.url", "http://localhost") + ":" + activeWebPort + "/";
-
-        Text prefix = MessageUtils.createText(player.getCommandSource(),
-                        "redemptioncodefabric.message.webpage_prefix")
-                .copy().styled(style -> style.withColor(Formatting.GOLD));
-
-        Text link = Text.literal(baseUrl)
-                .styled(style -> style
-                        .withColor(Formatting.AQUA)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, baseUrl))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                MessageUtils.createText(player.getCommandSource(),
-                                        "redemptioncodefabric.message.webpage_link_hover")))
-                );
-
-        Text message = Text.empty().append(prefix).append(link);
-        player.sendMessage(message, false);
     }
 
     /**

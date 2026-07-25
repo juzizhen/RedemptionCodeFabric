@@ -106,7 +106,7 @@ public class RedemptionCodeFabric implements ModInitializer {
             serverInstance = null;
         });
 
-        // Mod 检测 + 向 OP 发送 Web 管理面板 URL
+        // Mod 检测
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             if (ServerPlayNetworking.canSend(handler, MOD_PRESENCE_CHANNEL)) {
                 playersWithMod.add(handler.player.getUuid());
@@ -114,8 +114,6 @@ public class RedemptionCodeFabric implements ModInitializer {
             } else {
                 LOGGER.info("Player {} joined without RedemptionCodeFabric mod.", handler.player.getName().getString());
             }
-
-            AsyncIoManager.sendWebUrlToPlayer(handler.player, server);
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> playersWithMod.remove(handler.player.getUuid()));

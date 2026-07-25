@@ -840,7 +840,6 @@ public class WebServer {
             cfg.put("web.user", Config.getString("web.user", "admin"));
             cfg.put("web.password", mask(Config.getString("web.password", "")));
             cfg.put("web.adminPath", Config.getString("web.adminPath", ""));
-            cfg.put("web.sendUrlToOP", Config.getBoolean("web.sendUrlToOP", true));
             cfg.put("web.redis.enabled", Config.getBoolean("web.redis.enabled", false));
             cfg.put("web.redis.host", Config.getString("web.redis.host", "localhost"));
             cfg.put("web.redis.port", Config.getInt("web.redis.port", 6379));
