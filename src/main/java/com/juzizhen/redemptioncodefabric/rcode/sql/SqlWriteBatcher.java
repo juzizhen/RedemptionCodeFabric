@@ -74,7 +74,7 @@ public class SqlWriteBatcher {
 
         List<OperationLogEntry> logs = new ArrayList<>(ops.size());
         for (Op o : ops) {
-            logs.add(o.logEntry);
+            logs.add(o.logEntry());
         }
 
         Connection conn = null;
@@ -110,8 +110,8 @@ public class SqlWriteBatcher {
             // 重新入队未超重试上限的条目
             int requeued = 0, dropped = 0;
             for (Op o : ops) {
-                if (o.retryCount < MAX_RETRIES) {
-                    queue.offer(new Op(o.logEntry, o.retryCount + 1));
+                if (o.retryCount() < MAX_RETRIES) {
+                    queue.offer(new Op(o.logEntry(), o.retryCount() + 1));
                     requeued++;
                 } else {
                     dropped++;
@@ -152,20 +152,9 @@ public class SqlWriteBatcher {
         LOGGER.info("SQL write batcher shut down.");
     }
 
-    public int pendingCount() {
-        return queue.size();
-    }
-
     /**
      * 队列条目：包装一条操作日志及其重试计数。
      */
-    private static final class Op {
-        final OperationLogEntry logEntry;
-        final int retryCount;
-
-        Op(OperationLogEntry logEntry, int retryCount) {
-            this.logEntry = logEntry;
-            this.retryCount = retryCount;
-        }
+    private record Op(OperationLogEntry logEntry, int retryCount) {
     }
 }

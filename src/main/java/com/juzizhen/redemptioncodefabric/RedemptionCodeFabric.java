@@ -55,11 +55,11 @@ public class RedemptionCodeFabric implements ModInitializer {
                     previous.shutdown();
                 }
                 codeManager = new CodeManager();
-                LOGGER.info("Configuration reloaded and applied immediately to CodeManager.");
+                LOGGER.info("Configuration reloaded; CodeManager rebuilt after asynchronous I/O reload.");
             });
         } else if (codeManager != null) {
             codeManager = new CodeManager();
-            LOGGER.info("Configuration reloaded and applied immediately to CodeManager.");
+            LOGGER.info("Configuration reloaded; CodeManager rebuilt immediately (server not running).");
         } else {
             LOGGER.info("Configuration reloaded. New configuration will be applied when the server starts.");
         }

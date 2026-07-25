@@ -116,10 +116,6 @@ public class CodeManager {
         repository.appendOperationLog(new OperationLogEntry(System.currentTimeMillis(), "GENERATE", executorName, details));
     }
 
-    public void deleteCode(String code, String executorName) {
-        deleteCode(code, executorName, null);
-    }
-
     public boolean deleteCode(String code, String executorName, String executorUuid) {
         // 原子 remove：避免 containsKey + remove 之间同步线程 retainAll 删除 key 导致 NPE
         CodeData deletedCode = codes.remove(code);
@@ -223,6 +219,7 @@ public class CodeManager {
     /**
      * 缓存命中则同步处理；未命中则异步查 DB，查到后回 MC 主线程发奖。
      */
+    @SuppressWarnings("DataFlowIssue")
     public Text redeemCode(ServerCommandSource source, String code) {
         if (source.getPlayer() == null) {
             return MessageUtils.createText(source, "redemptioncodefabric.message.code_invalid_or_nonexistent");
@@ -273,7 +270,11 @@ public class CodeManager {
      * 兑换核心逻辑：校验 → 发奖 → 记录使用。必须在 MC 主线程调用。
      */
     private Text processRedeem(ServerCommandSource source, String code, CodeData codeData) {
-        String playerUUID = source.getPlayer().getUuidAsString();
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            return MessageUtils.createText(source, "redemptioncodefabric.message.code_invalid_or_nonexistent");
+        }
+        String playerUUID = player.getUuidAsString();
         long currentTime = System.currentTimeMillis();
 
         String validationErrorKey = validateCode(codeData, playerUUID, currentTime);
@@ -371,9 +372,6 @@ public class CodeManager {
     private Text grantReward(ServerCommandSource source, CodeData codeData) {
         String rewardString = codeData.getReward();
         String lowerReward = rewardString.toLowerCase();
-        if (source == null) {
-            return MessageUtils.createText(source, "redemptioncodefabric.message.code_invalid_or_nonexistent");
-        }
         ServerPlayerEntity player = source.getPlayer();
         if (player == null) {
             return MessageUtils.createText(source, "redemptioncodefabric.message.code_invalid_or_nonexistent");
@@ -404,16 +402,16 @@ public class CodeManager {
         } else if (lowerReward.startsWith(REWARD_PREFIX_EXP)) {
             String expPart = rewardString.substring(REWARD_PREFIX_EXP.length());
             try {
-                int finalAmount;
-                if (expPart.toUpperCase().endsWith("L")) {
-                    finalAmount = Integer.parseInt(expPart.substring(0, expPart.length() - 1));
-                    player.addExperienceLevels(finalAmount);
-                } else if (expPart.toUpperCase().endsWith("P")) {
-                    finalAmount = Integer.parseInt(expPart.substring(0, expPart.length() - 1));
-                    player.addExperience(finalAmount);
+                String upper = expPart.toUpperCase();
+                boolean levels = upper.endsWith("L");
+                boolean points = upper.endsWith("P");
+                int amount = (levels || points)
+                        ? Integer.parseInt(expPart.substring(0, expPart.length() - 1))
+                        : Integer.parseInt(expPart);
+                if (levels) {
+                    player.addExperienceLevels(amount);
                 } else {
-                    finalAmount = Integer.parseInt(expPart);
-                    player.addExperience(finalAmount);
+                    player.addExperience(amount);
                 }
             } catch (NumberFormatException e) {
                 return MessageUtils.createText(source, "redemptioncodefabric.message.redeem_fail_exp");

@@ -244,17 +244,9 @@ public class RCodeCommand {
             owner = String.join(",", allowedPlayerUuids);
             count = allowedPlayerUuids.size();
         } else if (type == CodeType.TIMED) {
-            String startTimeStr = StringArgumentType.getString(context, "start_time");
-            if (startTimeStr.equals("0-0-0_0-0-0") || startTimeStr.equals("0") || startTimeStr.equals("0-0-0-0-0-0")) {
-                startTime = System.currentTimeMillis();
-            } else {
-                try {
-                    startTime = sdf.parse(startTimeStr).getTime();
-                } catch (ParseException e) {
-                    MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.invalid_date_format");
-                    return 0;
-                }
-            }
+            Long parsedStart = parseStartTime(context, sdf);
+            if (parsedStart == null) return 0;
+            startTime = parsedStart;
             try {
                 endTime = sdf.parse(StringArgumentType.getString(context, "end_time")).getTime();
             } catch (ParseException e) {
@@ -262,17 +254,9 @@ public class RCodeCommand {
                 return 0;
             }
         } else if (type == CodeType.CYCLE) {
-            String startTimeStr = StringArgumentType.getString(context, "start_time");
-            if (startTimeStr.equals("0-0-0_0-0-0") || startTimeStr.equals("0") || startTimeStr.equals("0-0-0-0-0-0")) {
-                startTime = System.currentTimeMillis();
-            } else {
-                try {
-                    startTime = sdf.parse(startTimeStr).getTime();
-                } catch (ParseException e) {
-                    MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.invalid_date_format");
-                    return 0;
-                }
-            }
+            Long parsedStart = parseStartTime(context, sdf);
+            if (parsedStart == null) return 0;
+            startTime = parsedStart;
             interval = IntegerArgumentType.getInteger(context, "interval") * 1000L;
         }
 
@@ -308,6 +292,19 @@ public class RCodeCommand {
         return rewardStr;
     }
 
+    private static Long parseStartTime(CommandContext<ServerCommandSource> context, SimpleDateFormat sdf) {
+        String startTimeStr = StringArgumentType.getString(context, "start_time");
+        if (startTimeStr.equals("0-0-0_0-0-0") || startTimeStr.equals("0") || startTimeStr.equals("0-0-0-0-0-0")) {
+            return System.currentTimeMillis();
+        }
+        try {
+            return sdf.parse(startTimeStr).getTime();
+        } catch (ParseException e) {
+            MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.invalid_date_format");
+            return null;
+        }
+    }
+
     private static int executeRedeem(CommandContext<ServerCommandSource> context) {
         if (RedemptionCodeFabric.codeManager == null) {
             MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.not_ready");
@@ -325,7 +322,7 @@ public class RCodeCommand {
 
     private static int executeReload(CommandContext<ServerCommandSource> context) {
         RedemptionCodeFabric.reloadConfig();
-        MessageUtils.sendFeedback(context.getSource(), "redemptioncodefabric.message.config_reloaded", true);
+        MessageUtils.sendFeedback(context.getSource(), "redemptioncodefabric.message.config_reloaded", false);
         return 1;
     }
 
@@ -338,7 +335,7 @@ public class RCodeCommand {
         String executorUuid = context.getSource().getPlayer() != null ? context.getSource().getPlayer().getUuidAsString() : null;
         boolean success = RedemptionCodeFabric.codeManager.deleteCode(code, context.getSource().getName(), executorUuid);
         if (success) {
-            MessageUtils.sendFeedback(context.getSource(), "redemptioncodefabric.message.code_deleted_success", true, code);
+            MessageUtils.sendFeedback(context.getSource(), "redemptioncodefabric.message.code_deleted_success", false, code);
         } else {
             MessageUtils.sendError(context.getSource(), "redemptioncodefabric.message.code_delete_fail", code);
         }

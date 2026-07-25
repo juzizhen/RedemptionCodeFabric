@@ -143,7 +143,7 @@ public class SecurityFilter extends Filter {
 
         // 2. 登录接口限流：单 IP 每分钟最多 5 次
         if ("/api/login".equals(path) && "POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-            if (!checkRateLimit("login:" + clientIp, 5, 60)) {
+            if (isRateLimited("login:" + clientIp, 5, 60)) {
                 sendError(exchange, 429, "请求过于频繁，请 1 分钟后再试");
                 return;
             }
@@ -151,7 +151,7 @@ public class SecurityFilter extends Filter {
 
         // 3. 业务接口限流：单 IP 每秒最多 20 次
         if (path.startsWith("/api/") && !"/api/login".equals(path)) {
-            if (!checkRateLimit("api:" + clientIp, 20, 1)) {
+            if (isRateLimited("api:" + clientIp, 20, 1)) {
                 sendError(exchange, 429, "请求过于频繁，请稍后再试");
                 return;
             }
@@ -182,7 +182,7 @@ public class SecurityFilter extends Filter {
         return path.equals(adminPath);
     }
 
-    private boolean checkRateLimit(String key, int maxLimit, int expireSeconds) {
+    private boolean isRateLimited(String key, int maxLimit, int expireSeconds) {
         if (isRedisAvailable()) {
             try (Jedis jedis = webRedisPool.getResource()) {
                 String redisKey = "ratelimit:" + key;
@@ -190,15 +190,15 @@ public class SecurityFilter extends Filter {
                 if (count == 1) {
                     jedis.expire(redisKey, expireSeconds);
                 }
-                return count <= maxLimit;
+                return count > maxLimit;
             } catch (Exception e) {
                 LOGGER.warn("Redis rate limit failed, falling back to memory.", e);
             }
         }
-        return checkMemoryRateLimit(key, maxLimit, expireSeconds);
+        return isMemoryRateLimited(key, maxLimit, expireSeconds);
     }
 
-    private boolean checkMemoryRateLimit(String key, int maxLimit, int expireSeconds) {
+    private boolean isMemoryRateLimited(String key, int maxLimit, int expireSeconds) {
         long now = System.currentTimeMillis();
 
         // 惰性清理过期限流桶（最多每 60 秒一次），防止不同 IP 累积导致内存泄漏
@@ -213,7 +213,7 @@ public class SecurityFilter extends Filter {
                 bucket.count.set(0);
                 bucket.windowStart = now;
             }
-            return bucket.count.incrementAndGet() <= maxLimit;
+            return bucket.count.incrementAndGet() > maxLimit;
         }
     }
 
@@ -246,7 +246,7 @@ public class SecurityFilter extends Filter {
      * 获取客户端 IP。仅在 web.trustProxy=true 时信任 X-Forwarded-For，
      * 防止直连客户端伪造 XFF 绕过限流。
      */
-    private String getClientIp(HttpExchange exchange) {
+    public static String getClientIp(HttpExchange exchange) {
         if (Config.getBoolean("web.trustProxy", false)) {
             String xff = exchange.getRequestHeaders().getFirst("X-Forwarded-For");
             if (xff != null && !xff.isEmpty()) {

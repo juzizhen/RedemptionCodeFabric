@@ -32,10 +32,6 @@ public final class AsyncIoManager {
     private static volatile ExecutorService ioExecutor;
     private static boolean initialized = false;
     /**
-     * 记录当前 Web 服务器实际监听的端口（-1 表示未运行）
-     */
-    private static volatile int activeWebPort = -1;
-    /**
      * 是否有 reload 线程正在运行（串行化标志），与 {@link #LIFECYCLE_LOCK} 配合保证同一时刻只有一个 reload。
      */
     private static volatile boolean reloading = false;
@@ -121,7 +117,6 @@ public final class AsyncIoManager {
     private static void initWebServer() {
         if (!Config.getBoolean("web.enabled", false)) {
             LOGGER.info("Web server is disabled in config.");
-            activeWebPort = -1;
             return;
         }
 
@@ -135,28 +130,16 @@ public final class AsyncIoManager {
                 LOGGER.info("Original web port {} occupied, using fallback port {}", configuredPort, fallbackPort);
             } else {
                 LOGGER.error("Could not find available port for web server, web server not started.");
-                activeWebPort = -1;
                 return;
             }
         }
 
         WebServer.getInstance().start(port);
-        activeWebPort = port;
 
         String baseUrl = Config.getString("web.url", "http://localhost") + ":" + port;
         String adminPath = Config.getString("web.adminPath", "/admin.html");
         LOGGER.info("Web management panel available at: {}", baseUrl);
         LOGGER.info("Admin panel path: {}{}", baseUrl, adminPath);
-    }
-
-    /**
-     * 重新加载配置（用于 /rcode reload 命令）：shutdown → init。
-     * Web 服务器在 shutdown 阶段停止，再在 init 阶段按新配置决定是否重启。
-     */
-    public static synchronized void reload(Config config, MinecraftServer server) {
-        LOGGER.info("Reloading AsyncIoManager...");
-        shutdown();
-        init(config, server);
     }
 
     /**
@@ -238,7 +221,6 @@ public final class AsyncIoManager {
 
         // 先停 Web 服务器，避免新请求进入即将关闭的线程池
         WebServer.getInstance().stop();
-        activeWebPort = -1;
 
         SqlManager.getInstance().shutdown();
 

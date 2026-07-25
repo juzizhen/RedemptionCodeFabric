@@ -200,22 +200,11 @@ public class WebServer {
         return defaultValue;
     }
 
-    /** 安全提取 long，类型不匹配时返回默认值 */
-    private static long getLongFromMap(Map<String, Object> map, String key, long defaultValue) {
+    /** 安全提取 long，类型不匹配时返回 0 */
+    private static long getLongFromMap(Map<String, Object> map, String key) {
         Object val = map.get(key);
         if (val instanceof Number n) return n.longValue();
-        return defaultValue;
-    }
-
-    /** 仅在 web.trustProxy=true 时信任 XFF，与 SecurityFilter 保持一致 */
-    private String getClientIp(HttpExchange exchange) {
-        if (Config.getBoolean("web.trustProxy", false)) {
-            String forwarded = exchange.getRequestHeaders().getFirst("X-Forwarded-For");
-            if (forwarded != null && !forwarded.isEmpty()) {
-                return forwarded.split(",")[0].trim();
-            }
-        }
-        return exchange.getRemoteAddress().getAddress().getHostAddress();
+        return 0;
     }
 
     private void sendJsonResponse(HttpExchange exchange, int statusCode, Object data) throws IOException {
@@ -327,7 +316,7 @@ public class WebServer {
                 return;
             }
 
-            String clientIp = getClientIp(exchange);
+            String clientIp = SecurityFilter.getClientIp(exchange);
             Map<String, String> form = parseFormBody(exchange);
             String user = form.get("user");
             String pass = form.get("password");
@@ -651,11 +640,11 @@ public class WebServer {
             } else if (type == CodeType.PERSONAL) {
                 player = req.containsKey("player") ? (String) req.get("player") : null;
             } else if (type == CodeType.TIMED) {
-                startTime = getLongFromMap(req, "startTime", 0);
-                endTime = getLongFromMap(req, "endTime", 0);
+                startTime = getLongFromMap(req, "startTime");
+                endTime = getLongFromMap(req, "endTime");
             } else if (type == CodeType.CYCLE) {
-                startTime = getLongFromMap(req, "startTime", 0);
-                interval = getLongFromMap(req, "interval", 0);
+                startTime = getLongFromMap(req, "startTime");
+                interval = getLongFromMap(req, "interval");
                 if (interval <= 0) {
                     sendJsonResponse(exchange, 400, Map.of("success", false, "message", "CYCLE 类型的 interval 必须大于 0"));
                     return;
