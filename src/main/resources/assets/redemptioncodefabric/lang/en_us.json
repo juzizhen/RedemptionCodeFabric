@@ -46,5 +46,6 @@
   "redemptioncodefabric.message.sql_fallback_alert": "⚠ [RedemptionCodeFabric] SQL connection failed! Switched to FILE storage mode. Check server logs for details.",
   "redemptioncodefabric.message.code_too_long": "Code length cannot exceed 255 characters.",
   "redemptioncodefabric.message.no_players_matched": "No players matched. Cannot create a GLOBAL_LIMIT code with an empty player list.",
-  "redemptioncodefabric.message.redeem_processing": "Processing redemption, please wait..."
+  "redemptioncodefabric.message.redeem_processing": "Processing redemption, please wait...",
+  "redemptioncodefabric.message.web_admin_available": "Web admin panel: %s"
 }

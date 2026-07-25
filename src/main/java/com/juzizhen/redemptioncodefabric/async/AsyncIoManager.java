@@ -40,6 +40,11 @@ public final class AsyncIoManager {
      * 重载期间到达的多次请求会互相覆盖，最终只执行最新的一次，确保用户最后的配置一定生效。
      */
     private static volatile ReloadRequest pendingRequest;
+    /**
+     * 当前 Web 管理面板完整地址（baseUrl + adminPath，已含回退端口）。
+     * web.enabled=false 或关闭时为 null；内置服务器主机进服时据此弹出可点击链接。
+     */
+    private static volatile String activeAdminUrl;
 
     private AsyncIoManager() {
     }
@@ -65,6 +70,13 @@ public final class AsyncIoManager {
             }
         }
         return exec;
+    }
+
+    /**
+     * 获取当前 Web 管理面板完整地址；web 未启用或已关闭时返回 null。
+     */
+    public static String getActiveAdminUrl() {
+        return activeAdminUrl;
     }
 
     private static ExecutorService createIoExecutor() {
@@ -138,6 +150,7 @@ public final class AsyncIoManager {
 
         String baseUrl = Config.getString("web.url", "http://localhost") + ":" + port;
         String adminPath = Config.getString("web.adminPath", "/admin.html");
+        activeAdminUrl = baseUrl + (adminPath.startsWith("/") ? adminPath : "/" + adminPath);
         LOGGER.info("Web management panel available at: {}", baseUrl);
         LOGGER.info("Admin panel path: {}{}", baseUrl, adminPath);
     }
@@ -221,6 +234,7 @@ public final class AsyncIoManager {
 
         // 先停 Web 服务器，避免新请求进入即将关闭的线程池
         WebServer.getInstance().stop();
+        activeAdminUrl = null;
 
         SqlManager.getInstance().shutdown();
 

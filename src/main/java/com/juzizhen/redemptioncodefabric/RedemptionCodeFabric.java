@@ -4,6 +4,7 @@ import com.juzizhen.redemptioncodefabric.async.AsyncIoManager;
 import com.juzizhen.redemptioncodefabric.config.Config;
 import com.juzizhen.redemptioncodefabric.rcode.command.RCodeCommand;
 import com.juzizhen.redemptioncodefabric.rcode.manager.CodeManager;
+import com.juzizhen.redemptioncodefabric.util.MessageUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -11,6 +12,10 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +82,27 @@ public class RedemptionCodeFabric implements ModInitializer {
                 .orElse("Error Version");
     }
 
+    /**
+     * 内置服务器（单人开放局域网）主机进服时，弹出 Web 管理面板的可点击链接。
+     * 专用服务器或 web 未启用时不做任何事；主机身份由 {@link MinecraftServer#isHost} 精准判定，
+     * 不会骚扰局域网访客。
+     */
+    private static void notifyHostOfWebPanel(ServerPlayerEntity player, MinecraftServer server) {
+        if (server.isDedicated() || !server.isHost(player.getGameProfile())) {
+            return;
+        }
+        String adminUrl = AsyncIoManager.getActiveAdminUrl();
+        if (adminUrl == null) {
+            return;
+        }
+        Text url = Text.literal(adminUrl).setStyle(Text.empty().getStyle()
+                .withColor(Formatting.AQUA)
+                .withUnderline(true)
+                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, adminUrl)));
+        player.sendMessage(MessageUtils.createText(player.getUuid(),
+                "redemptioncodefabric.message.web_admin_available", url), false);
+    }
+
     @Override
     public void onInitialize() {
         LOGGER.info("Loading mod -> " + MOD_ID + ":{}", getModVersion());
@@ -114,6 +140,7 @@ public class RedemptionCodeFabric implements ModInitializer {
             } else {
                 LOGGER.info("Player {} joined without RedemptionCodeFabric mod.", handler.player.getName().getString());
             }
+            notifyHostOfWebPanel(handler.player, server);
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> playersWithMod.remove(handler.player.getUuid()));
